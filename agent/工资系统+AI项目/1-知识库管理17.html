@@ -1,0 +1,3456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智能维护管理 - 知识库管理原型</title>
+  <style>
+    :root {
+      --navy-950: #00192b;
+      --navy-900: #062239;
+      --navy-800: #0a2c47;
+      --blue-600: #2788df;
+      --blue-500: #3695e8;
+      --blue-050: #eef7ff;
+      --green-600: #17a05d;
+      --red-500: #f05b67;
+      --amber-500: #d89728;
+      --slate-900: #203040;
+      --slate-700: #4e6275;
+      --slate-500: #7d8b9a;
+      --slate-300: #d7dde4;
+      --slate-200: #e8edf2;
+      --slate-100: #f3f6f9;
+      --white: #ffffff;
+      --shadow-panel: 0 10px 24px rgba(32, 48, 64, 0.08);
+      --focus: 0 0 0 3px rgba(39, 136, 223, 0.18);
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html {
+      width: 100%;
+      height: 100%;
+      min-width: 320px;
+      background: var(--slate-100);
+      overflow: hidden;
+    }
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      color: var(--slate-900);
+      background: var(--slate-100);
+      font-size: 14px;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; }
+    a { color: inherit; text-decoration: none; }
+
+    .app {
+      height: 100dvh;
+      display: grid;
+      grid-template-columns: 215px minmax(0, 1fr);
+      overflow: hidden;
+      background: var(--slate-100);
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #00182a 0%, #001321 100%);
+      color: #d9edf9;
+      height: 100dvh;
+      position: sticky;
+      top: 0;
+      overflow: hidden;
+      border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    .brand {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      font-size: 16px;
+    }
+    .nav-group { margin-top: 12px; }
+    .nav-group + .nav-group { margin-top: 24px; }
+    .nav-head,
+    .nav-item {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #d6e5ee;
+      transition: background 180ms var(--ease), color 180ms var(--ease);
+    }
+    .nav-head {
+      padding: 0 24px 0 28px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .nav-head .chev { margin-left: auto; color: #89a4b8; font-size: 18px; line-height: 1; }
+    .nav-item {
+      width: calc(100% - 9px);
+      margin-left: 9px;
+      padding-left: 56px;
+      font-size: 14px;
+      color: #d4e8f8;
+      cursor: pointer;
+      background: transparent;
+      text-align: left;
+    }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    .nav-item.active { color: #fff; background: #2494f2; }
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid #d7e9f6;
+      color: #d7e9f6;
+      font-size: 10px;
+      position: relative;
+    }
+    .nav-icon::before,
+    .nav-icon::after {
+      content: "";
+      position: absolute;
+      inset: 2px 8px;
+      background: #d7e9f6;
+      transform: rotate(45deg);
+      opacity: 0.85;
+    }
+    .nav-icon::after { transform: rotate(-45deg); }
+
+    .main {
+      min-width: 0;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: 46px minmax(0, 1fr);
+      overflow: hidden;
+    }
+    .topbar {
+      height: 46px;
+      background: #fff;
+      border-bottom: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      box-shadow: 0 1px 3px rgba(20, 35, 50, 0.04);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .hamburger { width: 22px; color: #637689; font-size: 20px; line-height: 1; }
+    .top-actions { display: flex; align-items: center; gap: 24px; color: var(--slate-700); font-size: 13px; }
+    .user-chip { display: flex; align-items: center; gap: 7px; }
+    .avatar {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1px solid var(--slate-300);
+      display: inline-grid; place-items: center; font-size: 11px; color: var(--slate-500);
+    }
+
+    .content {
+      padding: 16px 14px;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .workspace {
+      height: calc(100dvh - 78px);
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 40px minmax(0, 1fr);
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid #e6ebf0;
+      box-shadow: var(--shadow-panel);
+    }
+    .breadcrumb {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      background: #fff;
+      border-bottom: 1px solid var(--slate-200);
+      color: var(--slate-500);
+      font-size: 13px;
+    }
+    .breadcrumb strong { color: var(--blue-600); font-weight: 500; }
+
+    .screen {
+      display: none;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .screen.active {
+      display: block;
+      height: 100%;
+      animation: fadeIn 220ms var(--ease);
+    }
+    #detailScreen.active {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    #copyKbScreen.active,
+    #exportScreen.active {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      overflow: auto;
+      background: #fff;
+    }
+    .copy-page {
+      min-height: 100%;
+      padding: 30px 22px 42px;
+      background: #fff;
+    }
+    .copy-page h1 {
+      margin: 0 0 24px;
+      color: var(--slate-900);
+      font-size: 20px;
+      line-height: 1.4;
+      font-weight: 700;
+    }
+    .copy-page-form {
+      display: grid;
+      gap: 18px;
+    }
+    .copy-page-form .field-label {
+      gap: 9px;
+      color: #405568;
+    }
+    .copy-page-form .field,
+    .copy-page-form .select,
+    .copy-page-form .textarea {
+      width: 100%;
+      min-width: 0;
+      border-color: #d9dfe6;
+      background: #fff;
+    }
+    .copy-page-form .textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+    .copy-page-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-top: 2px;
+    }
+    .copy-page-actions .btn {
+      min-width: 58px;
+    }
+    .export-page {
+      min-height: 100%;
+      padding: 18px 20px 24px;
+      background: linear-gradient(180deg, #fff 0%, #f7fbff 100%);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 14px;
+    }
+    .export-page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 2px 10px;
+    }
+    .export-title-line { display: flex; align-items: center; gap: 10px; }
+    .export-page-head h1 { margin: 0; font-size: 20px; color: var(--slate-900); }
+    .export-transfer {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1.06fr) 76px minmax(0, 0.94fr);
+      gap: 16px;
+    }
+    .transfer-panel {
+      min-height: 0;
+      background: rgba(255,255,255,0.82);
+      border-radius: 5px;
+      display: grid;
+      grid-template-rows: 44px auto minmax(0, 1fr);
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(32,48,64,0.07);
+      border: 1px solid rgba(216,229,240,0.72);
+    }
+    .transfer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      color: #405568;
+      font-weight: 650;
+    }
+    .transfer-tools { padding: 0 14px 10px; background: transparent; }
+    .transfer-tools .search-input { width: 100%; min-width: 0; border-radius: 8px; border-color: #dce8f3; background: #fbfdff; }
+    .transfer-list,
+    .transfer-preview { min-height: 0; overflow: auto; padding: 4px 10px 12px; }
+    .export-category-group { margin-bottom: 8px; }
+    .export-category-head,
+    .export-category-leaf {
+      width: 100%;
+      min-height: 34px;
+      display: grid;
+      grid-template-columns: 20px 18px 16px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 6px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #22435f;
+      text-align: left;
+      transition: background 160ms var(--ease), color 160ms var(--ease), transform 160ms var(--ease);
+    }
+    .export-category-head:hover,
+    .export-category-leaf:hover { background: #edf7ff; }
+    .export-category-head[aria-expanded="false"] + .export-category-children { display: none; }
+    .export-node-toggle {
+      width: 18px;
+      height: 26px;
+      display: inline-grid;
+      place-items: center;
+      border: 0;
+      background: transparent;
+      color: #6f879b;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .export-node-toggle:hover { background: rgba(39,136,223,0.09); color: var(--blue-600); }
+    .export-node-check,
+    .preview-node-check {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--blue-600);
+      cursor: pointer;
+    }
+    .export-category-leaf { grid-template-columns: 20px 18px minmax(0, 1fr) auto; margin-left: 34px; width: calc(100% - 34px); color: #405568; }
+    .export-category-leaf[aria-expanded="false"] + .export-question-list { display: none; }
+    .export-category-leaf.is-empty { color: #9aa9b7; }
+    .export-question-list { display: grid; gap: 4px; padding: 3px 0 8px 44px; }
+    .export-question-item {
+      min-height: 32px;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px 0 4px;
+      color: var(--slate-700);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 160ms var(--ease), color 160ms var(--ease);
+    }
+    .export-question-item:hover { background: #f4f9fe; }
+    .export-question-item input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--blue-600);
+    }
+    .export-question-item:has(input:checked) { background: #eaf5ff; color: #176fb6; }
+    .export-question-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .transfer-center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
+    }
+    .transfer-center .btn { padding: 0 12px; border-radius: 999px; box-shadow: 0 8px 18px rgba(39,136,223,0.1); }
+    .preview-tree { display: grid; gap: 8px; }
+    .preview-group {
+      padding: 6px 6px 8px;
+      border-radius: 5px;
+      background: #f8fbff;
+    }
+    .preview-group-head {
+      min-height: 30px;
+      display: grid;
+      grid-template-columns: 20px 16px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding: 0 8px;
+      color: #22435f;
+      font-weight: 650;
+    }
+    .preview-category-node {
+      margin-left: 20px;
+      padding: 4px 0 2px;
+    }
+    .preview-category-head {
+      min-height: 28px;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding: 0 8px;
+      color: var(--blue-600);
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .preview-item {
+      min-height: 36px;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px 6px 18px;
+      margin: 3px 0 0 12px;
+      border-radius: 5px;
+      background: #fff;
+      color: var(--slate-700);
+    }
+    .preview-main { min-width: 0; }
+    .preview-question { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #405568; }
+    .preview-empty { padding: 42px 12px; text-align: center; color: var(--slate-500); }
+    .preview-remove { background: transparent; color: var(--red-500); cursor: pointer; }
+    #listScreen.active { overflow: auto; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px 10px;
+      flex-wrap: wrap;
+    }
+    .search-input,
+    .select,
+    .field,
+    .textarea {
+      height: 31px;
+      border: 1px solid var(--slate-300);
+      background: #fff;
+      color: var(--slate-900);
+      border-radius: 1px;
+      padding: 0 12px;
+      min-width: 180px;
+      outline: none;
+      transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease), background 160ms var(--ease);
+    }
+    .search-input::placeholder, .textarea::placeholder { color: #aab4be; }
+    .search-input:focus, .select:focus, .field:focus, .textarea:focus { border-color: var(--blue-500); box-shadow: var(--focus); }
+    .select { min-width: 180px; }
+    .btn {
+      height: 31px;
+      padding: 0 18px;
+      border-radius: 2px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 160ms var(--ease), background 160ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:focus-visible { outline: 2px solid var(--blue-600); outline-offset: 2px; }
+    .btn-primary { background: var(--blue-600); color: #fff; }
+    .btn-primary:hover { background: #1d79cc; box-shadow: 0 5px 12px rgba(39,136,223,0.22); }
+    .btn-ghost { background: #fff; color: var(--slate-700); border: 1px solid var(--slate-300); }
+    .btn-ghost:hover { border-color: var(--blue-500); color: var(--blue-600); }
+    .btn-outline { background: #fff; color: var(--blue-600); border: 1px solid #acd5f7; margin-left: auto; }
+    .btn-outline:hover { background: var(--blue-050); }
+    .btn-danger { background: #fff6f6; color: var(--red-500); border: 1px solid #ffd9de; }
+
+    .table-wrap { padding: 0 18px 16px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 920px; }
+    th, td {
+      height: 44px;
+      border-bottom: 1px solid #edf1f5;
+      padding: 0 12px;
+      text-align: left;
+      color: var(--slate-700);
+      font-size: 13px;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    th { height: 38px; color: #405568; font-weight: 650; background: #fff; }
+    tr:hover td { background: #fbfdff; }
+    .name-cell { color: #526678; font-weight: 500; }
+    .desc { max-width: 132px; overflow: hidden; text-overflow: ellipsis; }
+    .status { font-weight: 650; }
+    .status.on { color: var(--green-600); }
+    .status.off { color: var(--red-500); }
+    .op { display: inline-flex; gap: 9px; align-items: center; }
+    .op button { background: transparent; padding: 0; cursor: pointer; color: var(--blue-600); font-size: 13px; line-height: 1.4; }
+    .op .delete { color: var(--red-500); }
+    .op .delete:hover { color: #e44752; }
+    .pagination {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 0 28px;
+      color: var(--slate-500);
+      border-top: 1px solid #f0f3f6;
+      font-size: 13px;
+    }
+    .pager-select, .page-input {
+      height: 28px; border: 1px solid var(--slate-300); background: #fff; color: var(--slate-700); border-radius: 2px; padding: 0 8px;
+    }
+    .page-arrow { color: #a8b4c0; font-weight: 700; }
+    .page-now { color: #13a899; font-weight: 700; }
+
+    .detail-head {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--slate-200);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+    }
+    .detail-title { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+    .detail-title.is-structure-title { width: 100%; }
+    .detail-title.is-structure-title h1 { flex: 0 0 auto; }
+    .detail-title.is-structure-title #structureAddRootBtn { margin-left: auto; }
+    .back-link {
+      width: 30px; height: 30px; display: inline-grid; place-items: center;
+      color: var(--blue-600); background: var(--blue-050); border: 1px solid #cce7fb; border-radius: 2px; cursor: pointer;
+    }
+    h1 { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 10px; color: var(--slate-500); font-size: 13px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 8px; border-radius: 999px;
+      background: #f7fafc; border: 1px solid var(--slate-200); color: var(--slate-700); font-size: 12px;
+    }
+    .pill .mini-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green-600); }
+    .detail-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .tabs {
+      height: 42px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--slate-200);
+      background: #fbfcfe;
+    }
+    .tab-action {
+      margin-left: auto;
+      align-self: center;
+      display: inline-flex;
+      align-items: center;
+    }
+    .tab-action.is-hidden { display: none; }
+    .tab-action [hidden] { display: none !important; }
+    .tab {
+      height: 42px;
+      padding: 0 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      color: var(--slate-700);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: color 160ms var(--ease), border-color 160ms var(--ease), background 160ms var(--ease);
+    }
+    .tab:hover { color: var(--blue-600); background: #fff; }
+    .tab.active { color: var(--blue-600); border-color: var(--blue-600); background: #fff; font-weight: 650; }
+    .tab-count { margin-left: 5px; color: var(--slate-500); font-size: 12px; }
+
+    .detail-workspace {
+      min-height: 0;
+      padding: 12px 20px;
+      display: grid;
+      grid-template-columns: 238px minmax(0, 1fr);
+      gap: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .detail-workspace.category-collapsed {
+      grid-template-columns: minmax(0, 1fr);
+      padding-left: 52px;
+    }
+    .detail-workspace.category-collapsed .category-panel { display: none; }
+    .category-expand-btn {
+      position: absolute;
+      left: 16px;
+      top: 12px;
+      bottom: 12px;
+      width: 30px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      writing-mode: vertical-rl;
+      letter-spacing: 2px;
+      border: 1px solid #acd5f7;
+      background: linear-gradient(180deg, #f8fcff 0%, #eef7ff 100%);
+      color: var(--blue-600);
+      border-radius: 2px;
+      cursor: pointer;
+      font-weight: 650;
+      transition: background 160ms var(--ease), transform 160ms var(--ease), box-shadow 160ms var(--ease);
+    }
+    .category-expand-btn:hover { background: #e5f3ff; box-shadow: 0 5px 12px rgba(39,136,223,0.16); }
+    .category-expand-btn:active { transform: scale(0.98); }
+    .category-expand-btn:focus-visible { outline: 2px solid var(--blue-600); outline-offset: 2px; }
+    .detail-workspace.category-collapsed .category-expand-btn { display: flex; }
+    .content-stage {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 42px minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid var(--slate-200);
+      background: #fff;
+      border-radius: 2px;
+    }
+    .tab-panel {
+      display: none;
+      min-height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .tab-panel.active {
+      display: block;
+      height: 100%;
+      animation: fadeIn 180ms var(--ease);
+    }
+    .tab-panel > .panel {
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .editor-layout {
+      height: 100%;
+      min-height: 0;
+      position: relative;
+      display: block;
+      overflow: hidden;
+    }
+    .panel {
+      border: 1px solid var(--slate-200);
+      background: #fff;
+      border-radius: 2px;
+    }
+    .panel-head {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--slate-200);
+      background: #fbfcfe;
+      color: #405568;
+      font-weight: 650;
+    }
+    .panel-body { padding: 14px; }
+    .history-panel .panel-body,
+    .attachment-panel .panel-body {
+      height: calc(100% - 40px);
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
+    }
+    .attachment-panel .panel-body { grid-template-rows: auto minmax(0, 1fr); }
+    .attachment-table-wrap { min-height: 0; overflow: auto; position: relative; }
+    .attachment-table { min-width: 680px; }
+    .attachment-panel .panel-head { display: none; }
+    .attachment-panel .panel-body { height: 100%; }
+    .attachment-table th { height: 38px; font-weight: 700; }
+    .attachment-table td { height: 36px; }
+    .attachment-table tbody td,
+    .attachment-table tbody td * { font-weight: 400; }
+    .attachment-table tbody tr { cursor: default; }
+    .attachment-table .file-name { color: var(--blue-600); line-height: 1.45; }
+    .attachment-status { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; background: #eef7ff; color: var(--blue-600); }
+    .attachment-status.pending { background: #fff8e8; color: var(--amber-500); }
+    .attachment-status.processing { background: #eef7ff; color: var(--blue-600); }
+    .attachment-status.done { background: #edf9f3; color: var(--green-600); }
+    .attachment-process-btn { color: var(--blue-600); font-weight: 650; }
+    .attachment-process-btn[disabled] { color: var(--slate-400); cursor: not-allowed; }
+    .category-panel {
+      height: 100%;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 40px minmax(0, 1fr) auto;
+      overflow: hidden;
+    }
+    .category-tree {
+      padding: 12px 10px 14px;
+      overflow: auto;
+      background: #fff;
+    }
+    .category-panel-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 32px);
+      justify-content: end;
+      gap: 8px;
+      padding: 10px;
+      border-top: 1px solid var(--slate-200);
+      background: #fbfcfe;
+    }
+    .category-panel-action {
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #d6e2ed;
+      background: #fff;
+      color: #405568;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 160ms var(--ease), border-color 160ms var(--ease), color 160ms var(--ease), transform 160ms var(--ease);
+    }
+    .category-action-icon { width: 17px; height: 17px; display: block; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .category-panel-action:hover { background: #eef7ff; border-color: #acd5f7; color: var(--blue-600); }
+    .category-panel-action:active { transform: scale(0.98); }
+    .category-panel-action:focus-visible { outline: 2px solid var(--blue-600); outline-offset: 2px; }
+    .category-panel-action.is-primary { background: var(--blue-600); border-color: var(--blue-600); color: #fff; }
+    .category-panel-action.is-primary:hover { background: #1d79cc; color: #fff; }
+    .category-tree::-webkit-scrollbar { width: 7px; }
+    .category-tree::-webkit-scrollbar-thumb { background: #c8d4df; border-radius: 999px; }
+    .category-tree::-webkit-scrollbar-track { background: #f4f7fa; }
+    .category-group { margin-bottom: 8px; }
+    .category-head,
+    .category-leaf {
+      width: 100%;
+      min-height: 34px;
+      display: grid;
+      grid-template-columns: 18px 16px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 6px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #22435f;
+      text-align: left;
+      cursor: pointer;
+      transition: background 160ms var(--ease), color 160ms var(--ease);
+    }
+    .category-head:hover,
+    .category-leaf:hover { background: #f3f8fd; }
+    .category-head[aria-expanded="false"] + .category-children { display: none; }
+    .category-toggle {
+      color: #6f879b;
+      font-size: 12px;
+      line-height: 1;
+      text-align: center;
+    }
+    .category-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: #e8f4ff;
+      border: 1px solid #d3eafe;
+      position: relative;
+    }
+    .category-dot::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: inherit;
+      background: var(--blue-600);
+    }
+    .category-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+    .category-count {
+      min-width: 28px;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f5fa;
+      color: #6e8398;
+      font-size: 12px;
+    }
+    .category-children { margin: 2px 0 4px 34px; display: grid; gap: 2px; }
+    .category-leaf {
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: 0 8px 0 10px;
+      color: #405568;
+    }
+    .category-leaf.active {
+      background: #e4f2ff;
+      color: #0069b8;
+      font-weight: 650;
+    }
+    .category-leaf.active .category-count { background: #fff; color: #2b83d2; }
+    .category-empty-row td {
+      height: 90px;
+      text-align: center;
+      color: var(--slate-500);
+      background: #fbfcfe;
+    }
+    .structure-manager-panel {
+      height: 100%;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      overflow: hidden;
+      background: #fff;
+    }
+    .structure-manager-title { display: none; }
+    .structure-wrap {
+      min-height: 0;
+      padding: 0 14px 14px;
+      overflow: auto;
+      background: #fff;
+    }
+    .structure-list { min-height: 420px; background: #fff; }
+    .structure-category-block { border-bottom: 1px solid #edf1f5; }
+    .structure-category-block:last-child { border-bottom: 0; }
+    .structure-parent-row,
+    .structure-child-row {
+      min-height: 44px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      border-bottom: 1px solid #edf1f5;
+    }
+    .structure-category-block .structure-child-row:last-child { border-bottom: 0; }
+    .structure-parent-row { min-height: 38px; background: #f6f9ff; }
+    .structure-child-row { background: #fff; }
+    .structure-child-row:hover { background: #fbfdff; }
+    .structure-child-row[data-level="1"] { background: #fff; }
+    .structure-child-row[data-level="2"] { background: #fcfdff; }
+    .structure-child-row[data-level="3"] { background: #f8fbff; }
+    .structure-name-line {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--slate-700);
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: nowrap;
+      padding-left: calc(12px + var(--level-indent, 0px));
+    }
+    .structure-parent-row .structure-name-line { color: #405568; font-weight: 650; }
+    .structure-toggle-btn {
+      width: 18px;
+      height: 18px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      background: transparent;
+      color: #637689;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+    .structure-toggle-btn:hover { color: var(--blue-600); }
+    .structure-toggle-btn:disabled { cursor: default; color: transparent; }
+    .structure-category-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .structure-count { color: var(--slate-700); font-size: 13px; }
+    .structure-row-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding-right: 12px;
+      white-space: nowrap;
+    }
+    .structure-icon-actions { gap: 10px; padding-right: 14px; }
+    .structure-icon-btn {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border-radius: 2px;
+      background: transparent;
+      color: var(--blue-600);
+      cursor: pointer;
+      line-height: 1;
+      transition: color 160ms var(--ease), background 160ms var(--ease), transform 160ms var(--ease);
+    }
+    .structure-icon-btn svg { width: 15px; height: 15px; display: block; stroke: currentColor; fill: none; }
+    .structure-icon-btn:hover { color: #0c70c7; background: #f3f9ff; }
+    .structure-icon-btn:active { transform: scale(0.96); }
+    .structure-icon-btn.delete-icon { color: var(--red-500); }
+    .structure-icon-btn.delete-icon:hover { color: #e44752; background: #fff6f6; }
+    .structure-link-action {
+      padding: 0;
+      background: transparent;
+      color: var(--blue-600);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .structure-link-action:hover { color: #0c70c7; }
+    .structure-link-action.delete { color: var(--red-500); }
+    .structure-link-action.delete:hover { color: #e44752; }
+    .structure-empty-state {
+      height: 110px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: var(--slate-500);
+      border-top: 1px solid #edf1f5;
+      background: #fbfcfe;
+    }
+    .structure-list.is-empty .structure-empty-state { display: flex; }
+    .structure-form-grid { display: grid; gap: 14px; }
+    .structure-help-text { color: var(--slate-500); font-size: 12px; line-height: 1.5; }
+    .structure-form-error { min-height: 18px; color: var(--red-500); font-size: 12px; }
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0 0 0 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+    .content-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--slate-200);
+      background: #fbfcfe;
+      flex-wrap: wrap;
+    }
+    .content-tools .search-input { min-width: 150px; flex: 1 1 150px; }
+    .content-tools .select { min-width: 128px; }
+    .split-panel {
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .split-panel .qa-table-wrap { flex: 1; min-height: 0; }
+    .qa-table-wrap { overflow: auto; position: relative; }
+    .qa-table { min-width: 680px; }
+    .qa-table th { height: 38px; font-weight: 700; }
+    .qa-table td { height: 36px; }
+    .qa-table tbody td,
+    .qa-table tbody td * { font-weight: 400; }
+    .qa-table .question-cell { max-width: 300px; color: #405568; line-height: 1.45; }
+    .qa-table tbody tr { cursor: pointer; }
+    .qa-table tbody tr.active-row td { background: #eef7ff; }
+    .qa-table tbody tr.active-row .action-cell { background: #eef7ff; }
+    .action-cell {
+      width: 180px;
+      min-width: 180px;
+      position: sticky;
+      right: 0;
+      z-index: 3;
+      background: #fff;
+      text-align: center;
+      box-shadow: -1px 0 0 #edf1f5;
+    }
+    thead .action-cell { z-index: 5; background: #fff; }
+    tr:hover .action-cell { background: #fbfdff; }
+    .edit-action,
+    .delete-action,
+    .maintenance-action {
+      background: transparent;
+      padding: 0;
+      color: var(--blue-600);
+      font-size: 13px;
+      line-height: 1.4;
+      cursor: pointer;
+      font-weight: 400 !important;
+    }
+    .edit-action { color: var(--blue-600) !important; }
+    .delete-action { color: var(--red-500) !important; }
+    .delete-action:hover { color: #e44752; }
+    .maintenance-action:hover,
+    .edit-action:hover { color: #0c70c7; }
+    .category-cell {
+      color: #0069b8;
+      font-weight: 650 !important;
+      max-width: 96px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .maintainer-cell,
+    .maintain-time-cell { color: var(--slate-600); }
+    .content-pagination {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 8px 10px;
+      border-top: 1px solid var(--slate-200);
+      background: #fff;
+      color: var(--slate-500);
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .content-pagination .pager-select,
+    .content-pagination .page-input { height: 26px; }
+    .row-check {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--blue-600);
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .question-cell { color: #405568; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+    .answer-cell { max-width: 240px; overflow: hidden; text-overflow: ellipsis; color: var(--slate-700); }
+    .rich-editor-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: var(--question-detail-width, 33.333vw);
+      min-width: 360px;
+      max-width: 82vw;
+      height: 100dvh;
+      min-height: 0;
+      z-index: 80;
+      display: grid;
+      grid-template-rows: 44px minmax(0, 1fr);
+      overflow: hidden;
+      border-radius: 0;
+      box-shadow: -18px 0 42px rgba(0, 25, 43, 0.18);
+      transform: translateX(104%);
+      opacity: 1;
+      pointer-events: none;
+      transition: transform 280ms var(--ease), box-shadow 220ms var(--ease);
+      will-change: transform;
+    }
+    .editor-layout.detail-drawer-open .rich-editor-panel,
+    .rich-editor-panel.drawer-visible {
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    .detail-resize-handle {
+      position: absolute;
+      left: -5px;
+      top: 0;
+      width: 10px;
+      height: 100%;
+      cursor: ew-resize;
+      z-index: 2;
+      background: transparent;
+    }
+    .detail-resize-handle::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      background: transparent;
+      transition: background 160ms var(--ease);
+    }
+    .detail-resize-handle:hover::after,
+    body.detail-resizing .detail-resize-handle::after { background: var(--blue-500); }
+    body.detail-resizing { cursor: ew-resize; user-select: none; }
+    .detail-head-actions {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-end;
+      min-width: 0;
+    }
+    .detail-close-btn {
+      width: 28px;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid #d8e2eb;
+      background: #fff;
+      color: var(--slate-500);
+      border-radius: 2px;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      transition: background 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease), transform 160ms var(--ease);
+    }
+    .detail-close-btn:hover { background: #eef4fa; color: var(--slate-900); border-color: #c8d6e2; }
+    .detail-close-btn:active { transform: scale(0.98); }
+    .rich-editor-scroll {
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      display: grid;
+      grid-template-rows: auto auto minmax(260px, 1fr) auto;
+    }
+    .rich-editor-scroll::-webkit-scrollbar { width: 7px; }
+    .rich-editor-scroll::-webkit-scrollbar-thumb { background: #c8d4df; border-radius: 999px; }
+    .rich-editor-scroll::-webkit-scrollbar-track { background: #f4f7fa; }
+    .editor-form {
+      display: grid;
+      grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+      gap: 10px 12px;
+      padding: 10px 12px 12px;
+      border-bottom: 1px solid var(--slate-200);
+      background: #fff;
+    }
+    .editor-form .field-label { gap: 5px; }
+    .editor-form .select { width: 100%; min-width: 0; }
+    .question-field-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .add-question-inline {
+      width: 24px;
+      height: 24px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid #9ccbef;
+      background: #eef7ff;
+      color: var(--blue-600);
+      border-radius: 50%;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 160ms var(--ease), background 160ms var(--ease), border-color 160ms var(--ease);
+    }
+    .add-question-inline:hover { background: #dff1ff; border-color: var(--blue-500); }
+    .add-question-inline:active { transform: scale(0.94); }
+    .add-question-inline:focus-visible { outline: 2px solid var(--blue-600); outline-offset: 2px; }
+    .extra-question-list { display: grid; gap: 8px; margin-top: 8px; }
+    .extra-question-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+    .extra-question-remove {
+      width: 28px;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      color: var(--red-500);
+      background: #fff6f6;
+      border: 1px solid #ffd9de;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .extra-question-remove:hover { background: #ffeef0; }
+    .required-mark { color: var(--red-500); margin-right: 3px; }
+    .full-line { grid-column: 1 / -1; }
+    .rich-toolbar {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 5px 10px;
+      border-top: 1px solid var(--slate-200);
+      border-bottom: 1px solid var(--slate-200);
+      background: #fff;
+      flex-wrap: wrap;
+    }
+    .rich-tool {
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #303b45;
+      border-radius: 2px;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      transition: background 120ms var(--ease), border-color 120ms var(--ease), color 120ms var(--ease);
+    }
+    .rich-tool:hover,
+    .rich-tool:focus-visible {
+      border-color: #cfd8e2;
+      color: #111827;
+      background: #f3f6f9;
+      outline: none;
+    }
+    .rich-tool.is-bold { font-weight: 700; font-size: 14px; }
+    .rich-tool.is-italic { font-style: italic; font-family: Georgia, serif; font-size: 14px; }
+    .rich-tool.is-underline { text-decoration: underline; text-underline-offset: 2px; font-weight: 650; font-size: 13px; }
+    .rich-tool.is-heading { width: 28px; font-weight: 800; font-size: 12px; letter-spacing: -0.02em; }
+    .rich-icon { width: 15px; height: 15px; display: block; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .editor-canvas {
+      min-height: 260px;
+      padding: 13px 14px;
+      color: #405568;
+      line-height: 1.75;
+      outline: none;
+      overflow: visible;
+      background: #fff;
+      border-bottom: 1px solid var(--slate-200);
+    }
+    .editor-canvas:focus { box-shadow: inset var(--focus); }
+    .editor-canvas h1 { margin: 0 0 12px; font-size: 22px; line-height: 1.35; color: var(--slate-900); }
+    .editor-canvas h2 { margin: 0 0 10px; font-size: 18px; line-height: 1.4; color: var(--slate-900); }
+    .editor-canvas h3 { margin: 0 0 10px; font-size: 16px; color: var(--slate-900); }
+    .editor-canvas p { margin: 0 0 10px; }
+    .editor-canvas ul,
+    .editor-canvas ol { margin: 0 0 10px; padding-left: 20px; }
+    .editor-canvas li { margin-bottom: 5px; }
+    .editor-canvas[contenteditable="true"] { cursor: text; }
+    .editor-canvas:empty::before { content: "请输入富文本内容，支持加粗、斜体、标题和列表"; color: #b2bdc8; }
+    .video-upload-box,
+    .attachment-upload-box {
+      border-top: 1px solid var(--slate-200);
+      background: #fff;
+      padding: 10px 12px;
+      display: grid;
+      gap: 8px;
+    }
+    .video-upload-title,
+    .attachment-upload-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #405568;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .video-upload-zone,
+    .attachment-drop-zone {
+      min-height: 70px;
+      border: 1px dashed #9ccbef;
+      background: linear-gradient(180deg, #f8fcff 0%, #fff 100%);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      color: var(--slate-700);
+    }
+    .attachment-drop-zone {
+      min-height: 118px;
+      justify-content: center;
+      text-align: center;
+    }
+    .video-upload-main,
+    .attachment-drop-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .attachment-drop-main { flex-direction: column; justify-content: center; }
+    .video-icon,
+    .attachment-upload-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--blue-050);
+      border: 1px solid #cce7fb;
+      color: var(--blue-600);
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+    .attachment-upload-icon { width: 36px; height: 36px; font-size: 20px; }
+    .attachment-drop-title { font-weight: 700; color: #405568; }
+    .attachment-drop-helper { color: var(--slate-500); font-size: 12px; }
+    .video-list,
+    .attachment-list { display: grid; gap: 7px; }
+    .video-row,
+    .attachment-row {
+      min-height: 38px;
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--slate-200);
+      background: #fbfcfe;
+      padding: 6px 8px;
+      border-radius: 2px;
+    }
+    .video-row .file-type,
+    .attachment-row .file-type { width: 28px; height: 28px; font-size: 10px; }
+    .file-type {
+      display: inline-grid;
+      place-items: center;
+      border-radius: 2px;
+      background: #edf5fc;
+      border: 1px solid #dceaf6;
+      color: #37546b;
+      font-weight: 700;
+    }
+    .file-name { font-size: 13px; color: #203040; font-weight: 650; line-height: 1.35; }
+    .file-meta { margin-top: 2px; color: var(--slate-500); font-size: 12px; line-height: 1.35; }
+    .snapshot-block {
+      min-height: 0;
+      display: grid;
+      gap: 4px;
+    }
+    .snapshot-block.content-block { grid-template-rows: auto minmax(0, 1fr); }
+    .snapshot-label {
+      color: var(--slate-500);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .snapshot-question {
+      color: var(--slate-900);
+      font-weight: 650;
+      line-height: 1.4;
+      font-size: 13px;
+    }
+    .snapshot-content {
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border: 1px solid var(--slate-200);
+      background: #fff;
+      padding: 8px 10px;
+      color: #405568;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+    .snapshot-content::-webkit-scrollbar { width: 7px; }
+    .snapshot-content::-webkit-scrollbar-thumb { background: #c8d4df; border-radius: 999px; }
+    .snapshot-content::-webkit-scrollbar-track { background: #f4f7fa; }
+    .snapshot-content p { margin: 0 0 6px; }
+    .history-chip {
+      min-height: 25px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 8px;
+      border: 1px solid var(--slate-200);
+      background: #fff;
+      color: var(--slate-700);
+      border-radius: 999px;
+      font-size: 12px;
+    }
+    .history-chip strong { color: var(--blue-600); }
+    button.history-chip { cursor: pointer; }
+    button.history-chip:hover,
+    button.history-chip.active { border-color: #9ccbef; background: #eef7ff; color: var(--blue-600); }
+    .inline-edit {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .save-actions[hidden] { display: none !important; }
+    .mini-btn { background: transparent; color: var(--blue-600); cursor: pointer; padding: 4px 3px; }
+    .mini-btn.delete { color: var(--red-500); }
+    .form-grid { display: grid; gap: 10px; padding: 12px; }
+    .field-label { display: grid; gap: 6px; color: var(--slate-700); font-size: 13px; }
+    .field { width: 100%; min-width: 0; }
+    .textarea { width: 100%; min-height: 86px; resize: vertical; padding-top: 8px; line-height: 1.6; }
+    .helper { font-size: 12px; color: var(--slate-500); }
+    .modal-note {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid #dcecf8;
+      background: #f7fbff;
+      color: #526678;
+      border-radius: 2px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .modal-note::before {
+      content: "i";
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--blue-600);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .rules-list { margin: 0; padding-left: 16px; color: var(--slate-700); line-height: 1.8; font-size: 13px; }
+
+    .maintenance-filter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 0 12px;
+      flex-wrap: wrap;
+    }
+    .maintenance-table-wrap {
+      min-height: 0;
+      border: 1px solid var(--slate-200);
+      border-radius: 2px;
+      overflow: auto;
+      background: #fff;
+    }
+    .maintenance-table { min-width: 680px; }
+    .maintenance-table th { height: 38px; font-weight: 700; }
+    .maintenance-table td { height: 42px; font-size: 13px; }
+    .maintenance-question { max-width: 210px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #405568; }
+    .maintenance-view-btn {
+      min-width: 52px;
+      height: 26px;
+      padding: 0 10px;
+      border: 1px solid var(--slate-200);
+      background: #fff;
+      color: var(--blue-600);
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 160ms var(--ease), border-color 160ms var(--ease), transform 160ms var(--ease);
+    }
+    .maintenance-view-btn:hover { border-color: #9ccbef; background: #eef7ff; }
+    .maintenance-view-btn:active { transform: scale(0.98); }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 20, 35, 0.28); z-index: 50;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-backdrop.active { display: flex; animation: fadeIn 160ms var(--ease); }
+    .modal {
+      width: min(560px, 100%);
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 22px 64px rgba(0, 20, 35, 0.2);
+      border: 1px solid #dce4ec;
+      overflow: hidden;
+    }
+    .modal.modal-wide { width: min(760px, 100%); }
+    .modal.modal-maintenance { width: min(980px, 100%); max-height: calc(100dvh - 40px); display: flex; flex-direction: column; border-radius: 5px; }
+    .maintenance-modal-body { overflow: auto; display: grid; gap: 14px; padding: 18px 20px 20px; background: #fff; }
+
+    /* 维护记录 —— 右侧滑出抽屉，交互与编辑弹窗一致 */
+    #maintenanceModal {
+      z-index: 90;
+      align-items: stretch;
+      justify-content: flex-end;
+      padding: 0;
+    }
+    #maintenanceModal .modal.modal-maintenance {
+      width: min(820px, 100%);
+      max-height: none;
+      height: 100dvh;
+      border-radius: 0;
+      border: none;
+      border-left: 1px solid #dce4ec;
+      box-shadow: -18px 0 42px rgba(0, 25, 43, 0.18);
+      animation: slideInRight 320ms var(--ease);
+    }
+    #maintenanceModal .maintenance-modal-body {
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* 附件上传 —— 右侧滑出抽屉，交互与编辑弹窗一致 */
+    #attachmentUploadModal {
+      z-index: 90;
+      align-items: stretch;
+      justify-content: flex-end;
+      padding: 0;
+    }
+    #attachmentUploadModal .modal.modal-attachment-upload {
+      width: min(820px, 100%);
+      max-height: none;
+      height: 100dvh;
+      border-radius: 0;
+      border: none;
+      border-left: 1px solid #dce4ec;
+      box-shadow: -18px 0 42px rgba(0, 25, 43, 0.18);
+      animation: slideInRight 320ms var(--ease);
+      display: flex;
+      flex-direction: column;
+    }
+    #attachmentUploadModal .attachment-upload-body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      gap: 14px;
+      padding: 18px 20px 20px;
+      background: #fff;
+    }
+    #attachmentUploadModal .attachment-upload-zone {
+      border: 2px dashed #c8d6e2;
+      border-radius: 6px;
+      padding: 28px 20px;
+      text-align: center;
+      background: #fbfcfe;
+      transition: border-color 160ms var(--ease), background 160ms var(--ease);
+      cursor: pointer;
+    }
+    #attachmentUploadModal .attachment-upload-zone:hover {
+      border-color: var(--blue-500);
+      background: var(--blue-050);
+    }
+    #attachmentUploadModal .attachment-upload-icon {
+      width: 40px; height: 40px; margin: 0 auto 8px;
+      display: grid; place-items: center;
+      border-radius: 50%; background: var(--blue-050); color: var(--blue-600);
+      font-size: 22px;
+    }
+    #attachmentUploadModal .attachment-upload-title { font-weight: 700; color: #405568; margin-bottom: 4px; }
+    #attachmentUploadModal .attachment-upload-hint { color: var(--slate-500); font-size: 12px; }
+    #attachmentUploadModal .attachment-history-section h3 {
+      margin: 0 0 10px; font-size: 14px; color: #203040; font-weight: 700;
+    }
+    #attachmentUploadModal .attachment-history-table-wrap {
+      border: 1px solid var(--slate-200);
+      border-radius: 5px;
+      overflow: auto;
+    }
+    #attachmentUploadModal .attachment-history-table-wrap .attachment-table { width: 100%; min-width: 680px; border-collapse: collapse; }
+    #attachmentUploadModal .attachment-history-table-wrap .attachment-table th { background: #fbfcfe; }
+    #attachmentUploadModal .attachment-history-table-wrap .attachment-table th,
+    #attachmentUploadModal .attachment-history-table-wrap .attachment-table td { padding: 0 14px; border-bottom: 1px solid #edf1f5; text-align: left; }
+    #attachmentUploadModal .attachment-history-table-wrap .attachment-table tbody tr:last-child td { border-bottom: 0; }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    .maintenance-version-wrap {
+      border: 1px solid var(--slate-200);
+      border-radius: 5px;
+      background: #fff;
+      overflow: auto;
+    }
+    .maintenance-version-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+    .maintenance-version-table th,
+    .maintenance-version-table td { height: 42px; padding: 0 14px; border-bottom: 1px solid #edf1f5; text-align: left; }
+    .maintenance-version-table th { color: #405568; font-size: 13px; font-weight: 700; background: #fbfcfe; }
+    .maintenance-version-table td { color: #405568; font-size: 13px; }
+    .maintenance-version-table tbody tr { cursor: pointer; transition: background 160ms var(--ease); }
+    .maintenance-version-table tbody tr:hover,
+    .maintenance-version-table tbody tr.active { background: #f1f8ff; }
+    .maintenance-version-table tbody tr:last-child td { border-bottom: 0; }
+    .maintenance-record-category { color: var(--blue-600); font-weight: 650; }
+    .maintenance-record-question { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #203040; }
+    .maintenance-snapshot-card {
+      border: 1px solid var(--slate-200);
+      border-radius: 5px;
+      background: #fbfcfe;
+      padding: 16px;
+    }
+    .maintenance-snapshot-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+    .maintenance-snapshot-head h3 { margin: 0; color: #203040; font-size: 15px; line-height: 1.3; }
+    .maintenance-snapshot-version { color: var(--blue-600); font-size: 13px; font-weight: 650; }
+    .maintenance-snapshot-section { display: grid; gap: 6px; margin-top: 10px; }
+    .maintenance-snapshot-label { color: #526678; font-size: 12px; }
+    .maintenance-snapshot-question { color: #001e38; font-size: 14px; line-height: 1.5; font-weight: 650; }
+    .maintenance-snapshot-category { width: fit-content; min-height: 24px; display: inline-flex; align-items: center; padding: 0 10px; border-radius: 5px; background: #eef7ff; color: var(--blue-600); font-size: 13px; font-weight: 650; }
+    .maintenance-snapshot-content { border: 1px solid #edf1f5; border-radius: 5px; background: #fff; padding: 12px; color: #203040; font-size: 13px; line-height: 1.75; white-space: normal; }
+    .maintenance-snapshot-content p { margin: 0 0 6px; }
+    .maintenance-snapshot-content p:last-child { margin-bottom: 0; }
+    .modal-head, .modal-foot {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: #fbfcfe;
+      border-bottom: 1px solid var(--slate-200);
+    }
+    .modal-head strong { font-size: 16px; color: #203040; letter-spacing: 0.01em; }
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      background: transparent;
+      cursor: pointer;
+      color: var(--slate-500);
+      font-size: 22px;
+      border-radius: 2px;
+    }
+    .modal-close:hover { background: #eef4fa; color: var(--slate-700); }
+    .modal-body { padding: 20px; display: grid; gap: 14px; }
+    .modal-foot {
+      min-height: 58px;
+      border-bottom: 0;
+      border-top: 1px solid var(--slate-200);
+      justify-content: flex-end;
+      gap: 10px;
+      background: #fff;
+    }
+    .modal-foot .btn { min-width: 88px; }
+    .confirm-modal { width: min(420px, 100%); }
+    .confirm-body {
+      padding: 22px 24px;
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .confirm-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #fff0f1;
+      border: 1px solid #ffc7ce;
+      color: var(--red-500);
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .confirm-icon.info {
+      background: var(--blue-050);
+      border-color: #cce7fb;
+      color: var(--blue-600);
+    }
+    .confirm-content { display: grid; gap: 6px; }
+    .confirm-title { margin: 0; color: var(--slate-900); font-size: 16px; font-weight: 700; line-height: 1.45; }
+    .confirm-message { margin: 0; color: #526678; font-size: 14px; line-height: 1.6; }
+    .confirm-message.danger { color: var(--red-500); font-weight: 700; }
+    .btn-danger-solid { background: var(--red-500); color: #fff; border: 1px solid #e44752; }
+    .btn-danger-solid:hover { background: #e44752; box-shadow: 0 5px 12px rgba(240,91,103,0.22); }
+
+    .copy-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 16px;
+    }
+    .copy-form-grid .full { grid-column: 1 / -1; }
+    .maintenance-detail-grid {
+      display: grid;
+      grid-template-columns: 96px minmax(0, 1fr);
+      gap: 10px 12px;
+      color: #405568;
+      line-height: 1.6;
+    }
+    .maintenance-detail-grid .label { color: var(--slate-500); }
+    .maintenance-detail-grid .value { color: var(--slate-900); min-width: 0; word-break: break-word; }
+    .maintenance-detail-content {
+      min-height: 96px;
+      padding: 10px 12px;
+      border: 1px solid var(--slate-200);
+      background: #fbfcfe;
+      border-radius: 2px;
+      line-height: 1.75;
+      color: #405568;
+      white-space: pre-wrap;
+    }
+    .maintenance-pagination {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 8px 0 0;
+      color: var(--slate-500);
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .maintenance-page-btn {
+      height: 26px;
+      min-width: 28px;
+      padding: 0 8px;
+      border: 1px solid var(--slate-300);
+      background: #fff;
+      color: var(--slate-700);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .maintenance-page-btn:disabled { color: #b5c0ca; background: #f6f8fa; cursor: not-allowed; }
+    .maintenance-toolbar-spacer { flex: 1 1 auto; }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      min-width: 280px;
+      background: #fff;
+      border: 1px solid #cde9d9;
+      color: #246043;
+      box-shadow: var(--shadow-panel);
+      padding: 12px 14px;
+      display: none;
+      z-index: 60;
+      border-left: 3px solid var(--green-600);
+    }
+    .toast.active { display: block; animation: toastIn 240ms var(--ease); }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 64px minmax(0, 1fr); }
+      .brand { font-size: 0; justify-content: center; padding: 0; }
+      .brand::after { content: "智"; font-size: 16px; }
+      .nav-head { justify-content: center; padding: 0; }
+      .nav-head span:not(.nav-icon), .nav-head .chev, .nav-item { display: none; }
+      .detail-workspace {
+        grid-template-columns: 1fr;
+        overflow: auto;
+      }
+      .editor-layout { overflow: auto; }
+      .rich-editor-panel {
+        width: min(92vw, var(--question-detail-width, 92vw));
+        min-width: 0;
+      }
+      .detail-resize-handle { display: none; }
+      .split-panel { min-height: 520px; }
+      .editor-form { grid-template-columns: 1fr; }
+      .full-line { grid-column: auto; }
+      #maintenanceModal .modal.modal-maintenance { width: min(92vw, 100%); }
+      #attachmentUploadModal .modal.modal-attachment-upload { width: min(92vw, 100%); }
+    }
+    @media (max-width: 680px) {
+      .content { padding: 10px; }
+      .workspace { height: calc(100dvh - 66px); }
+      .detail-head { grid-template-columns: 1fr; }
+      .detail-actions { justify-content: flex-start; }
+      .toolbar > * { width: 100%; min-width: 0; margin-left: 0; }
+      .content-tools > * { width: 100%; min-width: 0; }
+      .tabs { overflow-x: auto; padding: 0 12px; }
+      .tab { padding: 0 14px; }
+      .modal-body { padding: 16px; }
+      #maintenanceModal .maintenance-modal-body { padding: 14px 16px 16px; }
+      #attachmentUploadModal .attachment-upload-body { padding: 14px 16px 16px; }
+      .pagination { justify-content: flex-start; flex-wrap: wrap; padding: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="主导航">
+      <div class="brand">智能维护管理</div>
+      <nav>
+        <div class="nav-group">
+          <div class="nav-head"><span class="nav-icon" aria-hidden="true"></span><span>智能维护</span><span class="chev">⌃</span></div>
+          <button class="nav-item active" type="button">知识库管理</button>
+          <button class="nav-item" type="button">数据洞察</button>
+          <button class="nav-item" type="button">对话记录</button>
+          <button class="nav-item" type="button">在线咨询</button>
+          <button class="nav-item" type="button">运维数据</button>
+          <button class="nav-item" type="button">待办事项</button>
+          <button class="nav-item" type="button">文件上传</button>
+          <button class="nav-item" type="button">问题反馈</button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-head"><span class="nav-icon" aria-hidden="true"></span><span>系统管理</span><span class="chev">⌃</span></div>
+          <button class="nav-item" type="button">用户管理</button>
+          <button class="nav-item" type="button">角色权限</button>
+          <button class="nav-item" type="button">单位管理</button>
+          <button class="nav-item" type="button">系统配置管理</button>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="hamburger" type="button" aria-label="折叠菜单">≡</button>
+        <div class="top-actions">
+          <span class="user-chip"><span class="avatar">人</span> 1KQ9527</span>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="workspace">
+          <div class="breadcrumb">当前位置：智能维护 / <strong id="crumb">知识库管理</strong></div>
+
+          <section id="listScreen" class="screen active" aria-label="知识库列表">
+            <div class="toolbar">
+              <input class="search-input" type="search" placeholder="请输入知识库名称" aria-label="搜索知识库名称" />
+              <select class="select" aria-label="状态筛选">
+                <option>状态</option>
+                <option>启用</option>
+                <option>禁用</option>
+              </select>
+              <button class="btn btn-ghost" type="button">重置</button>
+              <button class="btn btn-primary" type="button">搜索</button>
+              <button class="btn btn-outline" type="button" id="addKbBtn">+新增知识库</button>
+            </div>
+            <div class="table-wrap">
+              <table aria-label="知识库管理表格">
+                <thead>
+                  <tr>
+                    <th>序号</th>
+                    <th>知识库名称</th>
+                    <th>描述</th>
+                    <th>关联系统</th>
+                    <th>关联区域</th>
+                    <th>内容数</th>
+                    <th>附件数</th>
+                    <th>状态</th>
+                    <th>创建人</th>
+                    <th>最近保存</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="kbTbody">
+                  <tr>
+                    <td>1</td><td class="name-cell">操作手册知识库</td><td class="desc">面向客服与维护人员的标准作业问答...</td><td>事业工资系统（单机版）</td><td class="desc">锦江区、武侯区、双流区...</td><td>28</td><td>6</td><td><span class="status on">启用</span></td><td>李开心</td><td>2026-07-28 14:22</td><td><span class="op"><button data-open-detail>查看</button><button data-copy-kb type="button">复制</button><button class="edit-no-jump" type="button">编辑</button><button class="delete">删除</button></span></td>
+                  </tr>
+                  <tr>
+                    <td>2</td><td class="name-cell">法律法规知识库</td><td class="desc">政策依据、口径解释与法规条款...</td><td>事业工资系统（单机版）</td><td class="desc">锦江区、武侯区、双流区...</td><td>16</td><td>4</td><td><span class="status on">启用</span></td><td>李开心</td><td>2026-07-24 09:15</td><td><span class="op"><button data-open-detail>查看</button><button data-copy-kb type="button">复制</button><button class="edit-no-jump" type="button">编辑</button><button class="delete">删除</button></span></td>
+                  </tr>
+                  <tr>
+                    <td>3</td><td class="name-cell">行业知识知识库</td><td class="desc">业务规则与行业术语快速问答...</td><td>事业工资系统（单机版）</td><td class="desc">锦江区、武侯区、双流区...</td><td>31</td><td>8</td><td><span class="status on">启用</span></td><td>李开心</td><td>2026-07-20 17:03</td><td><span class="op"><button data-open-detail>查看</button><button data-copy-kb type="button">复制</button><button class="edit-no-jump" type="button">编辑</button><button class="delete">删除</button></span></td>
+                  </tr>
+                  <tr>
+                    <td>4</td><td class="name-cell">过往解决方案</td><td class="desc">历史问题处理过程与沉淀方案...</td><td>事业工资系统（网络版）</td><td class="desc">锦江区、武侯区、双流区...</td><td>10</td><td>2</td><td><span class="status off">禁用</span></td><td>李开心</td><td>2026-06-26 15:30</td><td><span class="op"><button data-open-detail>查看</button><button data-copy-kb type="button">复制</button><button class="edit-no-jump" type="button">编辑</button><button class="delete">删除</button></span></td>
+                  </tr>
+                  <tr>
+                    <td>5</td><td class="name-cell">历史新闻</td><td class="desc">公告新闻内容的检索型资料库...</td><td>事业工资系统（网络版）</td><td class="desc">锦江区、武侯区、双流区...</td><td>6</td><td>12</td><td><span class="status off">禁用</span></td><td>李开心</td><td>2026-06-18 11:42</td><td><span class="op"><button data-open-detail>查看</button><button data-copy-kb type="button">复制</button><button class="edit-no-jump" type="button">编辑</button><button class="delete">删除</button></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <span id="kbTotal">共 5 条</span>
+              <select class="pager-select" aria-label="每页数量"><option>10条/页</option></select>
+              <span class="page-arrow">‹</span><span class="page-now">1</span><span class="page-arrow">›</span>
+              <span>前往 <input class="page-input" value="1" aria-label="页码" style="width:44px" /> 页</span>
+            </div>
+          </section>
+
+
+          <section id="copyKbScreen" class="screen" aria-label="复制知识库页面">
+            <div class="copy-page">
+              <h1>复制知识库</h1>
+              <div class="copy-page-form" aria-label="复制知识库表单">
+                <label class="field-label"><span><span class="required-mark">*</span>知识库名称</span><input class="field" id="copyKbName" type="text" placeholder="请输入知识库名称" /></label>
+                <label class="field-label"><span>描述</span><textarea class="textarea" id="copyKbDesc" placeholder="请输入知识库描述"></textarea></label>
+                <label class="field-label"><span><span class="required-mark">*</span>关联系统</span><select class="select" id="copyKbSystem"><option>事业工资系统（单机版）</option><option>事业工资系统（网络版）</option></select></label>
+                <label class="field-label"><span><span class="required-mark">*</span>关联区域</span><input class="field" id="copyKbRegion" type="text" placeholder="请选择关联区域" /></label>
+                <label class="field-label"><span>状态</span><select class="select" id="copyKbStatus"><option>启用</option><option>禁用</option></select></label>
+                <div class="copy-page-actions"><button class="btn btn-primary" type="button" id="submitCopyKbBtn">提交</button><button class="btn btn-ghost" type="button" id="cancelCopyKbBtn">取消</button></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="detailScreen" class="screen" aria-label="知识库详情编辑">
+            <div class="detail-head">
+              <div>
+                <div class="detail-title">
+                  <button class="back-link" type="button" data-back aria-label="返回列表">‹</button>
+                  <h1>操作手册知识库</h1>
+                  <span class="pill"><span class="mini-dot"></span>启用中</span>
+                </div>
+                <div class="meta-row">
+                  <span>关联系统：事业工资系统（单机版）</span>
+                  <span>关联区域：锦江区、武侯区、双流区</span>
+                </div>
+              </div>
+              <div class="detail-actions">
+                <span class="pill">内容 28 条</span>
+                <span class="pill">维护记录 <span id="detailHistoryCount">0</span> 条</span>
+                <button class="btn btn-outline" type="button" id="openAttachmentUploadBtn" style="margin-left:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>附件上传</button>
+                <button class="btn btn-outline" type="button" id="openExportBtn" style="margin-left:0">导出</button>
+              </div>
+            </div>
+
+            <div class="detail-workspace" id="detailWorkspace">
+              <button class="category-expand-btn" type="button" id="expandCategoryBtn" aria-label="展开结构分类">展开</button>
+              <aside class="panel category-panel" aria-label="结构分类">
+                  <div class="panel-head"><span>结构分类</span><span class="category-count" id="categorySelectedCount">11</span></div>
+                  <div class="category-tree" id="categoryTree">
+                    <div class="category-group">
+                      <button class="category-head" type="button" data-category-toggle="uncategorized" aria-expanded="true">
+                        <span class="category-toggle">▾</span><span class="category-dot" aria-hidden="true"></span><span class="category-name">未分类</span><span class="category-count">0</span>
+                      </button>
+                      <div class="category-children" data-category-children="uncategorized">
+                      </div>
+                    </div>
+                    <div class="category-group">
+                      <button class="category-head" type="button" data-category-toggle="business" aria-expanded="true">
+                        <span class="category-toggle">▾</span><span class="category-dot" aria-hidden="true"></span><span class="category-name">事业单位知识库</span><span class="category-count">68</span>
+                      </button>
+                      <div class="category-children" data-category-children="business">
+                        <button class="category-leaf" type="button" data-category="office-service"><span class="category-name">办事服务</span><span class="category-count">18</span></button>
+                        <button class="category-leaf" type="button" data-category="business-rule"><span class="category-name">业务规范</span><span class="category-count">21</span></button>
+                        <button class="category-leaf active" type="button" data-category="personnel"><span class="category-name">人员管理</span><span class="category-count">11</span></button>
+                        <button class="category-leaf" type="button" data-category="faq"><span class="category-name">常见问题</span><span class="category-count">18</span></button>
+                      </div>
+                    </div>
+                    <div class="category-group">
+                      <button class="category-head" type="button" data-category-toggle="agency" aria-expanded="true">
+                        <span class="category-toggle">▾</span><span class="category-dot" aria-hidden="true"></span><span class="category-name">机关单位知识库</span><span class="category-count">54</span>
+                      </button>
+                      <div class="category-children" data-category-children="agency">
+                        <button class="category-leaf" type="button" data-category="policy"><span class="category-name">政策法规</span><span class="category-count">16</span></button>
+                        <button class="category-leaf" type="button" data-category="system-doc"><span class="category-name">制度文件</span><span class="category-count">14</span></button>
+                        <button class="category-leaf" type="button" data-category="emergency"><span class="category-name">应急预案</span><span class="category-count">9</span></button>
+                        <button class="category-leaf" type="button" data-category="public"><span class="category-name">政务公开</span><span class="category-count">15</span></button>
+                      </div>
+                    </div>
+                    <div class="category-group">
+                      <button class="category-head" type="button" data-category-toggle="shared" aria-expanded="false">
+                        <span class="category-toggle">▸</span><span class="category-dot" aria-hidden="true"></span><span class="category-name">区域共享资料</span><span class="category-count">32</span>
+                      </button>
+                      <div class="category-children" data-category-children="shared">
+                        <button class="category-leaf" type="button" data-category="cross-region"><span class="category-name">跨区协同</span><span class="category-count">13</span></button>
+                        <button class="category-leaf" type="button" data-category="data-share"><span class="category-name">资料共享</span><span class="category-count">19</span></button>
+                      </div>
+                    </div>
+                    <div class="category-group">
+                      <button class="category-head" type="button" data-category-toggle="manual" aria-expanded="false">
+                        <span class="category-toggle">▸</span><span class="category-dot" aria-hidden="true"></span><span class="category-name">系统操作手册</span><span class="category-count">25</span>
+                      </button>
+                      <div class="category-children" data-category-children="manual">
+                        <button class="category-leaf" type="button" data-category="operation"><span class="category-name">操作说明</span><span class="category-count">15</span></button>
+                        <button class="category-leaf" type="button" data-category="exception"><span class="category-name">异常处理</span><span class="category-count">10</span></button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="category-panel-actions" aria-label="结构分类操作">
+                    <button class="category-panel-action is-primary" type="button" id="openStructureManagerBtn" aria-label="设置结构分类" title="设置">
+                      <svg class="category-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"></path><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04a2 2 0 0 1-2.82 2.82l-.04-.04A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1 .54V20a2 2 0 0 1-4 0v-.06a1.8 1.8 0 0 0-1-.54 1.8 1.8 0 0 0-1.98.36l-.04.04a2 2 0 0 1-2.82-2.82l.04-.04A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-.54-1H4a2 2 0 0 1 0-4h.06a1.8 1.8 0 0 0 .54-1 1.8 1.8 0 0 0-.36-1.98l-.04-.04a2 2 0 0 1 2.82-2.82l.04.04A1.8 1.8 0 0 0 9 4.6a1.8 1.8 0 0 0 1-.54V4a2 2 0 0 1 4 0v.06a1.8 1.8 0 0 0 1 .54 1.8 1.8 0 0 0 1.98-.36l.04-.04a2 2 0 0 1 2.82 2.82l-.04.04A1.8 1.8 0 0 0 19.4 9c.2.35.38.65.54 1H20a2 2 0 0 1 0 4h-.06a1.8 1.8 0 0 0-.54 1Z"></path></svg>
+                    </button>
+                    <button class="category-panel-action" type="button" id="collapseCategoryBtn" aria-label="收起结构分类" title="收起">
+                      <svg class="category-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path><path d="M20 4v16"></path></svg>
+                    </button>
+                  </div>
+              </aside>
+              <div class="content-stage">
+                <div class="tabs" role="tablist" aria-label="知识库内部管理">
+                  <button class="tab active" type="button" role="tab" data-tab="content">内容编辑<span class="tab-count">28</span></button>
+                  <div class="tab-action" id="contentTabAction" aria-hidden="false"><button class="btn btn-outline" type="button" style="margin-left:0;height:28px;padding:0 12px" id="addContentBtn">+新增问题</button></div>
+                </div>
+                <div id="contentPanel" class="tab-panel active">
+                  <div class="editor-layout" id="editorLayout">
+                    <div class="panel split-panel">
+                  <div class="content-tools">
+                    <input class="search-input" type="search" placeholder="请输入问题关键词" aria-label="搜索问题关键词" />
+                  </div>
+                  <div class="qa-table-wrap">
+                    <table class="qa-table" aria-label="知识库内容编辑列表">
+                      <thead>
+                        <tr>
+                          <th>分类</th>
+                          <th>问题</th>
+                          <th>维护人</th>
+                          <th>维护时间</th>
+                          <th class="action-cell">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="active-row" data-id="q1" data-code="20260803102000" data-category="personnel" data-title="如何进入工资变更业务办理页面？" data-maintainer="李开心" data-maintain-time="2026-08-03 10:20">
+                          <td class="category-cell">人员管理</td>
+                          <td class="question-cell">如何进入工资变更业务办理页面？</td>
+                          <td class="maintainer-cell">李开心</td>
+                          <td class="maintain-time-cell">2026-08-03 10:20</td>
+                          <td class="action-cell"><span class="op"><button class="edit-action" type="button" data-edit-question>编辑</button><button class="maintenance-action" type="button" data-question-maintenance>维护记录</button><button class="delete-action" type="button">删除</button></span></td>
+                        </tr>
+                        <tr data-id="q2" data-code="20260728142200" data-category="office-service" data-title="提交时提示附件材料不完整怎么办？" data-maintainer="王小明" data-maintain-time="2026-07-28 14:22">
+                          <td class="category-cell">办事服务</td>
+                          <td class="question-cell">提交时提示附件材料不完整怎么办？</td>
+                          <td class="maintainer-cell">王小明</td>
+                          <td class="maintain-time-cell">2026-07-28 14:22</td>
+                          <td class="action-cell"><span class="op"><button class="edit-action" type="button" data-edit-question>编辑</button><button class="maintenance-action" type="button" data-question-maintenance>维护记录</button><button class="delete-action" type="button">删除</button></span></td>
+                        </tr>
+                        <tr data-id="q3" data-code="20260725093600" data-category="policy" data-title="工资变更业务的政策依据在哪里查看？" data-maintainer="李开心" data-maintain-time="2026-07-25 09:36">
+                          <td class="category-cell">政策法规</td>
+                          <td class="question-cell">工资变更业务的政策依据在哪里查看？</td>
+                          <td class="maintainer-cell">李开心</td>
+                          <td class="maintain-time-cell">2026-07-25 09:36</td>
+                          <td class="action-cell"><span class="op"><button class="edit-action" type="button" data-edit-question>编辑</button><button class="maintenance-action" type="button" data-question-maintenance>维护记录</button><button class="delete-action" type="button">删除</button></span></td>
+                        </tr>
+                        <tr data-id="q4" data-code="20260722161800" data-category="business-rule" data-title="审核退回后如何重新发起？" data-maintainer="李开心" data-maintain-time="2026-07-22 16:18">
+                          <td class="category-cell">业务规范</td>
+                          <td class="question-cell">审核退回后如何重新发起？</td>
+                          <td class="maintainer-cell">李开心</td>
+                          <td class="maintain-time-cell">2026-07-22 16:18</td>
+                          <td class="action-cell"><span class="op"><button class="edit-action" type="button" data-edit-question>编辑</button><button class="maintenance-action" type="button" data-question-maintenance>维护记录</button><button class="delete-action" type="button">删除</button></span></td>
+                        </tr>
+                        <tr data-id="q5" data-code="20260719110500" data-category="cross-region" data-title="用户咨询跨区业务如何判断受理单位？" data-maintainer="王小明" data-maintain-time="2026-07-19 11:05">
+                          <td class="category-cell">跨区协同</td>
+                          <td class="question-cell">用户咨询跨区业务如何判断受理单位？</td>
+                          <td class="maintainer-cell">王小明</td>
+                          <td class="maintain-time-cell">2026-07-19 11:05</td>
+                          <td class="action-cell"><span class="op"><button class="edit-action" type="button" data-edit-question>编辑</button><button class="maintenance-action" type="button" data-question-maintenance>维护记录</button><button class="delete-action" type="button">删除</button></span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="content-pagination" aria-label="知识内容列表分页">
+                    <span>共 28 条</span>
+                    <select class="pager-select" aria-label="知识内容每页数量"><option>10条/页</option><option>20条/页</option><option>50条/页</option></select>
+                    <span class="page-arrow">‹</span><span class="page-now">1</span><span>/ 3</span><span class="page-arrow">›</span>
+                    <span>前往 <input class="page-input" value="1" aria-label="知识内容页码" style="width:38px" /> 页</span>
+                  </div>
+                </div>
+                    <aside class="panel rich-editor-panel" id="questionDetailPanel" aria-label="富文本内容编辑区" aria-hidden="true">
+                      <div class="detail-resize-handle" id="detailResizeHandle" role="separator" aria-orientation="vertical" aria-label="拖动调整问题详情宽度"></div>
+                      <div class="panel-head">
+                        <span>问题详情</span>
+                        <span class="detail-head-actions"><button class="btn btn-primary save-latest-btn" type="button" style="height:28px;padding:0 18px" id="saveQuestionBtn">保存</button><button class="detail-close-btn" type="button" id="closeDetailBtn" aria-label="关闭问题详情">×</button></span>
+                      </div>
+                  <div class="rich-editor-scroll">
+                    <div class="editor-form" aria-label="问题编辑">
+                      <label class="field-label full-line"><span class="question-field-head"><span><span class="required-mark">*</span>问题（可编辑）</span><button class="add-question-inline" id="addExtraQuestionBtn" type="button" aria-label="增加一个问题输入框">+</button></span><input class="field" id="editorTitle" type="text" value="如何进入工资变更业务办理页面？" aria-label="右侧编辑区域问题，可手动修改" /></label>
+                      <div class="extra-question-list full-line" id="extraQuestionList" aria-label="附加问题输入区"></div>
+                      <label class="field-label full-line"><span>分类</span><select class="select" id="editorCategorySelect" aria-label="重新选择问题分类"></select></label>
+                    </div>
+                    <div class="rich-toolbar" aria-label="富文本编辑工具栏">
+                      <button class="rich-tool is-bold" type="button" data-rich-command="bold" title="加粗" aria-label="加粗">B</button>
+                      <button class="rich-tool is-italic" type="button" data-rich-command="italic" title="斜体" aria-label="斜体">I</button>
+                      <button class="rich-tool is-underline" type="button" data-rich-command="underline" title="下划线" aria-label="下划线">U</button>
+                      <button class="rich-tool is-heading" type="button" data-rich-command="formatBlock" data-rich-value="h1" title="一级标题" aria-label="一级标题">H1</button>
+                      <button class="rich-tool is-heading" type="button" data-rich-command="formatBlock" data-rich-value="h2" title="二级标题" aria-label="二级标题">H2</button>
+                      <button class="rich-tool" type="button" data-rich-command="insertUnorderedList" title="无序列表" aria-label="无序列表"><svg class="rich-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="4" r="0.8"></circle><circle cx="3" cy="8" r="0.8"></circle><circle cx="3" cy="12" r="0.8"></circle><path d="M6 4h7M6 8h7M6 12h7"></path></svg></button>
+                      <button class="rich-tool" type="button" data-rich-command="insertOrderedList" title="有序列表" aria-label="有序列表"><svg class="rich-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h1.6M3.3 3.2v2.1M2.6 8h1.8l-1.7 2h1.9M2.6 12h1.8c.5 0 .8.3.8.7s-.3.8-.8.8H2.6"></path><path d="M6 4h7M6 8h7M6 12h7"></path></svg></button>
+                      <button class="rich-tool" type="button" data-rich-command="justifyLeft" title="左对齐" aria-label="左对齐"><svg class="rich-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h10M3 7h7M3 10h10M3 13h7"></path></svg></button>
+                      <button class="rich-tool" type="button" data-rich-command="justifyCenter" title="居中对齐" aria-label="居中对齐"><svg class="rich-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h10M4.5 7h7M3 10h10M4.5 13h7"></path></svg></button>
+                      <button class="rich-tool" type="button" data-rich-command="justifyRight" title="右对齐" aria-label="右对齐"><svg class="rich-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h10M6 7h7M3 10h10M6 13h7"></path></svg></button>
+                      <button class="rich-tool" type="button" data-rich-command="createLink" data-rich-prompt="请输入链接地址" title="插入链接" aria-label="插入链接"><svg class="rich-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.8 5.2l1.5-1.5a2.5 2.5 0 0 1 3.5 3.5L10.2 8.8"></path><path d="M9.2 10.8l-1.5 1.5a2.5 2.5 0 0 1-3.5-3.5l1.6-1.6"></path><path d="M6.6 9.4l2.8-2.8"></path></svg></button>
+                      <button class="rich-tool" type="button" data-rich-command="insertImage" data-rich-prompt="请输入图片地址" title="插入图片" aria-label="插入图片"><svg class="rich-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="10" rx="1.2"></rect><circle cx="6" cy="6.2" r="1"></circle><path d="M3.5 12l3.2-3.2 2.1 2.1 1.6-1.6 2.1 2.7"></path></svg></button>
+                      <button class="rich-tool" type="button" data-rich-command="undo" title="撤销" aria-label="撤销"><svg class="rich-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 5H3v-3"></path><path d="M3.3 5.1A5 5 0 1 1 5 12.4"></path></svg></button>
+                      <button class="rich-tool" type="button" data-rich-command="redo" title="重做" aria-label="重做"><svg class="rich-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 5h3v-3"></path><path d="M12.7 5.1A5 5 0 1 0 11 12.4"></path></svg></button>
+                    </div>
+                    <div class="editor-canvas" contenteditable="true" aria-label="问题详情富文本内容编辑框"></div>
+                    <div class="video-upload-box">
+                      <div class="video-upload-title">
+                        <span>视频材料</span>
+                        <button class="btn btn-outline" type="button" style="margin-left:0;height:26px;padding:0 10px" id="videoUploadBtn">上传视频</button>
+                      </div>
+                      <div class="video-list">
+                        <div class="video-row"><span class="file-type">MP4</span><div><div class="file-name">工资变更入口操作演示.mp4</div><div class="file-meta">38.6 MB · 已上传 · 随问题详情保存</div></div><span class="op"><button>播放</button><button class="delete">移除</button></span></div>
+                      </div>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+
+          </div>
+        </div>
+          </section>
+
+          <section class="screen" id="exportScreen" aria-label="知识库数据导出内页">
+            <div class="export-page">
+              <div class="export-page-head">
+                <div class="export-title-line"><button class="back-link" type="button" id="backFromExportBtn" aria-label="返回知识库详情">‹</button><h1>导出数据</h1><span class="pill"><span class="mini-dot"></span>左右穿梭选择</span></div>
+                <button class="btn btn-outline" type="button" id="confirmExportBtn" style="margin-left:0">导出选择数据</button>
+              </div>
+              <div class="export-transfer" aria-label="导出数据穿梭选择区">
+                <section class="transfer-panel" aria-label="可选导出数据">
+                  <div class="transfer-head"><span>可选数据</span><span id="exportAvailableCount">0 条</span></div>
+                  <div class="transfer-tools"><input class="search-input" type="search" id="exportSearchInput" placeholder="搜索分类 / 问题" aria-label="搜索可导出问题" /></div>
+                  <div class="transfer-list" id="exportAvailableList" aria-live="polite"></div>
+                </section>
+                <div class="transfer-center" aria-label="穿梭操作">
+                  <button class="btn btn-outline" type="button" id="moveExportRightBtn" style="margin-left:0">加入 ›</button>
+                  <button class="btn btn-ghost" type="button" id="moveExportLeftBtn">‹ 移除</button>
+                </div>
+                <section class="transfer-panel" aria-label="待导出数据预览">
+                  <div class="transfer-head"><span>导出预览</span><span id="exportSelectedCount">0 条</span></div>
+                  <div class="transfer-tools"><span class="helper">右侧仅预览分类和问题，不展示详情信息</span></div>
+                  <div class="transfer-preview" id="exportPreviewList" aria-live="polite"></div>
+                </section>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen" id="structureManagerScreen" aria-label="结构分类内页">
+            <div class="detail-head">
+              <div>
+                <div class="detail-title is-structure-title"><button class="back-link" type="button" id="backFromStructureBtn" aria-label="返回知识库详情">‹</button><h1>结构分类管理</h1><span class="pill"><span class="mini-dot"></span>结构分类设置</span><button class="btn btn-primary" type="button" id="structureAddRootBtn">新增</button></div>
+              </div>
+            </div>
+            <div class="structure-manager-panel">
+              <div class="structure-wrap">
+                <div class="structure-list" id="structureList" aria-live="polite"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="confirmModal" aria-hidden="true">
+    <div class="modal confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+      <div class="modal-head"><strong id="confirmTitle">删除确认</strong><button class="modal-close" type="button" data-close-confirm aria-label="关闭">×</button></div>
+      <div class="confirm-body">
+        <div class="confirm-icon" aria-hidden="true">!</div>
+        <div class="confirm-content">
+          <p class="confirm-title" id="confirmPrompt">请确认删除操作</p>
+          <p class="confirm-message danger" id="confirmMessage">删除后数据不可恢复</p>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close-confirm id="confirmCancelBtn">取消</button><button class="btn btn-danger-solid" type="button" id="confirmDeleteBtn">确认删除</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="structureFormModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="structureFormTitle">
+      <div class="modal-head"><strong id="structureFormTitle">新增分类</strong><button class="modal-close" type="button" data-close-structure-form aria-label="关闭结构分类弹窗">×</button></div>
+      <div class="modal-body">
+        <div class="structure-form-grid">
+          <label class="field-label" id="structureParentFieldWrap">
+            <span>上级分类</span>
+            <input class="field" id="structureParentName" type="text" disabled />
+          </label>
+          <label class="field-label">
+            <span><span class="required-mark">*</span>分类名称</span>
+            <input class="field" id="structureCategoryName" type="text" aria-label="请输入分类名称" maxlength="30" />
+          </label>
+          <div class="structure-help-text">任意分类均可继续新增下一级；有数据的分类不可删除，避免影响已归类内容。</div>
+          <div class="structure-form-error" id="structureFormError" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close-structure-form>取消</button><button class="btn btn-primary" type="button" id="structureSaveFormBtn">确定</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="maintenanceModal" aria-hidden="true">
+    <div class="modal modal-maintenance" role="dialog" aria-modal="true" aria-labelledby="maintenanceModalTitle">
+      <div class="modal-head"><strong id="maintenanceModalTitle">维护记录</strong><button class="modal-close" type="button" id="closeMaintenanceModalBtn" aria-label="关闭维护记录弹窗">×</button></div>
+      <div class="modal-body maintenance-modal-body">
+        <div class="maintenance-version-wrap">
+          <table class="maintenance-version-table" aria-label="维护记录表格">
+            <thead>
+              <tr>
+                <th>分类</th>
+                <th>问题</th>
+                <th>维护人</th>
+                <th>维护时间</th>
+              </tr>
+            </thead>
+            <tbody id="maintenanceVersionTbody"></tbody>
+          </table>
+        </div>
+        <div class="maintenance-snapshot-card">
+          <div class="maintenance-snapshot-head"><h3>问题详情</h3><span class="maintenance-snapshot-version" id="maintenanceSnapshotVersion">点击上方记录联动查看</span></div>
+          <div class="maintenance-snapshot-section"><span class="maintenance-snapshot-label">分类</span><div class="maintenance-snapshot-category" id="maintenanceModalCategory">-</div></div>
+          <div class="maintenance-snapshot-section"><span class="maintenance-snapshot-label">问题</span><div class="maintenance-snapshot-question" id="maintenanceModalQuestion">-</div></div>
+          <div class="maintenance-snapshot-section"><span class="maintenance-snapshot-label">详情内容</span><div class="maintenance-snapshot-content" id="maintenanceModalDetail">暂无详细信息</div></div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-primary" type="button" id="maintenanceModalOkBtn">我知道了</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="attachmentUploadModal" aria-hidden="true">
+    <div class="modal modal-attachment-upload" role="dialog" aria-modal="true" aria-labelledby="attachmentUploadTitle">
+      <div class="modal-head"><strong id="attachmentUploadTitle">附件上传</strong><button class="modal-close" type="button" id="closeAttachmentUploadBtn" aria-label="关闭附件上传弹窗">×</button></div>
+      <div class="attachment-upload-body">
+        <div class="attachment-upload-zone" id="attachmentDropZone">
+          <div class="attachment-upload-icon">↑</div>
+          <div class="attachment-upload-title">点击或拖拽文件到此区域上传</div>
+          <div class="attachment-upload-hint">支持 PDF / Word / Excel / 图片等格式，单个文件不超过 50MB</div>
+        </div>
+        <div class="attachment-history-section">
+          <h3>历史附件</h3>
+          <div class="attachment-history-table-wrap">
+            <table class="attachment-table" aria-label="历史附件列表">
+              <thead>
+                <tr>
+                  <th>附件名称</th>
+                  <th>类型</th>
+                  <th>大小</th>
+                  <th>解析状态</th>
+                  <th>上传人</th>
+                  <th>上传时间</th>
+                  <th class="action-cell">操作</th>
+                </tr>
+              </thead>
+              <tbody id="attachmentHistoryTbody">
+                <tr data-attachment-status="done"><td><div class="file-name">工资变更操作手册.pdf</div></td><td><span class="file-type">PDF</span></td><td>2.4 MB</td><td><span class="attachment-status done">已索引</span></td><td>李开心</td><td>2026-08-03 10:20</td><td class="action-cell"><span class="op"><button type="button" data-download-attachment>下载</button><button class="delete" type="button">移除</button></span></td></tr>
+                <tr data-attachment-status="processing"><td><div class="file-name">常见材料清单.docx</div></td><td><span class="file-type">DOC</span></td><td>860 KB</td><td><span class="attachment-status processing">处理中</span></td><td>王小明</td><td>2026-07-28 14:22</td><td class="action-cell"><span class="op"><button type="button" data-download-attachment>下载</button><button class="delete" type="button">移除</button></span></td></tr>
+                <tr data-attachment-status="pending"><td><div class="file-name">业务类型与字段说明.xlsx</div></td><td><span class="file-type">XLS</span></td><td>1.1 MB</td><td><span class="attachment-status pending">待处理</span></td><td>李开心</td><td>2026-07-25 09:36</td><td class="action-cell"><span class="op"><button class="attachment-process-btn" type="button" data-process-attachment>处理</button><button type="button" data-download-attachment>下载</button><button class="delete" type="button">移除</button></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-primary" type="button" id="attachmentUploadOkBtn">完成</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">已完成保存</div>
+
+  <script>
+    const listScreen = document.getElementById('listScreen');
+    const detailScreen = document.getElementById('detailScreen');
+    const copyKbScreen = document.getElementById('copyKbScreen');
+    const exportScreen = document.getElementById('exportScreen');
+    const structureManagerScreen = document.getElementById('structureManagerScreen');
+    const crumb = document.getElementById('crumb');
+    const kbTbody = document.getElementById('kbTbody');
+    const kbTotal = document.getElementById('kbTotal');
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmPrompt = document.getElementById('confirmPrompt');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmIcon = document.querySelector('.confirm-icon');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const toast = document.getElementById('toast');
+    const editorTitle = document.getElementById('editorTitle');
+    const extraQuestionList = document.getElementById('extraQuestionList');
+    const addExtraQuestionBtn = document.getElementById('addExtraQuestionBtn');
+    const editorCanvas = document.querySelector('.editor-canvas');
+    const editorLayout = document.getElementById('editorLayout');
+    const questionDetailPanel = document.getElementById('questionDetailPanel');
+    const closeDetailBtn = document.getElementById('closeDetailBtn');
+    const detailResizeHandle = document.getElementById('detailResizeHandle');
+    const detailWorkspace = document.getElementById('detailWorkspace');
+    const collapseCategoryBtn = document.getElementById('collapseCategoryBtn');
+    const expandCategoryBtn = document.getElementById('expandCategoryBtn');
+    const openStructureManagerBtn = document.getElementById('openStructureManagerBtn');
+    const backFromStructureBtn = document.getElementById('backFromStructureBtn');
+    const categoryTree = document.getElementById('categoryTree');
+    const categorySelectedCount = document.getElementById('categorySelectedCount');
+    const maintenanceTbody = document.getElementById('maintenanceTbody');
+    const maintenanceSearch = document.getElementById('maintenanceSearch');
+    const exportMaintenanceBtn = document.getElementById('exportMaintenanceBtn');
+    const maintenanceTotalText = document.getElementById('maintenanceTotalText');
+    const maintenancePrevBtn = document.getElementById('maintenancePrevBtn');
+    const maintenanceNextBtn = document.getElementById('maintenanceNextBtn');
+    const maintenancePageNow = document.getElementById('maintenancePageNow');
+    const maintenancePageTotal = document.getElementById('maintenancePageTotal');
+    const historyTabCount = document.getElementById('historyTabCount');
+    const detailHistoryCount = document.getElementById('detailHistoryCount');
+    const maintenanceVersionTbody = document.getElementById('maintenanceVersionTbody');
+    const maintenanceSnapshotVersion = document.getElementById('maintenanceSnapshotVersion');
+    const maintenanceModal = document.getElementById('maintenanceModal');
+    const closeMaintenanceModalBtn = document.getElementById('closeMaintenanceModalBtn');
+    const maintenanceModalOkBtn = document.getElementById('maintenanceModalOkBtn');
+    const maintenanceModalCategory = document.getElementById('maintenanceModalCategory');
+    const maintenanceModalQuestion = document.getElementById('maintenanceModalQuestion');
+    const maintenanceModalDetail = document.getElementById('maintenanceModalDetail');
+    const attachmentUploadTopBtn = document.getElementById('attachmentUploadTopBtn');
+    const openAttachmentUploadBtn = document.getElementById('openAttachmentUploadBtn');
+    const attachmentUploadModal = document.getElementById('attachmentUploadModal');
+    const closeAttachmentUploadBtn = document.getElementById('closeAttachmentUploadBtn');
+    const attachmentUploadOkBtn = document.getElementById('attachmentUploadOkBtn');
+    const attachmentDropZone = document.getElementById('attachmentDropZone');
+    const attachmentHistoryTbody = document.getElementById('attachmentHistoryTbody');
+    const openExportBtn = document.getElementById('openExportBtn');
+    const editorCategorySelect = document.getElementById('editorCategorySelect');
+    const structureList = document.getElementById('structureList');
+    const structureAddRootBtn = document.getElementById('structureAddRootBtn');
+    const structureFormModal = document.getElementById('structureFormModal');
+    const structureFormTitle = document.getElementById('structureFormTitle');
+    const structureParentFieldWrap = document.getElementById('structureParentFieldWrap');
+    const structureParentName = document.getElementById('structureParentName');
+    const structureCategoryName = document.getElementById('structureCategoryName');
+    const structureFormError = document.getElementById('structureFormError');
+    const structureSaveFormBtn = document.getElementById('structureSaveFormBtn');
+    const backFromExportBtn = document.getElementById('backFromExportBtn');
+    const confirmExportBtn = document.getElementById('confirmExportBtn');
+    const exportSearchInput = document.getElementById('exportSearchInput');
+    const exportAvailableList = document.getElementById('exportAvailableList');
+    const exportPreviewList = document.getElementById('exportPreviewList');
+    const exportAvailableCount = document.getElementById('exportAvailableCount');
+    const exportSelectedCount = document.getElementById('exportSelectedCount');
+    const moveExportRightBtn = document.getElementById('moveExportRightBtn');
+    const moveExportLeftBtn = document.getElementById('moveExportLeftBtn');
+    const copyKbName = document.getElementById('copyKbName');
+    const copyKbDesc = document.getElementById('copyKbDesc');
+    const copyKbSystem = document.getElementById('copyKbSystem');
+    const copyKbRegion = document.getElementById('copyKbRegion');
+    const copyKbStatus = document.getElementById('copyKbStatus');
+    const submitCopyKbBtn = document.getElementById('submitCopyKbBtn');
+    const cancelCopyKbBtn = document.getElementById('cancelCopyKbBtn');
+    if (questionDetailPanel && questionDetailPanel.parentElement !== document.body) {
+      document.body.appendChild(questionDetailPanel);
+    }
+
+    let activeCategory = 'personnel';
+    let activeQuestionId = 'q1';
+    let isNewQuestionDraft = false;
+    let pendingConfirmAction = null;
+    let copyingKbRow = null;
+    let exportSelectedIds = new Set();
+    let exportCheckedIds = new Set();
+    let previewCheckedIds = new Set();
+    let exportExpandedGroups = new Set(['business', 'agency']);
+    let exportExpandedCategories = new Set(['personnel', 'office-service', 'policy', 'business-rule']);
+    let maintenanceRecords = [];
+    let maintenancePage = 1;
+    const maintenancePageSize = 5;
+    const questionContentMap = {
+      q1: '<p>进入系统后选择“业务办理 - 工资变更”，根据人员类型选择对应表单。</p><p>提交前请确认基础信息、人员类别、区域信息均已核对无误；如涉及材料说明，请在问题详情中补充办理口径，并通过维护记录查看留痕。</p><p>若提交时提示材料不完整，请返回材料清单检查必传项，确认文件格式为 Word 或 PDF，并重新上传后再提交。</p>',
+      q2: '<p>提交时如提示附件材料不完整，请先查看页面顶部的材料校验结果。</p><p>补齐必填附件后重新提交，仍无法通过时联系维护人核对材料规则。</p>',
+      q3: '<p>工资变更业务的政策依据可在政策法规分类中查看。</p><p>建议按区域和业务类型检索，确保引用口径与当前地区要求一致。</p>',
+      q4: '<p>审核退回后，进入原申请记录查看退回原因，补充说明或材料后重新发起。</p>',
+      q5: '<p>跨区业务优先判断人员归属区域、业务办理区域和数据维护区域，必要时由两地维护人员协同确认。</p>'
+    };
+
+    function escapeHtml(text) {
+      return String(text ?? '').replace(/[&<>"']/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match]));
+    }
+    function getCurrentTimeText() {
+      const now = new Date();
+      const pad = value => String(value).padStart(2, '0');
+      return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    }
+    function createDateTimeCode(date = new Date()) {
+      const pad = value => String(value).padStart(2, '0');
+      return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+    }
+    function createDateTimeCodeFromText(text) {
+      const matched = String(text || '').match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?/);
+      if (!matched) return createDateTimeCode();
+      return `${matched[1]}${matched[2]}${matched[3]}${matched[4]}${matched[5]}${matched[6] || '00'}`;
+    }
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('active');
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove('active'), 2600);
+    }
+    function resetExtraQuestions() {
+      if (extraQuestionList) extraQuestionList.innerHTML = '';
+    }
+    function createExtraQuestionInput(value = '') {
+      if (!extraQuestionList) return null;
+      const item = document.createElement('div');
+      item.className = 'extra-question-item';
+      item.innerHTML = `<input class="field extra-question-input" type="text" value="${escapeHtml(value)}" placeholder="请输入新增问题" aria-label="附加问题" /><button class="extra-question-remove" type="button" aria-label="移除该问题">×</button>`;
+      extraQuestionList.appendChild(item);
+      item.querySelector('input')?.focus();
+      return item;
+    }
+    function getAllQuestionValues(activeRow) {
+      const primary = getEditorQuestionValue(activeRow);
+      const extras = Array.from(document.querySelectorAll('.extra-question-input')).map(input => input.value.trim()).filter(Boolean);
+      return [primary, ...extras].filter(Boolean);
+    }
+    function renderQuestionText(questions) {
+      const items = Array.isArray(questions) ? questions.filter(Boolean) : [questions].filter(Boolean);
+      return items.length > 1 ? items.map((item, index) => `${index + 1}. ${item}`).join('\n') : (items[0] || '未命名问题');
+    }
+    function openModal(modal) {
+      if (!modal) return;
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+    function closeModal(modal) {
+      if (!modal) return;
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+    function openActionConfirm(options) {
+      const type = options.type || 'danger';
+      confirmTitle.textContent = options.title || (type === 'info' ? '操作确认' : '删除确认');
+      confirmPrompt.textContent = options.prompt || '请确认操作';
+      confirmMessage.textContent = options.message || '';
+      confirmMessage.classList.toggle('danger', type === 'danger');
+      confirmIcon.classList.toggle('info', type === 'info');
+      confirmIcon.textContent = type === 'info' ? '?' : '!';
+      confirmCancelBtn.textContent = options.cancelText || '取消';
+      confirmDeleteBtn.textContent = options.confirmText || '确认删除';
+      confirmDeleteBtn.className = type === 'info' ? 'btn btn-primary' : 'btn btn-danger-solid';
+      pendingConfirmAction = options.onConfirm || null;
+      openModal(confirmModal);
+    }
+    function openDeleteConfirm(options) {
+      openActionConfirm({
+        type: 'danger',
+        prompt: options.prompt || '请确认删除操作',
+        message: options.message || '删除后数据不可恢复',
+        confirmText: options.confirmText || '确认删除',
+        cancelText: options.cancelText || '取消',
+        onConfirm: options.onConfirm
+      });
+    }
+    function closeDeleteConfirm() {
+      closeModal(confirmModal);
+      pendingConfirmAction = null;
+      confirmCancelBtn.textContent = '取消';
+      confirmDeleteBtn.textContent = '确认删除';
+      confirmDeleteBtn.className = 'btn btn-danger-solid';
+      confirmIcon.classList.remove('info');
+      confirmIcon.textContent = '!';
+      confirmTitle.textContent = '删除确认';
+    }
+    function getCategoryName(category = activeCategory) {
+      return document.querySelector(`.category-leaf[data-category="${category}"] .category-name`)?.textContent || '未分类';
+    }
+    function populateEditorCategorySelect(selectedCategory = activeCategory) {
+      if (!editorCategorySelect) return;
+      const options = Array.from(document.querySelectorAll('.category-leaf')).map(leaf => ({
+        value: leaf.dataset.category,
+        label: leaf.querySelector('.category-name')?.textContent.trim() || '未命名分类'
+      })).filter(item => item.value);
+      editorCategorySelect.innerHTML = options.map(item => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('');
+      const nextValue = options.some(item => item.value === selectedCategory) ? selectedCategory : (options[0]?.value || '');
+      if (nextValue) editorCategorySelect.value = nextValue;
+    }
+    const structureState = {
+      categories: [
+        { id: 'p1', name: '事业单位知识库', expanded: true, questionCount: 0, children: [
+          { id: 'c1', name: '办事服务', expanded: true, questionCount: 5, children: [] },
+          { id: 'c2', name: '业务规范', expanded: true, questionCount: 3, children: [] },
+          { id: 'c3', name: '人员管理', expanded: true, questionCount: 30, children: [
+            { id: 'c31', name: '工资变更', expanded: true, questionCount: 6, children: [] }
+          ] }
+        ]},
+        { id: 'p2', name: '机关单位知识库', expanded: true, questionCount: 0, children: [
+          { id: 'c4', name: '正常犯规', expanded: true, questionCount: 4, children: [] },
+          { id: 'c5', name: '制度文件', expanded: true, questionCount: 6, children: [] },
+          { id: 'c6', name: '应急预案', expanded: true, questionCount: 3, children: [] }
+        ]}
+      ],
+      editing: null
+    };
+    function makeStructureId(prefix) {
+      return `${prefix}${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    }
+    function normalizeStructureNode(node) {
+      if (!Array.isArray(node.children)) node.children = [];
+      node.expanded = node.expanded !== false;
+      node.questionCount = Number(node.questionCount || 0);
+      node.savedAt = node.savedAt || '2026-08-07 10:30';
+      node.children.forEach(normalizeStructureNode);
+      return node;
+    }
+    function getStructureNodeCount(node) {
+      normalizeStructureNode(node);
+      return node.questionCount + node.children.reduce((sum, child) => sum + getStructureNodeCount(child), 0);
+    }
+    function findStructureNode(id, nodes = structureState.categories, parent = null, level = 0) {
+      for (const node of nodes) {
+        normalizeStructureNode(node);
+        if (node.id === id) return { node, parent, level };
+        const found = findStructureNode(id, node.children, node, level + 1);
+        if (found) return found;
+      }
+      return null;
+    }
+    function findStructureParent(parentId) {
+      return findStructureNode(parentId)?.node || null;
+    }
+    function findStructureChild(childId) {
+      const found = findStructureNode(childId);
+      return found ? { parent: found.parent, child: found.node, level: found.level } : null;
+    }
+    function getStructureLevelLabel(level) {
+      return `第 ${level + 1} 级分类`;
+    }
+    function structureIconSvg(type) {
+      const icons = {
+        add: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>',
+        edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg>',
+        delete: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg>'
+      };
+      return icons[type] || '';
+    }
+    function renderStructureManager() {
+      if (!structureList) return;
+      structureList.innerHTML = '';
+      structureList.classList.toggle('is-empty', structureState.categories.length === 0);
+      const renderNode = (node, level = 0, block) => {
+        normalizeStructureNode(node);
+        const row = document.createElement('div');
+        row.className = level === 0 ? 'structure-parent-row' : 'structure-child-row';
+        row.dataset.id = node.id;
+        row.dataset.level = String(level);
+        row.style.setProperty('--level-indent', `${Math.min(level, 8) * 28}px`);
+        const hasChildren = node.children.length > 0;
+        const levelText = getStructureLevelLabel(level);
+        row.innerHTML = `
+          <div class="structure-name-line">
+            <button class="structure-toggle-btn" type="button" aria-label="展开或收起${escapeHtml(node.name)}" data-structure-action="toggle" data-id="${node.id}" ${hasChildren ? '' : 'disabled'}>${hasChildren ? (node.expanded ? '⌄' : '›') : ''}</button>
+            <span class="structure-category-name" title="${escapeHtml(levelText)}">${escapeHtml(node.name)}</span>
+            <span class="structure-count">(${getStructureNodeCount(node)})</span>
+          </div>
+          <div class="structure-row-actions structure-icon-actions">
+            <button class="structure-icon-btn" type="button" aria-label="新增下一级分类" title="新增下一级分类" data-structure-action="add-child" data-id="${node.id}">${structureIconSvg('add')}</button>
+            <button class="structure-icon-btn" type="button" aria-label="编辑分类" title="编辑分类" data-structure-action="edit-node" data-id="${node.id}">${structureIconSvg('edit')}</button>
+            <button class="structure-icon-btn delete-icon" type="button" aria-label="删除分类" title="删除分类" data-structure-action="delete-node" data-id="${node.id}">${structureIconSvg('delete')}</button>
+          </div>`;
+        block.appendChild(row);
+        if (node.expanded) node.children.forEach(child => renderNode(child, level + 1, block));
+      };
+      structureState.categories.forEach(parent => {
+        const block = document.createElement('div');
+        block.className = 'structure-category-block';
+        block.dataset.id = parent.id;
+        renderNode(parent, 0, block);
+        structureList.appendChild(block);
+      });
+      const empty = document.createElement('div');
+      empty.className = 'structure-empty-state';
+      empty.textContent = '暂无结构分类，请点击右上角新增';
+      structureList.appendChild(empty);
+    }
+    function openStructureForm(mode, payload = {}) {
+      structureState.editing = { mode, ...payload };
+      structureFormError.textContent = '';
+      structureCategoryName.value = '';
+      structureParentName.value = '';
+      structureParentFieldWrap.style.display = 'none';
+      if (mode === 'add-parent') {
+        structureFormTitle.textContent = '新增分类';
+      }
+      if (mode === 'edit-node') {
+        const found = findStructureNode(payload.nodeId);
+        structureFormTitle.textContent = '编辑分类';
+        if (found?.parent) {
+          structureParentFieldWrap.style.display = 'grid';
+          structureParentName.value = found.parent.name || '';
+        }
+        structureCategoryName.value = found?.node.name || '';
+      }
+      if (mode === 'add-child') {
+        const found = findStructureNode(payload.parentId);
+        structureFormTitle.textContent = '新增下一级分类';
+        structureParentFieldWrap.style.display = 'grid';
+        structureParentName.value = found?.node.name || '';
+      }
+      openModal(structureFormModal);
+      setTimeout(() => structureCategoryName.focus(), 0);
+    }
+    function closeStructureForm() {
+      closeModal(structureFormModal);
+      structureState.editing = null;
+    }
+    function saveStructureForm() {
+      const name = structureCategoryName.value.trim();
+      if (!name) {
+        structureFormError.textContent = '请输入分类名称';
+        structureCategoryName.focus();
+        return;
+      }
+      const editing = structureState.editing;
+      if (!editing) return;
+      const savedAt = getCurrentTimeText();
+      if (editing.mode === 'add-parent') structureState.categories.push({ id: makeStructureId('p'), name, expanded: true, questionCount: 0, savedAt, children: [] });
+      if (editing.mode === 'edit-node') {
+        const found = findStructureNode(editing.nodeId);
+        if (found) {
+          found.node.name = name;
+          found.node.savedAt = savedAt;
+        }
+      }
+      if (editing.mode === 'add-child') {
+        const found = findStructureNode(editing.parentId);
+        if (found) {
+          normalizeStructureNode(found.node);
+          found.node.expanded = true;
+          found.node.savedAt = savedAt;
+          found.node.children.push({ id: makeStructureId('c'), name, expanded: true, questionCount: 0, savedAt, children: [] });
+        }
+      }
+      closeStructureForm();
+      renderStructureManager();
+      showToast('已保存结构分类');
+    }
+    function requestStructureDelete(id) {
+      const found = findStructureNode(id);
+      if (!found) return;
+      const count = getStructureNodeCount(found.node);
+      if (count !== 0) {
+        openActionConfirm({ type: 'info', prompt: '该分类下有数据未清理，不能删除', message: '请先迁移或清理分类下的问题数据后再删除。', confirmText: '我知道了', cancelText: '关闭' });
+        return;
+      }
+      openActionConfirm({ type: 'danger', prompt: '确认删除吗？', message: '删除后该分类及其下级分类不可恢复', confirmText: '确定', onConfirm: () => deleteStructureCategory(id) });
+    }
+    function deleteStructureCategory(id) {
+      const found = findStructureNode(id);
+      if (!found) return;
+      if (!found.parent) structureState.categories = structureState.categories.filter(parent => parent.id !== id);
+      if (found.parent) found.parent.children = found.parent.children.filter(child => child.id !== id);
+      renderStructureManager();
+      showToast('已删除结构分类');
+    }
+    function createQuestionId() {
+      return 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    }
+    function getKbRows() {
+      return Array.from(kbTbody.querySelectorAll('tr'));
+    }
+    function updateKbIndexes() {
+      getKbRows().forEach((row, index) => { row.cells[0].textContent = String(index + 1); });
+      if (kbTotal) kbTotal.textContent = `共 ${getKbRows().length} 条`;
+    }
+    function getKbRowData(row) {
+      const cells = row.cells;
+      return {
+        name: cells[1]?.textContent.trim() || '',
+        desc: cells[2]?.textContent.trim() || '',
+        system: cells[3]?.textContent.trim() || '',
+        region: cells[4]?.textContent.trim() || '',
+        contentCount: cells[5]?.textContent.trim() || '0',
+        attachmentCount: cells[6]?.textContent.trim() || '0',
+        status: cells[7]?.textContent.trim() || '启用',
+        creator: cells[8]?.textContent.trim() || '李开心'
+      };
+    }
+    function setSelectValue(select, value) {
+      if (!select) return;
+      const nextValue = String(value || '').trim();
+      if (!nextValue) return;
+      const hasOption = Array.from(select.options).some(option => option.value === nextValue || option.textContent.trim() === nextValue);
+      if (!hasOption) select.add(new Option(nextValue, nextValue));
+      select.value = nextValue;
+    }
+    function showDetail(row) {
+      const data = row ? getKbRowData(row) : { name: '操作手册知识库', system: '事业工资系统（单机版）', region: '锦江区、武侯区、双流区', status: '启用' };
+      listScreen.classList.remove('active');
+      copyKbScreen.classList.remove('active');
+      exportScreen?.classList.remove('active');
+      structureManagerScreen.classList.remove('active');
+      detailScreen.classList.add('active');
+      crumb.textContent = `知识库管理 / ${data.name}`;
+      const titleNode = document.querySelector('.detail-title h1');
+      const statusNode = document.querySelector('.detail-title .pill');
+      const metaNodes = document.querySelectorAll('.meta-row span');
+      if (titleNode) titleNode.textContent = data.name;
+      if (statusNode) statusNode.innerHTML = `<span class="mini-dot"></span>${data.status === '禁用' ? '禁用中' : '启用中'}`;
+      if (metaNodes[0]) metaNodes[0].textContent = `关联系统：${data.system}`;
+      if (metaNodes[1]) metaNodes[1].textContent = `关联区域：${data.region}`;
+    }
+    function showList() {
+      detailScreen.classList.remove('active');
+      copyKbScreen.classList.remove('active');
+      exportScreen?.classList.remove('active');
+      structureManagerScreen.classList.remove('active');
+      listScreen.classList.add('active');
+      crumb.textContent = '知识库管理';
+    }
+    function showCopyPage() {
+      listScreen.classList.remove('active');
+      detailScreen.classList.remove('active');
+      exportScreen?.classList.remove('active');
+      structureManagerScreen.classList.remove('active');
+      copyKbScreen.classList.add('active');
+      crumb.textContent = '知识库管理 / 复制知识库';
+    }
+    function showStructureManager() {
+      listScreen.classList.remove('active');
+      copyKbScreen.classList.remove('active');
+      exportScreen?.classList.remove('active');
+      detailScreen.classList.remove('active');
+      structureManagerScreen.classList.add('active');
+      crumb.textContent = '知识库管理 / 结构分类管理';
+      renderStructureManager();
+      showToast('已进入结构分类设置');
+    }
+    function backToDetailFromStructure() {
+      structureManagerScreen.classList.remove('active');
+      detailScreen.classList.add('active');
+      crumb.textContent = '知识库管理 / 操作手册知识库';
+    }
+    function getExportItems() {
+      return Array.from(document.querySelectorAll('.qa-table tbody tr[data-id]')).map(row => ({
+        id: row.dataset.id,
+        categoryKey: row.dataset.category,
+        category: row.querySelector('.category-cell')?.textContent.trim() || getCategoryName(row.dataset.category),
+        question: row.dataset.questions ? renderQuestionText(JSON.parse(row.dataset.questions)) : (row.dataset.title || row.querySelector('.question-cell')?.textContent.trim() || '未命名问题')
+      }));
+    }
+    function getExportCategoryGroups() {
+      const items = getExportItems();
+      return Array.from(categoryTree?.querySelectorAll('.category-group') || []).map(group => {
+        const head = group.querySelector('[data-category-toggle]');
+        const groupKey = head?.dataset.categoryToggle || '';
+        const groupName = head?.querySelector('.category-name')?.textContent.trim() || '未分组';
+        const categories = Array.from(group.querySelectorAll('.category-leaf')).map(leaf => {
+          const categoryKey = leaf.dataset.category || '';
+          const categoryName = leaf.querySelector('.category-name')?.textContent.trim() || getCategoryName(categoryKey);
+          return { categoryKey, categoryName, items: items.filter(item => item.categoryKey === categoryKey) };
+        });
+        return { groupKey, groupName, categories };
+      });
+    }
+    function getExportGroupItemIds(group) {
+      return group.categories.flatMap(category => category.items.map(item => item.id));
+    }
+    function getExportCategoryItemIds(category) {
+      return category.items.map(item => item.id);
+    }
+    function syncExportParentCheckboxes(root, itemSelector, categorySelector, groupSelector) {
+      if (!root) return;
+      root.querySelectorAll(categorySelector).forEach(input => {
+        const node = input.closest('[data-export-category-node], .preview-category-node');
+        const childInputs = Array.from(node?.querySelectorAll(itemSelector) || []);
+        input.checked = childInputs.length > 0 && childInputs.every(child => child.checked);
+        input.indeterminate = childInputs.some(child => child.checked) && !input.checked;
+      });
+      root.querySelectorAll(groupSelector).forEach(input => {
+        const node = input.closest('.export-category-group, .preview-group');
+        const childInputs = Array.from(node?.querySelectorAll(itemSelector) || []);
+        input.checked = childInputs.length > 0 && childInputs.every(child => child.checked);
+        input.indeterminate = childInputs.some(child => child.checked) && !input.checked;
+      });
+    }
+    function syncExportTreeCheckboxes() {
+      syncExportParentCheckboxes(exportAvailableList, '[data-export-source]', '[data-export-category-check]', '[data-export-group-check]');
+      syncExportParentCheckboxes(exportPreviewList, '[data-preview-source]', '[data-preview-category-check]', '[data-preview-group-check]');
+    }
+    function renderExportTransfer() {
+      if (!exportAvailableList || !exportPreviewList) return;
+      const keyword = exportSearchInput?.value.trim().toLowerCase() || '';
+      const groups = getExportCategoryGroups().map(group => ({
+        ...group,
+        categories: group.categories.map(category => ({
+          ...category,
+          items: category.items.filter(item => {
+            const matched = !keyword || group.groupName.toLowerCase().includes(keyword) || category.categoryName.toLowerCase().includes(keyword) || item.question.toLowerCase().includes(keyword);
+            return matched && !exportSelectedIds.has(item.id);
+          })
+        })).filter(category => category.items.length || !keyword)
+      })).filter(group => group.categories.length);
+      const availableIds = new Set(groups.flatMap(getExportGroupItemIds));
+      exportCheckedIds = new Set(Array.from(exportCheckedIds).filter(id => availableIds.has(id)));
+      const filteredCount = groups.reduce((sum, group) => sum + group.categories.reduce((count, category) => count + category.items.length, 0), 0);
+      exportAvailableList.innerHTML = groups.map(group => {
+        const groupCount = group.categories.reduce((sum, category) => sum + category.items.length, 0);
+        const groupExpanded = exportExpandedGroups.has(group.groupKey) || Boolean(keyword);
+        return `
+        <div class="export-category-group" data-export-group-node="${escapeHtml(group.groupKey)}">
+          <div class="export-category-head" aria-expanded="${groupExpanded}">
+            <input class="export-node-check" type="checkbox" data-export-group-check="${escapeHtml(group.groupKey)}" aria-label="选择${escapeHtml(group.groupName)}全部问题" />
+            <button class="export-node-toggle" type="button" data-export-group="${escapeHtml(group.groupKey)}" aria-label="${groupExpanded ? '收起' : '展开'}${escapeHtml(group.groupName)}">${groupExpanded ? '▾' : '▸'}</button>
+            <span class="category-dot" aria-hidden="true"></span><span class="category-name">${escapeHtml(group.groupName)}</span><span class="category-count">${groupCount}</span>
+          </div>
+          <div class="export-category-children">
+            ${group.categories.map(category => {
+              const categoryExpanded = exportExpandedCategories.has(category.categoryKey) || Boolean(keyword);
+              return `<div class="export-leaf-group" data-export-category-node="${escapeHtml(category.categoryKey)}">
+                <div class="export-category-leaf ${category.items.length ? '' : 'is-empty'}" aria-expanded="${categoryExpanded}">
+                  <input class="export-node-check" type="checkbox" data-export-category-check="${escapeHtml(category.categoryKey)}" aria-label="选择${escapeHtml(category.categoryName)}全部问题" />
+                  <button class="export-node-toggle" type="button" data-export-category="${escapeHtml(category.categoryKey)}" aria-label="${categoryExpanded ? '收起' : '展开'}${escapeHtml(category.categoryName)}">${categoryExpanded ? '▾' : '▸'}</button>
+                  <span class="category-name">${escapeHtml(category.categoryName)}</span><span class="category-count">${category.items.length}</span>
+                </div>
+                <div class="export-question-list">
+                  ${category.items.map(item => `<label class="export-question-item"><input type="checkbox" data-export-source="${escapeHtml(item.id)}" ${exportCheckedIds.has(item.id) ? 'checked' : ''} /><span class="export-question-text" title="${escapeHtml(item.question)}">${escapeHtml(item.question)}</span></label>`).join('') || '<div class="preview-empty" style="padding:14px 8px;text-align:left">暂无问题</div>'}
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('') || '<div class="preview-empty">暂无匹配数据</div>';
+      const selectedGroups = getExportCategoryGroups().map(group => ({
+        ...group,
+        categories: group.categories.map(category => ({
+          ...category,
+          items: category.items.filter(item => exportSelectedIds.has(item.id))
+        })).filter(category => category.items.length)
+      })).filter(group => group.categories.length);
+      const previewIds = new Set(selectedGroups.flatMap(getExportGroupItemIds));
+      previewCheckedIds = new Set(Array.from(previewCheckedIds).filter(id => previewIds.has(id)));
+      const selectedCount = selectedGroups.reduce((sum, group) => sum + group.categories.reduce((count, category) => count + category.items.length, 0), 0);
+      exportPreviewList.innerHTML = selectedGroups.length ? `<div class="preview-tree">
+        ${selectedGroups.map(group => `
+          <div class="preview-group" data-preview-group-node="${escapeHtml(group.groupKey)}">
+            <div class="preview-group-head"><input class="preview-node-check" type="checkbox" data-preview-group-check="${escapeHtml(group.groupKey)}" aria-label="选择${escapeHtml(group.groupName)}全部预览数据" /><span class="category-dot" aria-hidden="true"></span><span>${escapeHtml(group.groupName)}</span><span class="category-count">${group.categories.reduce((sum, category) => sum + category.items.length, 0)}</span></div>
+            ${group.categories.map(category => `
+              <div class="preview-category-node" data-preview-category-node="${escapeHtml(category.categoryKey)}">
+                <div class="preview-category-head"><input class="preview-node-check" type="checkbox" data-preview-category-check="${escapeHtml(category.categoryKey)}" aria-label="选择${escapeHtml(category.categoryName)}全部预览数据" /><span>${escapeHtml(category.categoryName)}</span><span class="category-count">${category.items.length}</span></div>
+                ${category.items.map(item => `
+                  <div class="preview-item" data-export-preview="${escapeHtml(item.id)}">
+                    <input class="preview-node-check" type="checkbox" data-preview-source="${escapeHtml(item.id)}" ${previewCheckedIds.has(item.id) ? 'checked' : ''} aria-label="选择预览问题：${escapeHtml(item.question)}" />
+                    <div class="preview-main"><div class="preview-question" title="${escapeHtml(item.question)}">${escapeHtml(item.question)}</div></div>
+                    <button class="preview-remove" type="button" aria-label="移除该导出问题" data-remove-export="${escapeHtml(item.id)}">移除</button>
+                  </div>`).join('')}
+              </div>`).join('')}
+          </div>`).join('')}
+      </div>` : '<div class="preview-empty">请选择左侧问题加入导出预览</div>';
+      syncExportTreeCheckboxes();
+      if (exportAvailableCount) exportAvailableCount.textContent = `${filteredCount} 条`;
+      if (exportSelectedCount) exportSelectedCount.textContent = `${selectedCount} 条`;
+    }
+    function showExportPage() {
+      listScreen.classList.remove('active');
+      copyKbScreen.classList.remove('active');
+      structureManagerScreen.classList.remove('active');
+      detailScreen.classList.remove('active');
+      exportScreen?.classList.add('active');
+      crumb.textContent = '知识库管理 / 导出数据';
+      exportSelectedIds = new Set();
+      exportCheckedIds = new Set();
+      previewCheckedIds = new Set();
+      if (exportSearchInput) exportSearchInput.value = '';
+      renderExportTransfer();
+      showToast('已进入数据导出页面');
+    }
+    function backToDetailFromExport() {
+      exportScreen?.classList.remove('active');
+      detailScreen.classList.add('active');
+      crumb.textContent = '知识库管理 / 操作手册知识库';
+    }
+    function moveCheckedExportItemsToPreview() {
+      const checkedIds = Array.from(exportCheckedIds).filter(Boolean);
+      if (!checkedIds.length) {
+        showToast('请先勾选左侧要导出的数据');
+        return;
+      }
+      checkedIds.forEach(id => exportSelectedIds.add(id));
+      exportCheckedIds = new Set();
+      renderExportTransfer();
+      showToast('已加入导出预览');
+    }
+    function removeCheckedExportItemsFromPreview() {
+      const checkedIds = Array.from(previewCheckedIds).filter(Boolean);
+      if (!checkedIds.length) {
+        showToast('请先勾选右侧要移除的数据');
+        return;
+      }
+      checkedIds.forEach(id => exportSelectedIds.delete(id));
+      previewCheckedIds = new Set();
+      renderExportTransfer();
+      showToast('已移除所选导出数据，左侧数据已恢复');
+    }
+    function confirmExportSelection() {
+      const selected = getExportItems().filter(item => exportSelectedIds.has(item.id));
+      if (!selected.length) {
+        showToast('请先选择要导出的数据');
+        return;
+      }
+      const headers = ['分类', '问题'];
+      const csvRows = [headers, ...selected.map(item => [item.category, item.question])]
+        .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(','));
+      const blob = new Blob(['\ufeff' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `知识库导出数据-${getCurrentTimeText().replace(/[:\s-]/g, '')}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast(`已导出 ${selected.length} 条数据`);
+    }
+    function collapseCategoryPanel() {
+      detailWorkspace?.classList.add('category-collapsed');
+      closeQuestionDetail(false);
+      showToast('结构分类已收起');
+    }
+    function expandCategoryPanel() {
+      detailWorkspace?.classList.remove('category-collapsed');
+      showToast('结构分类已展开');
+    }
+    function openCopyKb(row) {
+      copyingKbRow = row;
+      const data = getKbRowData(row);
+      copyKbName.value = `${data.name}-复制`;
+      copyKbDesc.value = data.desc;
+      setSelectValue(copyKbSystem, data.system);
+      copyKbRegion.value = data.region;
+      setSelectValue(copyKbStatus, data.status === '禁用' ? '禁用' : '启用');
+      showCopyPage();
+      copyKbName.focus();
+    }
+    function submitCopyKb() {
+      const name = copyKbName.value.trim();
+      if (!name) {
+        copyKbName.focus();
+        showToast('请填写知识名称');
+        return;
+      }
+      const source = copyingKbRow ? getKbRowData(copyingKbRow) : {};
+      const status = copyKbStatus.value || '启用';
+      const row = document.createElement('tr');
+      row.innerHTML = `<td></td><td class="name-cell">${escapeHtml(name)}</td><td class="desc">${escapeHtml(copyKbDesc.value.trim() || source.desc || '')}</td><td>${escapeHtml(copyKbSystem.value.trim() || source.system || '')}</td><td class="desc">${escapeHtml(copyKbRegion.value.trim() || source.region || '')}</td><td>${escapeHtml(source.contentCount || '0')}</td><td>${escapeHtml(source.attachmentCount || '0')}</td><td><span class="status ${status === '禁用' ? 'off' : 'on'}">${escapeHtml(status)}</span></td><td>李开心</td><td>${escapeHtml(getCurrentTimeText())}</td><td><span class="op"><button data-open-detail type="button">查看</button><button data-copy-kb type="button">复制</button><button class="edit-no-jump" type="button">编辑</button><button class="delete" type="button">删除</button></span></td>`;
+      kbTbody.prepend(row);
+      updateKbIndexes();
+      showList();
+      showToast('已通过复制新增知识库');
+    }
+
+    function openQuestionDetail(showMessage = true) {
+      editorLayout.classList.add('detail-drawer-open');
+      questionDetailPanel.classList.add('drawer-visible');
+      questionDetailPanel.setAttribute('aria-hidden', 'false');
+      if (showMessage) showToast('问题详情已展开');
+    }
+    function closeQuestionDetail(showMessage = true) {
+      editorLayout.classList.remove('detail-drawer-open');
+      questionDetailPanel.classList.remove('drawer-visible');
+      questionDetailPanel.setAttribute('aria-hidden', 'true');
+      if (showMessage) showToast('问题详情已关闭');
+    }
+    function initDetailResize() {
+      if (!detailResizeHandle) return;
+      let resizing = false;
+      const stopResize = event => {
+        if (!resizing) return;
+        resizing = false;
+        document.body.classList.remove('detail-resizing');
+        try { detailResizeHandle.releasePointerCapture(event.pointerId); } catch (error) {}
+      };
+      detailResizeHandle.addEventListener('pointerdown', event => {
+        resizing = true;
+        document.body.classList.add('detail-resizing');
+        detailResizeHandle.setPointerCapture(event.pointerId);
+        event.preventDefault();
+      });
+      detailResizeHandle.addEventListener('pointermove', event => {
+        if (!resizing) return;
+        const minWidth = 360;
+        const maxWidth = Math.round(window.innerWidth * 0.82);
+        const nextWidth = Math.min(maxWidth, Math.max(minWidth, window.innerWidth - event.clientX));
+        document.documentElement.style.setProperty('--question-detail-width', `${nextWidth}px`);
+      });
+      detailResizeHandle.addEventListener('pointerup', stopResize);
+      detailResizeHandle.addEventListener('pointercancel', stopResize);
+    }
+    function initDetailOutsideClose() {
+      document.addEventListener('pointerdown', event => {
+        if (!questionDetailPanel.classList.contains('drawer-visible')) return;
+        if (document.body.classList.contains('detail-resizing')) return;
+        if (questionDetailPanel.contains(event.target)) return;
+        if (event.target.closest('[data-edit-question], [data-view-maintenance], #addContentBtn, .modal-backdrop')) return;
+        closeQuestionDetail(false);
+      });
+    }
+
+    function getVisibleQuestionRows(category = activeCategory) {
+      return Array.from(document.querySelectorAll('.qa-table tbody tr[data-id]')).filter(row => row.dataset.category === category);
+    }
+    function getCategoryQuestionCount(category) {
+      return getVisibleQuestionRows(category).length;
+    }
+    function refreshCategoryCounts() {
+      document.querySelectorAll('.category-leaf').forEach(leaf => {
+        const countNode = leaf.querySelector('.category-count');
+        const total = getCategoryQuestionCount(leaf.dataset.category);
+        if (countNode) countNode.textContent = String(total);
+      });
+      document.querySelectorAll('.category-group').forEach(group => {
+        const countNode = group.querySelector('.category-head .category-count');
+        const leafCategories = Array.from(group.querySelectorAll('.category-leaf')).map(leaf => leaf.dataset.category);
+        const total = leafCategories.reduce((sum, category) => sum + getCategoryQuestionCount(category), 0);
+        if (countNode) countNode.textContent = String(total);
+      });
+      const activeLeaf = document.querySelector(`.category-leaf[data-category="${activeCategory}"]`);
+      if (categorySelectedCount) categorySelectedCount.textContent = activeLeaf?.querySelector('.category-count')?.textContent || '0';
+    }
+    function selectQuestionRow(row) {
+      document.querySelectorAll('.qa-table tbody tr').forEach(item => item.classList.remove('active-row'));
+      if (row && !row.hidden) row.classList.add('active-row');
+    }
+    function loadQuestion(row) {
+      if (!row) return;
+      isNewQuestionDraft = false;
+      selectQuestionRow(row);
+      activeQuestionId = row.dataset.id || createQuestionId();
+      row.dataset.id = activeQuestionId;
+      const questions = row.dataset.questions ? JSON.parse(row.dataset.questions) : [row.dataset.title || row.querySelector('.question-cell')?.textContent.trim() || ''];
+      resetExtraQuestions();
+      editorTitle.value = questions[0] || '';
+      questions.slice(1).forEach(item => createExtraQuestionInput(item));
+      populateEditorCategorySelect(row.dataset.category || activeCategory);
+      editorCanvas.innerHTML = questionContentMap[activeQuestionId] || `<p>${escapeHtml(editorTitle.value || '请在这里输入问题详情。')}</p>`;
+    }
+    function applyCategoryFilter(category, options = {}) {
+      activeCategory = category || 'personnel';
+      document.querySelectorAll('.category-leaf').forEach(leaf => leaf.classList.toggle('active', leaf.dataset.category === activeCategory));
+      const activeLeaf = document.querySelector(`.category-leaf[data-category="${activeCategory}"]`);
+      if (categorySelectedCount) categorySelectedCount.textContent = activeLeaf?.querySelector('.category-count')?.textContent || '0';
+      const rows = Array.from(document.querySelectorAll('.qa-table tbody tr[data-id]'));
+      let firstVisibleRow = null;
+      rows.forEach(row => {
+        const isVisible = row.dataset.category === activeCategory;
+        row.hidden = !isVisible;
+        if (isVisible && !firstVisibleRow) firstVisibleRow = row;
+      });
+      document.querySelector('.category-empty-row')?.remove();
+      populateEditorCategorySelect(activeCategory);
+      if (!firstVisibleRow) {
+        const tbody = document.querySelector('.qa-table tbody');
+        const emptyRow = document.createElement('tr');
+        emptyRow.className = 'category-empty-row';
+        emptyRow.innerHTML = '<td colspan="5">当前结构分类暂无问题，点击“+新增问题”可新增内容</td>';
+        tbody.appendChild(emptyRow);
+        renderMaintenanceRecords();
+        if (options.toast !== false) showToast('当前结构分类暂无问题');
+        return;
+      }
+      if (options.selectFirst !== false) loadQuestion(firstVisibleRow);
+      renderMaintenanceRecords();
+      if (options.toast !== false) showToast('已切换结构分类：' + (activeLeaf?.querySelector('.category-name')?.textContent || '未命名分类'));
+    }
+    function createQuestionRow(question, questionId = createQuestionId(), questions = [question], category = activeCategory) {
+      const tbody = document.querySelector('.qa-table tbody');
+      const row = document.createElement('tr');
+      const maintainTime = getCurrentTimeText();
+      const questionItems = (Array.isArray(questions) ? questions : [question]).filter(Boolean);
+      row.dataset.id = questionId;
+      row.dataset.title = questionItems[0] || question;
+      row.dataset.questions = JSON.stringify(questionItems);
+      row.dataset.category = category || activeCategory || 'personnel';
+      row.dataset.maintainer = '李开心';
+      row.dataset.maintainTime = maintainTime;
+      row.dataset.code = createDateTimeCode();
+      row.innerHTML = `<td class="category-cell">${escapeHtml(getCategoryName(row.dataset.category))}</td><td class="question-cell">${escapeHtml(renderQuestionText(questionItems))}</td><td class="maintainer-cell">李开心</td><td class="maintain-time-cell">${escapeHtml(maintainTime)}</td><td class="action-cell"><span class="op"><button class="edit-action" type="button" data-edit-question>编辑</button><button class="maintenance-action" type="button" data-question-maintenance>维护记录</button><button class="delete-action" type="button">删除</button></span></td>`;
+      tbody.prepend(row);
+      bindQuestionRow(row);
+      bindQuestionRowActions(row);
+      return row;
+    }
+    function updateRowMaintenanceMeta(row, operator = '李开心', time = getCurrentTimeText()) {
+      if (!row) return;
+      row.dataset.maintainer = operator;
+      row.dataset.maintainTime = time;
+      row.querySelector('.maintainer-cell').textContent = operator;
+      row.querySelector('.maintain-time-cell').textContent = time;
+    }
+    function getEditorQuestionValue(activeRow) {
+      const questionText = editorCanvas.textContent.trim();
+      const draftQuestion = questionText.split(/\n/).map(item => item.trim()).filter(Boolean)[0] || '未命名问题';
+      return editorTitle.value.trim() || activeRow?.dataset.title || draftQuestion;
+    }
+    function addMaintenanceRecord(record) {
+      const activeRow = document.querySelector('.qa-table tbody tr.active-row');
+      const categoryKey = record.categoryKey || activeRow?.dataset.category || activeCategory;
+      maintenanceRecords.unshift({
+        code: record.code || createDateTimeCode(),
+        id: record.id || 'MR-' + Date.now().toString(36).toUpperCase().slice(-6) + Math.random().toString(36).slice(2, 4).toUpperCase(),
+        questionId: record.questionId || activeQuestionId,
+        categoryKey,
+        category: record.category || getCategoryName(categoryKey),
+        question: record.question || editorTitle.value || '未命名问题',
+        operator: record.operator || '李开心',
+        time: record.time || getCurrentTimeText(),
+        detail: record.detail || '保存问题标题、富文本详情与相关材料说明，并生成维护留痕。'
+      });
+      maintenancePage = 1;
+      renderMaintenanceRecords();
+    }
+    function getMaintenanceFilteredRecords() {
+      const keyword = (maintenanceSearch?.value || '').trim().toLowerCase();
+      return maintenanceRecords.filter(record => (record.categoryKey || '') === activeCategory).filter(record => {
+        const text = `${record.question} ${record.operator}`.toLowerCase();
+        return !keyword || text.includes(keyword);
+      });
+    }
+    function renderMaintenanceRecords() {
+      const filtered = getMaintenanceFilteredRecords();
+      const totalPage = Math.max(1, Math.ceil(filtered.length / maintenancePageSize));
+      maintenancePage = Math.min(Math.max(1, maintenancePage), totalPage);
+      const start = (maintenancePage - 1) * maintenancePageSize;
+      const pageRecords = filtered.slice(start, start + maintenancePageSize);
+      if (maintenanceTbody) maintenanceTbody.innerHTML = pageRecords.map(record => `<tr data-record-id="${escapeHtml(record.id)}"><td>${escapeHtml(record.category)}</td><td class="maintenance-question" title="${escapeHtml(record.question)}">${escapeHtml(record.question)}</td><td>${escapeHtml(record.operator)}</td><td>${escapeHtml(record.time)}</td><td><span class="op"><button class="maintenance-view-btn" type="button" data-view-maintenance="${escapeHtml(record.id)}">查看</button></span></td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--slate-500);height:90px">当前结构分类暂无符合条件的维护记录</td></tr>';
+      const categoryTotal = maintenanceRecords.filter(record => (record.categoryKey || '') === activeCategory).length;
+      if (maintenanceTotalText) maintenanceTotalText.textContent = `共 ${filtered.length} 条`;
+      if (maintenancePageNow) maintenancePageNow.textContent = String(maintenancePage);
+      if (maintenancePageTotal) maintenancePageTotal.textContent = String(totalPage);
+      if (maintenancePrevBtn) maintenancePrevBtn.disabled = maintenancePage <= 1;
+      if (maintenanceNextBtn) maintenanceNextBtn.disabled = maintenancePage >= totalPage;
+      if (historyTabCount) historyTabCount.textContent = String(categoryTotal);
+      if (detailHistoryCount) detailHistoryCount.textContent = String(maintenanceRecords.length);
+    }
+    function buildMaintenanceVersions(record) {
+      const related = maintenanceRecords.filter(item => item.questionId === record.questionId);
+      return related.length ? related : [record];
+    }
+    function updateMaintenanceModalDetail(record) {
+      if (!record) return;
+      const detailContent = questionContentMap[record.questionId] || `<p>${escapeHtml(record.detail || '暂无详细内容')}</p>`;
+      if (maintenanceSnapshotVersion) maintenanceSnapshotVersion.textContent = `${record.operator || '-'} · ${record.time || '-'}`;
+      if (maintenanceModalCategory) maintenanceModalCategory.textContent = record.category || getCategoryName(record.categoryKey) || '-';
+      if (maintenanceModalQuestion) maintenanceModalQuestion.textContent = record.question || '未命名问题';
+      if (maintenanceModalDetail) maintenanceModalDetail.innerHTML = detailContent;
+    }
+    function renderMaintenanceVersionTable(records, activeRecordId) {
+      if (!maintenanceVersionTbody) return;
+      maintenanceVersionTbody.innerHTML = records.map((item, index) => `<tr data-maintenance-record="${escapeHtml(item.id)}" class="${(activeRecordId ? item.id === activeRecordId : index === 0) ? 'active' : ''}">
+        <td><span class="maintenance-record-category">${escapeHtml(item.category || getCategoryName(item.categoryKey) || '-')}</span></td>
+        <td><div class="maintenance-record-question" title="${escapeHtml(item.question || '-')}">${escapeHtml(item.question || '-')}</div></td>
+        <td>${escapeHtml(item.operator || '-')}</td>
+        <td>${escapeHtml(item.time || '-')}</td>
+      </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--slate-500);height:90px">暂无维护记录</td></tr>';
+    }
+    function showMaintenanceDetail(record) {
+      isNewQuestionDraft = false;
+      activeQuestionId = record.questionId || activeQuestionId;
+      const relatedRow = document.querySelector(`.qa-table tbody tr[data-id="${record.questionId}"]`);
+      if (relatedRow) selectQuestionRow(relatedRow);
+      const records = buildMaintenanceVersions(record);
+      renderMaintenanceVersionTable(records, record.id);
+      updateMaintenanceModalDetail(record);
+      openModal(maintenanceModal);
+    }
+    function exportMaintenanceRecords() {
+      const records = getMaintenanceFilteredRecords();
+      const headers = ['分类', '问题', '维护人', '维护时间', '详细内容'];
+      const csvRows = [headers, ...records.map(record => [record.category, record.question, record.operator, record.time, record.detail])]
+        .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','));
+      const blob = new Blob(['\ufeff' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `维护记录_${getCategoryName(activeCategory)}_${Date.now()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast('已导出当前维护记录列表');
+    }
+    function seedMaintenanceRecords() {
+      const rows = Array.from(document.querySelectorAll('.qa-table tbody tr[data-id]'));
+      rows.forEach((row, index) => {
+        const question = row.dataset.questions ? renderQuestionText(JSON.parse(row.dataset.questions)) : (row.dataset.title || row.querySelector('.question-cell')?.textContent.trim() || '未命名问题');
+        const operator = row.dataset.maintainer || row.querySelector('.maintainer-cell')?.textContent.trim() || '李开心';
+        const time = row.dataset.maintainTime || row.querySelector('.maintain-time-cell')?.textContent.trim() || getCurrentTimeText();
+        maintenanceRecords.push({
+          code: row.dataset.code || createDateTimeCodeFromText(time),
+          id: `MR-${String(index + 1).padStart(4, '0')}`,
+          questionId: row.dataset.id,
+          categoryKey: row.dataset.category,
+          category: getCategoryName(row.dataset.category),
+          question,
+          operator,
+          time,
+          detail: `维护《${question}》的问题标题、问题详情、视频材料和标准答复口径。`
+        });
+        if (index === 0) {
+          maintenanceRecords.push({ code: '20260728142200', id: 'MR-0006', questionId: row.dataset.id, categoryKey: row.dataset.category, category: getCategoryName(row.dataset.category), question, operator: '王小明', time: '2026-07-28 14:22', detail: '根据客服反馈补充材料校验说明，优化富文本答复结构。' });
+          maintenanceRecords.push({ code: '20260721100800', id: 'MR-0007', questionId: row.dataset.id, categoryKey: row.dataset.category, category: getCategoryName(row.dataset.category), question, operator: '李开心', time: '2026-07-21 10:08', detail: '调整工资变更入口说明，补充区域受理范围说明。' });
+          maintenanceRecords.push({ code: '20260712093000', id: 'MR-0008', questionId: row.dataset.id, categoryKey: row.dataset.category, category: getCategoryName(row.dataset.category), question, operator: '王小明', time: '2026-07-12 09:30', detail: '首次录入操作手册答复内容，建立基础知识条目。' });
+        }
+      });
+      renderMaintenanceRecords();
+    }
+    function switchToTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tabName + 'Panel'));
+      const contentAction = document.getElementById('contentTabAction');
+      const isContentTab = tabName === 'content';
+      contentAction?.classList.toggle('is-hidden', !isContentTab);
+      contentAction?.setAttribute('aria-hidden', String(!isContentTab));
+      document.getElementById('addContentBtn')?.toggleAttribute('hidden', !isContentTab);
+    }
+    function showQuestionMaintenance(row) {
+      if (!row) return;
+      activeCategory = row.dataset.category || activeCategory;
+      document.querySelectorAll('.category-leaf').forEach(leaf => leaf.classList.toggle('active', leaf.dataset.category === activeCategory));
+      maintenancePage = 1;
+      renderMaintenanceRecords();
+      const questionId = row.dataset.id;
+      const record = maintenanceRecords.find(item => item.questionId === questionId) || {
+        id: 'MR-TEMP',
+        questionId,
+        categoryKey: row.dataset.category,
+        category: row.querySelector('.category-cell')?.textContent.trim() || getCategoryName(row.dataset.category),
+        question: row.dataset.questions ? renderQuestionText(JSON.parse(row.dataset.questions)) : (row.dataset.title || row.querySelector('.question-cell')?.textContent.trim() || '未命名问题'),
+        operator: row.dataset.maintainer || row.querySelector('.maintainer-cell')?.textContent.trim() || '李开心',
+        time: row.dataset.maintainTime || row.querySelector('.maintain-time-cell')?.textContent.trim() || getCurrentTimeText(),
+        detail: '该内容暂无历史维护记录，当前展示问题详情作为详细信息。'
+      };
+      showMaintenanceDetail(record);
+      showToast('已弹窗显示该问题维护记录');
+    }
+    function createNewQuestion() {
+      isNewQuestionDraft = true;
+      activeQuestionId = createQuestionId();
+      selectQuestionRow(null);
+      resetExtraQuestions();
+      editorTitle.value = '';
+      populateEditorCategorySelect(activeCategory);
+      editorCanvas.innerHTML = '';
+      openQuestionDetail(false);
+      showToast('已进入新增问题草稿，保存后才会加入左侧列表');
+    }
+    function saveQuestion() {
+      const activeRow = document.querySelector('.qa-table tbody tr.active-row');
+      const questions = getAllQuestionValues(activeRow);
+      const question = questions[0] || '未命名问题';
+      const listText = renderQuestionText(questions);
+      const selectedCategory = editorCategorySelect?.value || activeCategory || 'personnel';
+      if (isNewQuestionDraft) {
+        questionContentMap[activeQuestionId] = editorCanvas.innerHTML || '<p>请在这里输入问题详情。</p>';
+        const newRow = createQuestionRow(question, activeQuestionId, questions, selectedCategory);
+        isNewQuestionDraft = false;
+        activeCategory = selectedCategory;
+        refreshCategoryCounts();
+        applyCategoryFilter(newRow.dataset.category, { selectFirst: false, toast: false });
+        selectQuestionRow(newRow);
+        addMaintenanceRecord({ question: listText, questionId: activeQuestionId, categoryKey: newRow.dataset.category, detail: `新增 ${questions.length} 个问题并保存问题详情、视频材料内容。` });
+        document.querySelector('.category-empty-row')?.remove();
+        showToast('已保存新增问题');
+        return;
+      }
+      const row = activeRow || document.querySelector('.qa-table tbody tr[data-id]:not([hidden])');
+      if (!row) return;
+      activeQuestionId = row.dataset.id || activeQuestionId;
+      const previousCategory = row.dataset.category || activeCategory;
+      row.dataset.title = question;
+      row.dataset.questions = JSON.stringify(questions);
+      row.dataset.category = selectedCategory;
+      row.querySelector('.category-cell').textContent = getCategoryName(selectedCategory);
+      row.querySelector('.question-cell').textContent = listText;
+      questionContentMap[activeQuestionId] = editorCanvas.innerHTML || '<p>请在这里输入问题详情。</p>';
+      updateRowMaintenanceMeta(row);
+      refreshCategoryCounts();
+      activeCategory = selectedCategory;
+      applyCategoryFilter(selectedCategory, { selectFirst: false, toast: false });
+      selectQuestionRow(row);
+      addMaintenanceRecord({ question: listText, questionId: activeQuestionId, categoryKey: row.dataset.category, detail: `保存 ${questions.length} 个问题、富文本详情、分类和视频材料内容，生成普通维护记录。` });
+      showToast(previousCategory === selectedCategory ? '已保存问题详情' : '已保存问题详情并更新分类');
+    }
+    function bindQuestionRow(row) {
+      row.addEventListener('click', event => {
+        if (event.target.closest('button') || event.target.closest('input')) return;
+        loadQuestion(row);
+      });
+    }
+    function bindQuestionRowActions(row) {
+      row.querySelector('.delete-action')?.addEventListener('click', event => {
+        event.stopPropagation();
+        openDeleteConfirm({
+          prompt: '确认删除该内容吗？',
+          message: '删除后数据不可恢复',
+          onConfirm: () => {
+            const deletedCategory = row.dataset.category;
+            delete questionContentMap[row.dataset.id];
+            row.remove();
+            refreshCategoryCounts();
+            applyCategoryFilter(deletedCategory, { selectFirst: true, toast: false });
+            showToast('内容已删除');
+          }
+        });
+      });
+      row.querySelector('[data-edit-question]')?.addEventListener('click', event => {
+        event.stopPropagation();
+        loadQuestion(row);
+        openQuestionDetail();
+      });
+      row.querySelector('[data-question-maintenance]')?.addEventListener('click', event => {
+        event.stopPropagation();
+        showQuestionMaintenance(row);
+      });
+    }
+
+    kbTbody.addEventListener('click', event => {
+      const row = event.target.closest('tr');
+      if (!row) return;
+      if (event.target.closest('[data-open-detail]')) { showDetail(row); return; }
+      if (event.target.closest('[data-copy-kb]')) { openCopyKb(row); return; }
+      if (event.target.closest('.edit-no-jump')) { showToast('已进入列表行编辑状态，不跳转详情页'); return; }
+      if (event.target.closest('.delete')) {
+        openDeleteConfirm({
+          prompt: '确认删除该知识库吗？',
+          message: '删除后数据不可恢复',
+          onConfirm: () => { row.remove(); updateKbIndexes(); showToast('知识库已删除'); }
+        });
+      }
+    });
+    document.querySelector('[data-back]').addEventListener('click', showList);
+    document.getElementById('addKbBtn').addEventListener('click', () => showToast('已保留新增知识库入口，当前不打开新增弹窗'));
+    submitCopyKbBtn.addEventListener('click', submitCopyKb);
+    cancelCopyKbBtn.addEventListener('click', showList);
+    closeDetailBtn.addEventListener('click', () => closeQuestionDetail());
+    initDetailResize();
+    initDetailOutsideClose();
+    document.getElementById('saveQuestionBtn').addEventListener('click', saveQuestion);
+    document.getElementById('addContentBtn').addEventListener('click', createNewQuestion);
+    addExtraQuestionBtn?.addEventListener('click', () => createExtraQuestionInput());
+    extraQuestionList?.addEventListener('click', event => {
+      const removeBtn = event.target.closest('.extra-question-remove');
+      if (!removeBtn) return;
+      removeBtn.closest('.extra-question-item')?.remove();
+    });
+    document.querySelectorAll('[data-rich-command]').forEach(btn => btn.addEventListener('click', () => {
+      editorCanvas.focus();
+      let commandValue = btn.dataset.richValue || null;
+      if (btn.dataset.richPrompt) {
+        const inputValue = window.prompt(btn.dataset.richPrompt, commandValue || '');
+        if (!inputValue) return;
+        commandValue = inputValue;
+      }
+      document.execCommand(btn.dataset.richCommand, false, commandValue);
+    }));
+    document.getElementById('videoUploadBtn').addEventListener('click', () => showToast('已选择视频材料，保存后会随问题详情留痕'));
+    function addPendingAttachmentRow() {
+      const tbody = document.getElementById('attachmentHistoryTbody');
+      if (!tbody) return;
+      const row = document.createElement('tr');
+      row.dataset.attachmentStatus = 'pending';
+      row.innerHTML = `<td><div class="file-name">本地上传附件.pdf</div></td><td><span class="file-type">PDF</span></td><td>1.8 MB</td><td><span class="attachment-status pending">待处理</span></td><td>李开心</td><td>${escapeHtml(getCurrentTimeText())}</td><td class="action-cell"><span class="op"><button class="attachment-process-btn" type="button" data-process-attachment>处理</button><button type="button" data-download-attachment>下载</button><button class="delete" type="button">移除</button></span></td>`;
+      tbody.prepend(row);
+      showToast('已上传本地附件，状态为待处理');
+    }
+    function advanceAttachmentStatus(row) {
+      if (!row) return;
+      const current = row.dataset.attachmentStatus || 'pending';
+      const statusNode = row.querySelector('.attachment-status');
+      const processBtn = row.querySelector('[data-process-attachment]');
+      if (current === 'pending') {
+        row.dataset.attachmentStatus = 'processing';
+        statusNode.className = 'attachment-status processing';
+        statusNode.textContent = '处理中';
+        processBtn?.remove();
+        showToast('附件已进入处理中');
+      }
+    }
+    attachmentUploadTopBtn?.addEventListener('click', addPendingAttachmentRow);
+    attachmentDropZone?.addEventListener('click', addPendingAttachmentRow);
+    document.querySelectorAll('.video-row .op .delete').forEach(btn => btn.addEventListener('click', event => {
+      event.stopPropagation();
+      openDeleteConfirm({
+        prompt: '确认移除该视频材料吗？',
+        message: '移除后该视频材料不会随问题详情保存。',
+        onConfirm: () => { btn.closest('.video-row')?.remove(); showToast('视频材料已移除'); }
+      });
+    }));
+    document.getElementById('attachmentHistoryTbody')?.addEventListener('click', event => {
+      const downloadBtn = event.target.closest('[data-download-attachment]');
+      if (downloadBtn) {
+        event.stopPropagation();
+        const row = downloadBtn.closest('tr');
+        const fileName = row?.querySelector('.file-name')?.textContent.trim() || '附件材料.txt';
+        const blob = new Blob([`知识库附件下载模拟文件：${fileName}`], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showToast('已下载附件');
+        return;
+      }
+      const processBtn = event.target.closest('[data-process-attachment]');
+      if (processBtn) {
+        event.stopPropagation();
+        advanceAttachmentStatus(processBtn.closest('tr'));
+        return;
+      }
+      const deleteBtn = event.target.closest('.delete');
+      if (!deleteBtn) return;
+      event.stopPropagation();
+      openDeleteConfirm({
+        prompt: '确认移除该附件吗？',
+        message: '移除后该附件将不再参与知识库解析与检索。',
+        onConfirm: () => { deleteBtn.closest('tr')?.remove(); showToast('附件已移除'); }
+      });
+    });
+    document.querySelectorAll('.qa-table tbody tr[data-id]').forEach(row => { bindQuestionRow(row); bindQuestionRowActions(row); });
+    categoryTree.addEventListener('click', event => {
+      const head = event.target.closest('[data-category-toggle]');
+      if (head) {
+        const expanded = head.getAttribute('aria-expanded') !== 'false';
+        head.setAttribute('aria-expanded', String(!expanded));
+        const toggle = head.querySelector('.category-toggle');
+        if (toggle) toggle.textContent = expanded ? '▸' : '▾';
+        return;
+      }
+      const leaf = event.target.closest('[data-category]');
+      if (leaf) applyCategoryFilter(leaf.dataset.category);
+    });
+    maintenanceSearch?.addEventListener('input', () => { maintenancePage = 1; renderMaintenanceRecords(); });
+    maintenancePrevBtn?.addEventListener('click', () => { maintenancePage -= 1; renderMaintenanceRecords(); });
+    maintenanceNextBtn?.addEventListener('click', () => { maintenancePage += 1; renderMaintenanceRecords(); });
+    exportMaintenanceBtn?.addEventListener('click', exportMaintenanceRecords);
+    maintenanceTbody?.addEventListener('click', event => {
+      const btn = event.target.closest('[data-view-maintenance]');
+      if (!btn) return;
+      const record = maintenanceRecords.find(item => item.id === btn.dataset.viewMaintenance);
+      if (record) showMaintenanceDetail(record);
+    });
+    document.querySelectorAll('[data-close-confirm]').forEach(btn => btn.addEventListener('click', closeDeleteConfirm));
+    closeMaintenanceModalBtn?.addEventListener('click', () => closeModal(maintenanceModal));
+    maintenanceModalOkBtn?.addEventListener('click', () => closeModal(maintenanceModal));
+    maintenanceVersionTbody?.addEventListener('click', event => {
+      const row = event.target.closest('[data-maintenance-record]');
+      if (!row) return;
+      const record = maintenanceRecords.find(item => item.id === row.dataset.maintenanceRecord);
+      if (!record) return;
+      maintenanceVersionTbody.querySelectorAll('tr').forEach(item => item.classList.toggle('active', item === row));
+      updateMaintenanceModalDetail(record);
+    });
+    maintenanceModal?.addEventListener('click', event => { if (event.target === maintenanceModal) closeModal(maintenanceModal); });
+    openAttachmentUploadBtn?.addEventListener('click', () => { openModal(attachmentUploadModal); showToast('已打开附件上传'); });
+    closeAttachmentUploadBtn?.addEventListener('click', () => closeModal(attachmentUploadModal));
+    attachmentUploadOkBtn?.addEventListener('click', () => closeModal(attachmentUploadModal));
+    attachmentUploadModal?.addEventListener('click', event => { if (event.target === attachmentUploadModal) closeModal(attachmentUploadModal); });
+    collapseCategoryBtn?.addEventListener('click', collapseCategoryPanel);
+    expandCategoryBtn?.addEventListener('click', expandCategoryPanel);
+    openExportBtn?.addEventListener('click', showExportPage);
+    backFromExportBtn?.addEventListener('click', backToDetailFromExport);
+    moveExportRightBtn?.addEventListener('click', moveCheckedExportItemsToPreview);
+    moveExportLeftBtn?.addEventListener('click', removeCheckedExportItemsFromPreview);
+    exportSearchInput?.addEventListener('input', renderExportTransfer);
+    exportAvailableList?.addEventListener('click', event => {
+      const groupBtn = event.target.closest('[data-export-group]');
+      if (groupBtn) {
+        const key = groupBtn.dataset.exportGroup;
+        if (exportExpandedGroups.has(key)) exportExpandedGroups.delete(key); else exportExpandedGroups.add(key);
+        renderExportTransfer();
+        return;
+      }
+      const categoryBtn = event.target.closest('[data-export-category]');
+      if (categoryBtn) {
+        const key = categoryBtn.dataset.exportCategory;
+        if (exportExpandedCategories.has(key)) exportExpandedCategories.delete(key); else exportExpandedCategories.add(key);
+        renderExportTransfer();
+      }
+    });
+    confirmExportBtn?.addEventListener('click', confirmExportSelection);
+    exportAvailableList?.addEventListener('change', event => {
+      const input = event.target;
+      if (!input.matches('[data-export-source], [data-export-category-check], [data-export-group-check]')) return;
+      const checked = input.checked;
+      const scope = input.closest('.export-category-group, [data-export-category-node], .export-question-item');
+      const itemInputs = input.matches('[data-export-source]') ? [input] : Array.from(scope?.querySelectorAll('[data-export-source]') || []);
+      itemInputs.forEach(itemInput => {
+        if (checked) exportCheckedIds.add(itemInput.dataset.exportSource);
+        else exportCheckedIds.delete(itemInput.dataset.exportSource);
+        itemInput.checked = checked;
+      });
+      syncExportTreeCheckboxes();
+    });
+    exportPreviewList?.addEventListener('change', event => {
+      const input = event.target;
+      if (!input.matches('[data-preview-source], [data-preview-category-check], [data-preview-group-check]')) return;
+      const checked = input.checked;
+      const scope = input.closest('.preview-group, .preview-category-node, .preview-item');
+      const itemInputs = input.matches('[data-preview-source]') ? [input] : Array.from(scope?.querySelectorAll('[data-preview-source]') || []);
+      itemInputs.forEach(itemInput => {
+        if (checked) previewCheckedIds.add(itemInput.dataset.previewSource);
+        else previewCheckedIds.delete(itemInput.dataset.previewSource);
+        itemInput.checked = checked;
+      });
+      syncExportTreeCheckboxes();
+    });
+    exportPreviewList?.addEventListener('click', event => {
+      const removeBtn = event.target.closest('[data-remove-export]');
+      if (!removeBtn) return;
+      exportSelectedIds.delete(removeBtn.dataset.removeExport);
+      previewCheckedIds.delete(removeBtn.dataset.removeExport);
+      renderExportTransfer();
+      showToast('已移除该导出问题');
+    });
+    openStructureManagerBtn?.addEventListener('click', showStructureManager);
+    backFromStructureBtn?.addEventListener('click', backToDetailFromStructure);
+    structureAddRootBtn?.addEventListener('click', () => openStructureForm('add-parent', {}));
+    structureSaveFormBtn?.addEventListener('click', saveStructureForm);
+    structureCategoryName?.addEventListener('keydown', event => {
+      if (event.key === 'Enter') saveStructureForm();
+    });
+    document.querySelectorAll('[data-close-structure-form]').forEach(btn => btn.addEventListener('click', closeStructureForm));
+    structureFormModal?.addEventListener('click', event => { if (event.target === structureFormModal) closeStructureForm(); });
+    structureList?.addEventListener('click', event => {
+      const target = event.target.closest('button[data-structure-action]');
+      if (!target) return;
+      const action = target.dataset.structureAction;
+      const id = target.dataset.id;
+      if (action === 'toggle') {
+        const parent = findStructureParent(id);
+        if (parent) {
+          parent.expanded = !parent.expanded;
+          renderStructureManager();
+        }
+        return;
+      }
+      if (action === 'add-child') openStructureForm('add-child', { parentId: id });
+      if (action === 'edit-node') openStructureForm('edit-node', { nodeId: id });
+      if (action === 'delete-node') requestStructureDelete(id);
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      if (structureFormModal?.classList.contains('active')) closeStructureForm();
+      if (maintenanceModal?.classList.contains('active')) closeModal(maintenanceModal);
+      if (attachmentUploadModal?.classList.contains('active')) closeModal(attachmentUploadModal);
+      if (confirmModal?.classList.contains('active')) closeDeleteConfirm();
+    });
+    confirmDeleteBtn.addEventListener('click', () => {
+      if (pendingConfirmAction) pendingConfirmAction();
+      closeDeleteConfirm();
+    });
+    confirmModal.addEventListener('click', event => { if (event.target === confirmModal) closeDeleteConfirm(); });
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchToTab(tab.dataset.tab)));
+
+    updateKbIndexes();
+    refreshCategoryCounts();
+    renderStructureManager();
+    seedMaintenanceRecords();
+    const initialRow = document.querySelector('.qa-table tbody tr.active-row') || document.querySelector('.qa-table tbody tr[data-id]');
+    if (initialRow) {
+      activeCategory = initialRow.dataset.category || activeCategory;
+      applyCategoryFilter(activeCategory, { selectFirst: false, toast: false });
+      loadQuestion(initialRow);
+    }
+  </script>
+</body>
+</html>

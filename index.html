@@ -3,178 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>项目文件浏览</title>
+    <title>项目文件浏览 & 预览</title>
+    <!-- 引入 marked.js 用于渲染 Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        /* --- 样式部分 (与之前类似，增加了一些预览区域的样式) --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 800px;
-            margin: 40px auto;
+            max-width: 1200px;
+            margin: 20px auto;
             padding: 0 20px;
             background: #f6f8fa;
-        }
-        h1 {
-            border-bottom: 1px solid #d0d7de;
-            padding-bottom: 10px;
-        }
-        .breadcrumb {
-            margin: 16px 0;
-            font-size: 14px;
-        }
-        .breadcrumb a {
-            color: #0969da;
-            text-decoration: none;
-        }
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
-            padding: 8px 12px;
-            border-bottom: 1px solid #eaeef2;
             display: flex;
-            align-items: center;
-            transition: background 0.15s;
+            gap: 30px;
         }
-        li:hover {
-            background: #f0f6fc;
+        /* 左侧文件树 */
+        #sidebar {
+            flex: 1;
+            min-width: 250px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
-        li a {
-            color: #1f2328;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
+        #sidebar h2 { font-size: 18px; margin-bottom: 12px; color: #24292f; }
+        /* 右侧预览区 */
+        #main {
+            flex: 3;
+            min-height: 80vh;
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+        #preview-content {
             width: 100%;
+            min-height: 400px;
         }
-        li a .icon {
-            font-size: 20px;
-            margin-right: 10px;
-            width: 28px;
-            text-align: center;
-        }
-        li a .name {
-            font-size: 15px;
-        }
-        .loading {
-            text-align: center;
-            color: #57606a;
-            padding: 40px;
-        }
-        .error {
-            color: #cf222e;
-            background: #ffebe9;
-            padding: 12px;
-            border-radius: 6px;
-        }
+        /* 文件树列表样式 */
+        ul { list-style: none; padding-left: 0; }
+        li { padding: 4px 0; cursor: pointer; display: flex; align-items: center; }
+        li:hover { background-color: #f0f6fc; }
+        .folder-item { font-weight: 500; }
+        .file-item { padding-left: 20px; }
+        .icon { margin-right: 8px; font-size: 16px; width: 20px; text-align: center; }
+        .chevron { margin-left: auto; transition: transform 0.2s; }
+        .chevron.open { transform: rotate(90deg); }
+        .nested { padding-left: 24px; display: none; }
+        .nested.active { display: block; }
+        .loading, .error { padding: 20px; text-align: center; color: #57606a; }
+        .error { color: #cf222e; background: #ffebe9; border-radius: 6px; }
+        /* 预览区内容样式 */
+        #preview-content img { max-width: 100%; }
+        #preview-content video { max-width: 100%; }
+        #preview-content iframe { width: 100%; height: 500px; border: 1px solid #d0d7de; border-radius: 6px; }
+        #preview-content pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow-x: auto; }
+        /* 响应式 */
+        @media (max-width: 768px) { body { flex-direction: column; } #sidebar { max-height: 300px; position: relative; } }
     </style>
 </head>
 <body>
-    <h1>📂 项目文件浏览</h1>
-    <div class="breadcrumb" id="breadcrumb">
-        <a href="#" onclick="loadPath('')">根目录</a>
+
+    <!-- 左侧：文件树 -->
+    <div id="sidebar">
+        <h2>📂 文件浏览器</h2>
+        <div id="file-tree">
+            <div class="loading">加载中...</div>
+        </div>
     </div>
-    <div id="file-list">
-        <div class="loading">加载中…</div>
+
+    <!-- 右侧：内容预览 -->
+    <div id="main">
+        <div id="preview-content">
+            <p style="color: #57606a;">👈 从左侧选择一个文件以预览</p>
+        </div>
     </div>
 
     <script>
-        // ===== 修改这里的 OWNER 和 REPO =====
+        // ============================================================
+        // 1. 配置区：请修改为你的 GitHub 用户名和仓库名
+        // ============================================================
         const OWNER = 'huangbo2017';
         const REPO = 'huangbo2017.github.io';
-        // ====================================
+        // ============================================================
 
-        // 当前所在路径（相对于仓库根目录，无前导斜杠）
-        let currentPath = '';
+        // 缓存已加载的目录数据，避免重复请求
+        const cache = new Map();
 
-        // 获取目录内容
-        async function fetchContents(path) {
-            const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        // 获取目录内容的函数 (使用 GitHub API)
+        async function fetchDirectory(path) {
+            if (cache.has(path)) {
+                return cache.get(path);
             }
-            return await response.json();
+            const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                // 对返回的数据进行排序：文件夹在前，文件在后
+                data.sort((a, b) => {
+                    if (a.type === 'dir' && b.type !== 'dir') return -1;
+                    if (a.type !== 'dir' && b.type === 'dir') return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                cache.set(path, data);
+                return data;
+            } catch (error) {
+                console.error(`Failed to fetch ${path}:`, error);
+                throw error;
+            }
         }
 
-        // 渲染文件列表
-        function renderList(items, path) {
-            const container = document.getElementById('file-list');
-            const breadcrumb = document.getElementById('breadcrumb');
+        // ============================================================
+        // 2. 核心：构建可展开/折叠的文件树
+        // ============================================================
+        async function buildFileTree(container, path = '') {
+            try {
+                const items = await fetchDirectory(path);
+                const ul = document.createElement('ul');
 
-            if (!Array.isArray(items)) {
-                // 如果返回的是单个文件（极少发生，但以防万一）
-                container.innerHTML = `<div class="error">返回了单个文件，不是目录。</div>`;
+                for (const item of items) {
+                    const li = document.createElement('li');
+                    const isDir = item.type === 'dir';
+
+                    // 图标
+                    const iconSpan = document.createElement('span');
+                    iconSpan.className = 'icon';
+                    iconSpan.textContent = isDir ? '📁' : getFileIcon(item.name);
+
+                    // 文件名
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = item.name;
+
+                    // 组装
+                    li.appendChild(iconSpan);
+                    li.appendChild(nameSpan);
+
+                    if (isDir) {
+                        // ---- 文件夹：可展开 ----
+                        li.className = 'folder-item';
+                        
+                        // 添加一个展开箭头
+                        const chevron = document.createElement('span');
+                        chevron.className = 'chevron';
+                        chevron.textContent = '▶';
+                        li.appendChild(chevron);
+
+                        // 创建子目录容器 (初始隐藏)
+                        const childContainer = document.createElement('div');
+                        childContainer.className = 'nested';
+                        li.appendChild(childContainer);
+
+                        // 点击文件夹：切换展开/折叠，并动态加载子内容
+                        li.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const isActive = childContainer.classList.toggle('active');
+                            chevron.classList.toggle('open', isActive);
+                            
+                            if (isActive && childContainer.children.length === 0) {
+                                // 首次展开：加载子目录
+                                childContainer.innerHTML = '<div class="loading">加载中...</div>';
+                                try {
+                                    await buildFileTree(childContainer, item.path);
+                                } catch (err) {
+                                    childContainer.innerHTML = `<div class="error">加载失败: ${err.message}</div>`;
+                                }
+                            }
+                        });
+
+                    } else {
+                        // ---- 文件：点击后预览 ----
+                        li.className = 'file-item';
+                        li.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            previewFile(item);
+                        });
+                    }
+
+                    ul.appendChild(li);
+                }
+
+                container.innerHTML = '';
+                container.appendChild(ul);
+
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ 加载目录失败: ${error.message}</div>`;
+            }
+        }
+
+        // 根据文件扩展名返回图标
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                'html': '🌐', 'htm': '🌐',
+                'md': '📝',
+                'js': '📜', 'ts': '📜',
+                'css': '🎨', 'scss': '🎨',
+                'json': '📦',
+                'png': '🖼️', 'jpg': '🖼️', 'jpeg': '🖼️', 'gif': '🖼️', 'svg': '🖼️', 'webp': '🖼️',
+                'mp4': '🎬', 'webm': '🎬', 'ogg': '🎬',
+                'mp3': '🎵', 'wav': '🎵',
+                'pdf': '📄',
+                'zip': '📦', 'rar': '📦', '7z': '📦',
+                'py': '🐍', 'java': '☕', 'c': '⚙️', 'cpp': '⚙️', 'go': '🐹', 'rs': '🦀'
+            };
+            return iconMap[ext] || '📄';
+        }
+
+        // ============================================================
+        // 3. 文件预览功能
+        // ============================================================
+        function previewFile(item) {
+            const container = document.getElementById('preview-content');
+            const filename = item.name;
+            const ext = filename.split('.').pop().toLowerCase();
+            const rawUrl = item.download_url; // 文件的原始内容URL
+            const htmlUrl = item.html_url;     // GitHub上的页面URL
+
+            // 更新浏览器地址栏 (实现类似 /agent/test.html 的效果)
+            // 注意：这不会真正改变页面，但能让URL看起来更友好
+            const basePath = window.location.pathname.replace(/\/$/, '');
+            const newPath = `${basePath}/${item.path}`;
+            if (window.history && window.history.pushState) {
+                window.history.pushState({ path: newPath }, '', newPath);
+            }
+
+            // 根据文件类型渲染
+            let content = '';
+
+            if (ext === 'html' || ext === 'htm') {
+                // HTML: 使用 iframe 隔离渲染
+                content = `<iframe src="${rawUrl}" sandbox="allow-scripts allow-same-origin"></iframe>`;
+            } 
+            else if (ext === 'md') {
+                // Markdown: 获取内容后使用 marked.js 渲染
+                fetch(rawUrl)
+                    .then(res => res.text())
+                    .then(text => {
+                        const html = marked.parse(text);
+                        container.innerHTML = `<div class="markdown-body">${html}</div>`;
+                        // 加载 Markdown 样式
+                        if (!document.getElementById('markdown-css')) {
+                            const link = document.createElement('link');
+                            link.id = 'markdown-css';
+                            link.rel = 'stylesheet';
+                            link.href = 'https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css';
+                            document.head.appendChild(link);
+                        }
+                    })
+                    .catch(err => {
+                        container.innerHTML = `<div class="error">Markdown 加载失败: ${err.message}</div>`;
+                    });
+                return; // 异步操作，提前返回
+            }
+            else if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext)) {
+                content = `<img src="${rawUrl}" alt="${filename}" style="max-width:100%;">`;
+            }
+            else if (['mp4', 'webm', 'ogg'].includes(ext)) {
+                content = `<video controls src="${rawUrl}" style="max-width:100%;"></video>`;
+            }
+            else if (['mp3', 'wav'].includes(ext)) {
+                content = `<audio controls src="${rawUrl}" style="width:100%;"></audio>`;
+            }
+            else if (ext === 'pdf') {
+                content = `<iframe src="${rawUrl}" style="width:100%; height:600px;"></iframe>`;
+            }
+            else {
+                // 其他文件：显示源代码 (或提示下载)
+                fetch(rawUrl)
+                    .then(res => res.text())
+                    .then(text => {
+                        const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        container.innerHTML = `<pre><code>${escaped}</code></pre>`;
+                    })
+                    .catch(() => {
+                        container.innerHTML = `<p>无法预览此文件类型。 <a href="${rawUrl}" target="_blank">下载</a></p>`;
+                    });
                 return;
             }
 
-            // 排序：文件夹在前，文件在后，按名称排序
-            items.sort((a, b) => {
-                if (a.type === 'dir' && b.type !== 'dir') return -1;
-                if (a.type !== 'dir' && b.type === 'dir') return 1;
-                return a.name.localeCompare(b.name);
-            });
-
-            let html = '<ul>';
-            for (const item of items) {
-                const icon = item.type === 'dir' ? '📁' : '📄';
-                // 文件链接：直接指向 raw 内容（或可改为 html_url）
-                let link = '';
-                if (item.type === 'dir') {
-                    // 文件夹：调用 loadPath 进入子目录
-                    link = `href="#" onclick="loadPath('${encodeURIComponent(item.path)}'); return false;"`;
-                } else {
-                    // 文件：跳转到 raw 内容（也可用 item.html_url 跳转到 GitHub 页面）
-                    link = `href="${item.download_url}" target="_blank"`;
-                }
-                html += `
-                    <li>
-                        <a ${link}>
-                            <span class="icon">${icon}</span>
-                            <span class="name">${item.name}</span>
-                        </a>
-                    </li>
-                `;
-            }
-            html += '</ul>';
-            container.innerHTML = html;
-
-            // 更新面包屑
-            updateBreadcrumb(path);
+            container.innerHTML = content;
         }
 
-        // 更新面包屑导航
-        function updateBreadcrumb(path) {
-            const breadcrumb = document.getElementById('breadcrumb');
-            let parts = path.split('/').filter(p => p !== '');
-            let html = `<a href="#" onclick="loadPath(''); return false;">根目录</a>`;
-            let current = '';
-            for (const part of parts) {
-                current += (current ? '/' : '') + part;
-                html += ` / <a href="#" onclick="loadPath('${encodeURIComponent(current)}'); return false;">${part}</a>`;
-            }
-            breadcrumb.innerHTML = html;
-        }
+        // ============================================================
+        // 4. 初始化：加载根目录
+        // ============================================================
+        const treeContainer = document.getElementById('file-tree');
+        buildFileTree(treeContainer, '');
 
-        // 加载指定路径
-        async function loadPath(path) {
-            const container = document.getElementById('file-list');
-            container.innerHTML = '<div class="loading">加载中…</div>';
-
-            try {
-                const data = await fetchContents(path);
-                currentPath = path;
-                renderList(data, path);
-            } catch (error) {
-                container.innerHTML = `<div class="error">❌ 加载失败：${error.message}</div>`;
-            }
-        }
-
-        // 页面加载时自动读取根目录
-        window.onload = function() {
-            loadPath('');
-        };
+        // 可选：如果URL中有路径参数，自动展开并预览对应文件
+        // 这里简单处理，你可以根据需要扩展
+        console.log('文件浏览器已启动！');
     </script>
 </body>
 </html>

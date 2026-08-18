@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能操作助手 - 登录与注册</title>
+    <!-- 引入 Tailwind CSS 构建现代轻量科技风 UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 FontAwesome 字体图标 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 1. 亮色网格背景与科技微光 */
+        body {
+            background-color: #ffffff;
+            overflow-x: hidden;
+            /* 避免移动端拖拽时触发页面下拉刷新 */
+            touch-action: none; 
+        }
+        /* 数字激光雷达网格 */
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(8, 112, 184, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(8, 112, 184, 0.04) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* 2. 玻璃态卡片与科技护角 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(8, 112, 184, 0.25);
+            box-shadow: 
+                0 20px 50px rgba(15, 23, 42, 0.05), 
+                0 0 30px rgba(8, 112, 184, 0.03);
+            position: relative;
+        }
+
+        /* 3. 输入框发光效果 */
+        .tech-input {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(226, 232, 240, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tech-input:focus {
+            outline: none;
+            border-color: rgba(8, 112, 184, 0.8);
+            box-shadow: 0 0 15px rgba(8, 112, 184, 0.3);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        /* 4. 科技感按钮（扫光与呼吸灯效果） */
+        .tech-btn {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            border: 1px solid rgba(8, 112, 184, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .tech-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.35),
+                transparent
+            );
+            transition: all 0.6s;
+        }
+        .tech-btn:hover::before {
+            left: 100%;
+        }
+        .tech-btn:hover {
+            box-shadow: 0 0 20px rgba(8, 112, 184, 0.45);
+            transform: translateY(-1px);
+        }
+
+        /* 自定义下拉菜单滚动条 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(8, 112, 184, 0.2);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative grid-bg">
+
+    <!-- 5. 动态粒子背景 (Canvas) -->
+    <!-- pointer-events-none 确保 canvas 不会阻挡表单中的 input 输入与选择 -->
+    <canvas id="particleCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <!-- 科技装饰元素：角落雷达测绘准星 -->
+    <div class="absolute top-8 left-8 text-cyan-500/30 font-mono text-xs select-none pointer-events-none hidden md:block">SYS-LOCK // +01</div>
+    <div class="absolute top-8 right-8 text-cyan-500/30 font-mono text-xs select-none pointer-events-none hidden md:block">+ SYS-A1</div>
+    <div class="absolute bottom-8 left-8 text-cyan-500/30 font-mono text-xs select-none pointer-events-none hidden md:block">COORD_X // 101.9</div>
+    <div class="absolute bottom-8 right-8 text-cyan-500/30 font-mono text-xs select-none pointer-events-none hidden md:block">STATE // ACTIVE</div>
+
+    <!-- 弥散发光体 -->
+    <div class="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-cyan-200/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-200/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+
+    <div class="w-full max-w-md z-10">
+        <!-- 头部 LOGO 与标题 -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 mb-4 shadow-[0_4px_15px_rgba(8,112,184,0.25)] relative">
+                <!-- 呼吸灯光圈 -->
+                <div class="absolute inset-0 rounded-2xl bg-cyan-500/30 animate-ping"></div>
+                <i class="fa-solid fa-robot text-xl text-white relative z-10"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-wider text-slate-800">智能操作助手</h1>
+            <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">Intelligent Operations Assistant</p>
+        </div>
+
+        <!-- 主容器（具有护角的玻璃卡片） -->
+        <div class="glass-card rounded-2xl p-6 md:p-8">
+            <!-- 科技护角结构 -->
+            <div class="absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 border-cyan-500/80 rounded-tl-md"></div>
+            <div class="absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 border-cyan-500/80 rounded-tr-md"></div>
+            <div class="absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 border-cyan-500/80 rounded-bl-md"></div>
+            <div class="absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 border-cyan-500/80 rounded-br-md"></div>
+
+            <!-- 登录 / 注册 切换标签 -->
+            <div class="flex border-b border-slate-100 mb-6 relative z-10">
+                <button id="tab-login" onclick="switchTab('login')" class="flex-1 py-3 text-center font-semibold transition-all duration-300 text-cyan-600 border-b-2 border-cyan-500">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i>账号登录
+                </button>
+                <button id="tab-register" onclick="switchTab('register')" class="flex-1 py-3 text-center font-semibold transition-all duration-300 text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-user-plus mr-2"></i>快捷注册
+                </button>
+            </div>
+
+            <!-- 提示气泡 -->
+            <div id="toast" class="hidden fixed top-6 left-1/2 -translate-x-1/2 bg-slate-900 border border-cyan-500/30 text-cyan-400 text-xs py-2.5 px-4 rounded-lg shadow-lg z-50 flex items-center gap-2">
+                <i class="fa-solid fa-circle-info"></i>
+                <span id="toast-text"></span>
+            </div>
+
+            <!-- ================= 登录表单 ================= -->
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5 relative z-10">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">手机号码</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-phone text-xs"></i>
+                        </span>
+                        <input type="tel" id="login-phone" required pattern="^1[3-9]\d{9}$" placeholder="请输入11位手机号" 
+                            class="w-full pl-10 pr-4 py-2.5 tech-input rounded-lg text-slate-800 text-sm" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">登录密码</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-lock text-xs"></i>
+                        </span>
+                        <input type="password" id="login-pass" required placeholder="请输入您的密码" 
+                            class="w-full pl-10 pr-10 py-2.5 tech-input rounded-lg text-slate-800 text-sm" />
+                        <button type="button" onclick="togglePasswordVisibility('login-pass', this)" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600">
+                            <i class="fa-regular fa-eye-slash text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">图形验证码</label>
+                    <div class="flex gap-3">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-shield-halved text-xs"></i>
+                            </span>
+                            <input type="text" id="login-captcha" required placeholder="输入验证码" 
+                                class="w-full pl-10 pr-4 py-2.5 tech-input rounded-lg text-slate-800 text-sm" />
+                        </div>
+                        <!-- Canvas 绘制图形验证码 -->
+                        <canvas id="captchaCanvas" width="110" height="40" class="rounded-lg cursor-pointer border border-slate-200 bg-slate-100 hover:border-slate-300 transition-all" title="点击刷新验证码"></canvas>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="checkbox" class="accent-cyan-500 rounded bg-white border-slate-200">
+                        <span>记住密码</span>
+                    </label>
+                    <a href="#" class="hover:text-cyan-600 transition-colors">忘记密码？</a>
+                </div>
+
+                <button type="submit" class="w-full py-3 mt-2 tech-btn text-white rounded-lg text-sm font-semibold">
+                    立即登录
+                </button>
+            </form>
+
+            <!-- ================= 注册表单（分步） ================= -->
+            <div id="register-container" class="hidden relative z-10">
+                <!-- 注册进度指示器 -->
+                <div class="flex items-center justify-center mb-6">
+                    <div class="flex items-center w-full max-w-[280px]">
+                        <!-- 步骤一圆点 -->
+                        <div id="step-dot-1" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold bg-cyan-500 text-white shadow-[0_0_10px_rgba(8,112,184,0.2)]">1</div>
+                        <!-- 连接线 -->
+                        <div id="step-line" class="flex-1 h-0.5 bg-slate-100 transition-all duration-300 mx-2"></div>
+                        <!-- 步骤二圆点 -->
+                        <div id="step-dot-2" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-400">2</div>
+                    </div>
+                </div>
+
+                <!-- 注册：第一步 -->
+                <form id="reg-step-1" onsubmit="handleRegStep1(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">手机号码</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-phone text-xs"></i>
+                            </span>
+                            <input type="tel" id="reg-phone" required pattern="^1[3-9]\d{9}$" placeholder="请输入手机号" 
+                                class="w-full pl-10 pr-4 py-2.5 tech-input rounded-lg text-slate-800 text-sm" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">短信验证码</label>
+                        <div class="flex gap-3">
+                            <div class="relative flex-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-key text-xs"></i>
+                                </span>
+                                <input type="text" id="reg-sms" required placeholder="请输入验证码" 
+                                    class="w-full pl-10 pr-4 py-2.5 tech-input rounded-lg text-slate-800 text-sm" />
+                            </div>
+                            <button type="button" id="btn-sms" onclick="sendSmsCode()" class="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-cyan-600 rounded-lg text-xs font-semibold transition-all whitespace-nowrap min-w-[100px] flex items-center justify-center">
+                                获取验证码
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 mt-2 tech-btn text-white rounded-lg text-sm font-semibold">
+                        下一步 <i class="fa-solid fa-arrow-right ml-1 text-xs"></i>
+                    </button>
+                </form>
+
+                <!-- 注册：第二步 -->
+                <form id="reg-step-2" onsubmit="handleRegStep2(event)" class="space-y-5 hidden">
+                    <!-- 输入 1: 选择区域 -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">选择区域</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-map-location-dot text-xs"></i>
+                            </span>
+                            <select id="reg-region" onchange="handleRegionChange()" required
+                                class="w-full pl-10 pr-8 py-2.5 tech-input rounded-lg text-slate-800 text-sm appearance-none cursor-pointer">
+                                <option value="" disabled selected class="bg-white text-slate-400">请选择所在区域</option>
+                                <option value="beijing" class="bg-white text-slate-800">北京总部基地</option>
+                                <option value="shanghai" class="bg-white text-slate-800">上海科创中心</option>
+                                <option value="guangdong" class="bg-white text-slate-800">广东大湾区</option>
+                                <option value="zhejiang" class="bg-white text-slate-800">浙江云算中心</option>
+                            </select>
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 输入 2: 动态匹配单位（默认隐藏，选择区域后显示） -->
+                    <div id="unit-container" class="transition-all duration-300 opacity-0 max-h-0 overflow-hidden">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">所属单位</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-building-shield text-xs"></i>
+                            </span>
+                            <input type="text" id="reg-unit" autocomplete="off" placeholder="请输入关键词进行模糊匹配" 
+                                class="w-full pl-10 pr-4 py-2.5 tech-input rounded-lg text-slate-800 text-sm" />
+                            
+                            <!-- 模糊匹配结果下拉面板 -->
+                            <div id="fuzzy-dropdown" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl custom-scrollbar">
+                                <!-- 由JS动态填入匹配列表 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 第二步提交 -->
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" onclick="prevStep()" class="flex-1 py-3 border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold transition-all">
+                            上一步
+                        </button>
+                        <button type="submit" class="flex-[2] py-3 tech-btn text-white rounded-lg text-sm font-semibold">
+                            完成注册
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 交互与模拟功能 -->
+    <script>
+        // ================= 1. Canvas 动态粒子网络系统 (带鼠标引力与物理拖拽) =================
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const particleCount = 45;
+
+        // 全局交互鼠标状态
+        const mouse = {
+            x: null,
+            y: null,
+            isDown: false,
+            grabbedParticle: null
+        };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = (Math.random() - 0.5) * 0.4;
+                this.radius = Math.random() * 3.5 + 3.5; // 颗粒大小：3.5px 到 7px
+                this.isGrabbed = false;
+                this.pulseFactor = 0; // 拖拽时圆圈脉冲动画变量
+            }
+            update() {
+                // 如果当前粒子被玩家鼠标拽住，其物理运动暂时停用，并紧跟鼠标坐标
+                if (this.isGrabbed) {
+                    this.x = mouse.x;
+                    this.y = mouse.y;
+                    this.pulseFactor = (this.pulseFactor + 0.05) % (Math.PI * 2);
+                    return;
+                }
+
+                // 鼠标交互引力场逻辑
+                if (mouse.x !== null && mouse.y !== null) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const dist = Math.hypot(dx, dy);
+
+                    // 吸引半径为 250px 
+                    if (dist < 250 && dist > 15) {
+                        // 吸引力公式：离得越近，吸引加速度适当增加，但不过冲
+                        const force = (250 - dist) / 2000;
+                        this.vx += (dx / dist) * force;
+                        this.vy += (dy / dist) * force;
+                    }
+                }
+
+                // 惯性减速摩擦，防止吸引叠加后粒子超出极限速度乱飞
+                this.vx *= 0.985;
+                this.vy *= 0.985;
+
+                // 物理极限限制与最小漫步速度
+                const speed = Math.hypot(this.vx, this.vy);
+                const maxSpeed = 1.6;
+                const minSpeed = 0.22;
+                if (speed > maxSpeed) {
+                    this.vx = (this.vx / speed) * maxSpeed;
+                    this.vy = (this.vy / speed) * maxSpeed;
+                } else if (speed < minSpeed) {
+                    this.vx = (this.vx / (speed || 1)) * minSpeed;
+                    this.vy = (this.vy / (speed || 1)) * minSpeed;
+                }
+
+                // 移动坐标
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // 边界检测反弹
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                // 1. 外层深蓝色科技外环
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(8, 112, 184, 0.65)';
+                ctx.fill();
+
+                // 2. 内层亮色晶莹核心
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 0.45, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fill();
+
+                // 3. 拖拽时的交互视觉反馈 (绘制动态锁定环)
+                if (this.isGrabbed) {
+                    ctx.beginPath();
+                    // 产生脉冲扩散效果
+                    const pulseRadius = this.radius * (1.5 + Math.sin(this.pulseFactor) * 0.4);
+                    ctx.arc(this.x, this.y, pulseRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(8, 112, 184, 0.5)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    // 绘制外十字对齐准星线
+                    ctx.strokeStyle = 'rgba(8, 112, 184, 0.3)';
+                    ctx.lineWidth = 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x - pulseRadius - 4, this.y);
+                    ctx.lineTo(this.x + pulseRadius + 4, this.y);
+                    ctx.moveTo(this.x, this.y - pulseRadius - 4);
+                    ctx.lineTo(this.x, this.y + pulseRadius + 4);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制粒子间的中继连线 (颜色深度随距离淡化)
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+                    if (dist < 130) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(8, 112, 184, ${0.22 * (1 - dist / 130)})`;
+                        ctx.lineWidth = 1.0;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles();
+        animateParticles();
+
+        // ================= 全局捕获鼠标 / 触控交互行为 =================
+        function handlePointerMove(clientX, clientY) {
+            mouse.x = clientX;
+            mouse.y = clientY;
+            // 如果正拽着粒子，直接赋予其最新坐标
+            if (mouse.isDown && mouse.grabbedParticle) {
+                mouse.grabbedParticle.x = clientX;
+                mouse.grabbedParticle.y = clientY;
+            }
+        }
+
+        function handlePointerDown(clientX, clientY) {
+            mouse.isDown = true;
+            // 寻找距离点击坐标最近的粒子（判定区域 60px 内）
+            let closestDist = 60;
+            let targetParticle = null;
+
+            particles.forEach(p => {
+                const dist = Math.hypot(p.x - clientX, p.y - clientY);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    targetParticle = p;
+                }
+            });
+
+            if (targetParticle) {
+                mouse.grabbedParticle = targetParticle;
+                targetParticle.isGrabbed = true;
+                targetParticle.x = clientX;
+                targetParticle.y = clientY;
+            }
+        }
+
+        function handlePointerUp() {
+            mouse.isDown = false;
+            if (mouse.grabbedParticle) {
+                mouse.grabbedParticle.isGrabbed = false;
+                // 赋予释放时的初速度，使其滑出去
+                mouse.grabbedParticle.vx = (Math.random() - 0.5) * 1.5;
+                mouse.grabbedParticle.vy = (Math.random() - 0.5) * 1.5;
+                mouse.grabbedParticle = null;
+            }
+        }
+
+        // A. 电脑端鼠标事件监听 (全局)
+        window.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY));
+        window.addEventListener('mousedown', (e) => handlePointerDown(e.clientX, e.clientY));
+        window.addEventListener('mouseup', handlePointerUp);
+        window.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+            handlePointerUp();
+        });
+
+        // B. 移动端手指触控事件监听 (支持触控拖拽)
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
+        window.addEventListener('touchend', handlePointerUp);
+
+
+        // ================= 2. 模拟单位数据仓库 =================
+        const unitDatabase = {
+            'beijing': [
+                '北京中科创新科技有限公司',
+                '北京华航星图数据中心',
+                '北京极客云盾算力集团',
+                '北京智元前沿人工智能实验室',
+                '北京航天精密测控中心'
+            ],
+            'shanghai': [
+                '上海微系统半导体研究院',
+                '上海启明星辰网络空间安全公司',
+                '上海张江数字孪生科技有限公司',
+                '上海临港低碳智能系统中心',
+                '上海仪电数智技术集团'
+            ],
+            'guangdong': [
+                '深圳腾讯智能运算科技',
+                '华为终端安全检测实验室',
+                '广州极飞智能农业设备厂',
+                '深算科技大湾区研究院',
+                '珠海海思芯片研发实验室'
+            ],
+            'zhejiang': [
+                '杭州量子飞速云技术有限公司',
+                '浙江恒生智能运维系统部',
+                '杭州海康威视边缘算力部',
+                '浙江大华智慧感知产业园',
+                '阿里巴巴达摩院基础架构组'
+            ]
+        };
+
+        // 全局状态
+        let smsTimer = null;
+
+        // 页面启动加载
+        window.addEventListener('load', () => {
+            initCaptcha();
+            initFuzzySearch();
+        });
+
+        // ================= 3. 通用 UI 交互 =================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            toastText.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-regular fa-eye text-xs text-cyan-600';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-regular fa-eye-slash text-xs';
+            }
+        }
+
+        // ================= 4. Tab 栏切换 =================
+        function switchTab(tab) {
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+            const formLogin = document.getElementById('login-form');
+            const containerReg = document.getElementById('register-container');
+
+            if (tab === 'login') {
+                tabLogin.className = "flex-1 py-3 text-center font-semibold transition-all duration-300 text-cyan-600 border-b-2 border-cyan-500";
+                tabRegister.className = "flex-1 py-3 text-center font-semibold transition-all duration-300 text-slate-400 hover:text-slate-600";
+                formLogin.classList.remove('hidden');
+                containerReg.classList.add('hidden');
+                initCaptcha();
+            } else {
+                tabRegister.className = "flex-1 py-3 text-center font-semibold transition-all duration-300 text-cyan-600 border-b-2 border-cyan-500";
+                tabLogin.className = "flex-1 py-3 text-center font-semibold transition-all duration-300 text-slate-400 hover:text-slate-600";
+                formLogin.classList.add('hidden');
+                containerReg.classList.remove('hidden');
+                resetRegisterForm();
+            }
+        }
+
+        // ================= 5. 图形验证码系统 =================
+        let generatedCaptchaCode = "";
+        function initCaptcha() {
+            const canvas = document.getElementById('captchaCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const pool = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            generatedCaptchaCode = "";
+            for (let i = 0; i < 4; i++) {
+                generatedCaptchaCode += pool.charAt(Math.floor(Math.random() * pool.length));
+            }
+
+            for (let i = 0; i < 4; i++) {
+                ctx.save();
+                ctx.translate(20 + i * 22, 20 + Math.random() * 8 - 4);
+                const angle = (Math.random() - 0.5) * 0.4;
+                ctx.rotate(angle);
+                ctx.fillStyle = `hsl(${Math.random() * 360}, 75%, 35%)`;
+                ctx.font = 'bold 20px monospace';
+                ctx.fillText(generatedCaptchaCode[i], -8, 6);
+                ctx.restore();
+            }
+
+            for (let i = 0; i < 3; i++) {
+                ctx.strokeStyle = 'rgba(8, 112, 184, 0.3)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.stroke();
+            }
+        }
+        document.getElementById('captchaCanvas').addEventListener('click', initCaptcha);
+
+        // 登录提交
+        function handleLogin(event) {
+            event.preventDefault();
+            const captchaInput = document.getElementById('login-captcha').value.toUpperCase();
+
+            if (captchaInput !== generatedCaptchaCode) {
+                showToast('图形验证码错误，请重新输入');
+                initCaptcha();
+                return;
+            }
+            showToast('⚙️ 验证成功！正在登入智能操作助手...');
+        }
+
+        // ================= 6. 注册交互逻辑 =================
+        function sendSmsCode() {
+            const phoneInput = document.getElementById('reg-phone');
+            if (!phoneInput.checkValidity() || phoneInput.value === '') {
+                showToast('请输入有效的11位手机号');
+                return;
+            }
+
+            const btn = document.getElementById('btn-sms');
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            showToast('验证码已模拟发送至 ' + phoneInput.value + '（请输入：1234）');
+            
+            let countdown = 60;
+            btn.textContent = `${countdown}s`;
+            smsTimer = setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    clearInterval(smsTimer);
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.textContent = "获取验证码";
+                } else {
+                    btn.textContent = `${countdown}s`;
+                }
+            }, 1000);
+        }
+
+        function handleRegStep1(event) {
+            event.preventDefault();
+            const smsCode = document.getElementById('reg-sms').value;
+            
+            if (smsCode !== "1234") {
+                showToast('验证码输入有误，请输入 "1234" 演示值');
+                return;
+            }
+
+            document.getElementById('reg-step-1').classList.add('hidden');
+            document.getElementById('reg-step-2').classList.remove('hidden');
+
+            document.getElementById('step-line').className = "flex-1 h-0.5 bg-cyan-500 transition-all duration-300 mx-2";
+            document.getElementById('step-dot-2').className = "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold bg-cyan-500 text-white shadow-[0_0_10px_rgba(8,112,184,0.2)]";
+            
+            showToast('手机验证成功，请输入区域与单位');
+        }
+
+        function prevStep() {
+            document.getElementById('reg-step-2').classList.add('hidden');
+            document.getElementById('reg-step-1').classList.remove('hidden');
+
+            document.getElementById('step-line').className = "flex-1 h-0.5 bg-slate-100 transition-all duration-300 mx-2";
+            document.getElementById('step-dot-2').className = "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-400";
+        }
+
+        // 选择区域的联动展示
+        function handleRegionChange() {
+            const regionSelect = document.getElementById('reg-region');
+            const unitContainer = document.getElementById('unit-container');
+            const unitInput = document.getElementById('reg-unit');
+
+            if (regionSelect.value !== '') {
+                unitInput.value = '';
+                unitContainer.classList.remove('opacity-0', 'max-h-0', 'overflow-hidden');
+                unitContainer.classList.add('opacity-100', 'max-h-24', 'mt-4');
+            }
+        }
+
+        // 模糊搜索逻辑
+        function initFuzzySearch() {
+            const unitInput = document.getElementById('reg-unit');
+            const dropdown = document.getElementById('fuzzy-dropdown');
+            const regionSelect = document.getElementById('reg-region');
+
+            unitInput.addEventListener('input', () => {
+                const query = unitInput.value.trim().toLowerCase();
+                const selectedRegion = regionSelect.value;
+                
+                if (!query || !selectedRegion) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+
+                const db = unitDatabase[selectedRegion] || [];
+                const filtered = db.filter(item => item.toLowerCase().includes(query));
+
+                if (filtered.length > 0) {
+                    dropdown.innerHTML = '';
+                    filtered.forEach(item => {
+                        const opt = document.createElement('div');
+                        opt.className = "px-4 py-2.5 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-600 cursor-pointer transition-colors border-b border-slate-50 last:border-0";
+                        opt.textContent = item;
+                        opt.addEventListener('click', () => {
+                            unitInput.value = item;
+                            dropdown.classList.add('hidden');
+                        });
+                        dropdown.appendChild(opt);
+                    });
+                    dropdown.classList.remove('hidden');
+                } else {
+                    dropdown.innerHTML = '<div class="px-4 py-3 text-xs text-slate-400 text-center">无匹配的合作单位</div>';
+                    dropdown.classList.remove('hidden');
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!unitInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // 第二步完成注册
+        function handleRegStep2(event) {
+            event.preventDefault();
+            const region = document.getElementById('reg-region').value;
+            const unit = document.getElementById('reg-unit').value;
+
+            if (!region || !unit) {
+                showToast('请完整选择区域并选择所属单位');
+                return;
+            }
+
+            showToast('🎉 账号注册成功！正在切换至登录...');
+            setTimeout(() => {
+                switchTab('login');
+            }, 1800);
+        }
+
+        // 重置注册表单
+        function resetRegisterForm() {
+            document.getElementById('reg-phone').value = '';
+            document.getElementById('reg-sms').value = '';
+            clearInterval(smsTimer);
+            const btn = document.getElementById('btn-sms');
+            btn.disabled = false;
+            btn.className = "px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-cyan-600 rounded-lg text-xs font-semibold transition-all whitespace-nowrap min-w-[100px] flex items-center justify-center";
+            btn.textContent = "获取验证码";
+
+            document.getElementById('reg-region').selectedIndex = 0;
+            document.getElementById('reg-unit').value = '';
+            document.getElementById('unit-container').className = "transition-all duration-300 opacity-0 max-h-0 overflow-hidden";
+
+            document.getElementById('reg-step-2').classList.add('hidden');
+            document.getElementById('reg-step-1').classList.remove('hidden');
+            document.getElementById('step-line').className = "flex-1 h-0.5 bg-slate-100 transition-all duration-300 mx-2";
+            document.getElementById('step-dot-2').className = "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-400";
+        }
+    </script>
+</body>
+</html>

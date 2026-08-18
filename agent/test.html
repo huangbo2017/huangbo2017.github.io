@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的个人主页</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        /* 卡片容器 */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 48px 40px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        /* 头像 */
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 姓名和标题 */
+        .name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #1a1a2e;
+        }
+
+        .title {
+            font-size: 16px;
+            color: #764ba2;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        /* 简介文字 */
+        .bio {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 28px;
+            padding: 0 8px;
+        }
+
+        /* 社交链接按钮组 */
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .links a {
+            display: block;
+            padding: 14px 20px;
+            border-radius: 12px;
+            background: #f5f7fa;
+            color: #1a1a2e;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .links a:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 页脚 */
+        .footer {
+            font-size: 13px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            margin-top: 8px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .card {
+                padding: 32px 20px;
+            }
+            .avatar {
+                width: 96px;
+                height: 96px;
+                font-size: 38px;
+            }
+            .name {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <!-- 头像区域（可以换成你的名字首字母或 emoji） -->
+        <div class="avatar">👨‍💻</div>
+
+        <!-- 个人信息 -->
+        <h1 class="name">张三</h1>
+        <p class="title">全栈开发 · 技术爱好者</p>
+
+        <p class="bio">
+            热爱编程与写作，专注于 Web 开发与开源技术。
+            这里是我在 Gitee 上的个人主页，欢迎交流！
+        </p>
+
+        <!-- 链接列表（修改 href 为你的真实链接） -->
+        <div class="links">
+            <a href="https://gitee.com/你的用户名" target="_blank">📦 Gitee 主页</a>
+            <a href="https://github.com/你的用户名" target="_blank">🐙 GitHub</a>
+            <a href="mailto:your@email.com">📧 联系我</a>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            Powered by <a href="https://gitee.com" target="_blank">Gitee Pages</a>
+            · 2026
+        </div>
+    </div>
+</body>
+</html>

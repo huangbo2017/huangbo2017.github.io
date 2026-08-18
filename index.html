@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>项目文件浏览</title>
+    <title>文件浏览器</title>
     <style>
+        /* --- 样式代码 (与之前保持一致) --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             max-width: 800px;
@@ -12,26 +13,11 @@
             padding: 0 20px;
             background: #f6f8fa;
         }
-        h1 {
-            border-bottom: 1px solid #d0d7de;
-            padding-bottom: 10px;
-        }
-        .breadcrumb {
-            margin: 16px 0;
-            font-size: 14px;
-        }
-        .breadcrumb a {
-            color: #0969da;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
+        h1 { border-bottom: 1px solid #d0d7de; padding-bottom: 10px; }
+        .breadcrumb { margin: 16px 0; font-size: 14px; }
+        .breadcrumb a { color: #0969da; text-decoration: none; cursor: pointer; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        ul { list-style: none; padding: 0; }
         li {
             padding: 8px 12px;
             border-bottom: 1px solid #eaeef2;
@@ -40,50 +26,25 @@
             transition: background 0.15s;
             cursor: pointer;
         }
-        li:hover {
-            background: #f0f6fc;
-        }
-        li .icon {
-            font-size: 20px;
-            margin-right: 10px;
-            width: 28px;
-            text-align: center;
-        }
-        li .name {
-            font-size: 15px;
-            flex: 1;
-        }
+        li:hover { background: #f0f6fc; }
+        li .icon { font-size: 20px; margin-right: 10px; width: 28px; text-align: center; }
+        li .name { font-size: 15px; flex: 1; }
+        /* 文件夹箭头 */
         .chevron {
             margin-left: auto;
             transition: transform 0.2s;
             font-size: 12px;
             color: #57606a;
         }
-        .chevron.open {
-            transform: rotate(90deg);
-        }
-        .nested {
-            padding-left: 24px;
-            display: none;
-        }
-        .nested.active {
-            display: block;
-        }
-        .loading {
-            text-align: center;
-            color: #57606a;
-            padding: 20px;
-        }
-        .error {
-            color: #cf222e;
-            background: #ffebe9;
-            padding: 12px;
-            border-radius: 6px;
-        }
+        .chevron.open { transform: rotate(90deg); }
+        .nested { padding-left: 24px; display: none; }
+        .nested.active { display: block; }
+        .loading { text-align: center; color: #57606a; padding: 20px; }
+        .error { color: #cf222e; background: #ffebe9; padding: 12px; border-radius: 6px; }
     </style>
 </head>
 <body>
-    <h1>📂 项目文件浏览</h1>
+    <h1>📂 文件浏览器</h1>
     <div class="breadcrumb" id="breadcrumb">
         <a onclick="loadPath('')">根目录</a>
     </div>
@@ -93,13 +54,13 @@
 
     <script>
         // ===================== 配置区 =====================
+        // 你的 GitHub Pages 根地址
+        const BASE_URL = 'https://huangbo2017.github.io';
+        // 你的 GitHub 用户名和仓库名 (用于API调用)
         const OWNER = 'huangbo2017';
-        const REPO = 'huangbo2017.github.io';  // 这是你的 Pages 仓库
-        const BRANCH = 'main';                 // 或 'master'
+        const REPO = 'huangbo2017.github.io';
+        const BRANCH = 'main'; // 默认分支
         // =================================================
-
-        // 判断是否为 Pages 根仓库（即 REPO 为 username.github.io）
-        const isPagesRepo = REPO === `${OWNER}.github.io`;
 
         // 缓存已加载的目录数据
         const cache = new Map();
@@ -109,6 +70,7 @@
             if (cache.has(path)) {
                 return cache.get(path);
             }
+            // API 地址: https://api.github.com/repos/owner/repo/contents/path
             const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`;
             try {
                 const response = await fetch(url);
@@ -177,19 +139,13 @@
                             }
                         });
                     } else {
-                        // ----- 文件：点击跳转到 Pages 地址 -----
+                        // ----- 文件：点击跳转到正确的 Pages 地址 -----
                         li.style.cursor = 'pointer';
                         li.addEventListener('click', () => {
-                            // 构建 Pages URL
-                            let fileUrl;
-                            if (isPagesRepo) {
-                                // 如果是 Pages 仓库，根路径就是 https://OWNER.github.io/
-                                fileUrl = `https://${OWNER}.github.io/${item.path}`;
-                            } else {
-                                // 普通仓库，Pages 路径为 https://OWNER.github.io/REPO/item.path
-                                fileUrl = `https://${OWNER}.github.io/${REPO}/${item.path}`;
-                            }
-                            window.location.href = fileUrl;
+                            // 构建正确的访问路径: BASE_URL + '/' + item.path
+                            // 例如: https://huangbo2017.github.io/agent/test.html
+                            const targetUrl = `${BASE_URL}/${item.path}`;
+                            window.location.href = targetUrl;
                         });
                     }
 

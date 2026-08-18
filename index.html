@@ -53,14 +53,6 @@
             font-size: 15px;
             flex: 1;
         }
-        li a {
-            color: #1f2328;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-        /* 文件夹箭头 */
         .chevron {
             margin-left: auto;
             transition: transform 0.2s;
@@ -101,10 +93,13 @@
 
     <script>
         // ===================== 配置区 =====================
-        const OWNER = 'huangbo2017';   // 改为你的用户名
-        const REPO = 'huangbo2017.github.io';          // 改为你的仓库名
-        const BRANCH = 'main';         // 默认分支，通常是 main 或 master
+        const OWNER = 'huangbo2017';
+        const REPO = 'huangbo2017.github.io';  // 这是你的 Pages 仓库
+        const BRANCH = 'main';                 // 或 'master'
         // =================================================
+
+        // 判断是否为 Pages 根仓库（即 REPO 为 username.github.io）
+        const isPagesRepo = REPO === `${OWNER}.github.io`;
 
         // 缓存已加载的目录数据
         const cache = new Map();
@@ -182,14 +177,20 @@
                             }
                         });
                     } else {
-                        // ----- 文件：点击直接跳转到 GitHub 页面 -----
+                        // ----- 文件：点击跳转到 Pages 地址 -----
                         li.style.cursor = 'pointer';
                         li.addEventListener('click', () => {
-                            // 跳转到文件在 GitHub 上的页面（可渲染 HTML）
-                            window.location.href = item.html_url;
+                            // 构建 Pages URL
+                            let fileUrl;
+                            if (isPagesRepo) {
+                                // 如果是 Pages 仓库，根路径就是 https://OWNER.github.io/
+                                fileUrl = `https://${OWNER}.github.io/${item.path}`;
+                            } else {
+                                // 普通仓库，Pages 路径为 https://OWNER.github.io/REPO/item.path
+                                fileUrl = `https://${OWNER}.github.io/${REPO}/${item.path}`;
+                            }
+                            window.location.href = fileUrl;
                         });
-                        // 也可以跳转到 raw 内容（如果不想看 GitHub 界面）
-                        // window.location.href = item.download_url;
                     }
 
                     ul.appendChild(li);

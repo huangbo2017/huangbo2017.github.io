@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户登录日志</title>
+<style>
+  /* ==============================
+   * Design tokens (kept identical to index.html)
+   * ============================== */
+  :root{
+    --c-primary:#1890ff;
+    --c-primary-hover:#40a9ff;
+    --c-primary-active:#096dd9;
+    --c-primary-bg:#e6f7ff;
+    --c-success:#52c41a;
+    --c-success-bg:#f6ffed;
+    --c-warning:#fa8c16;
+    --c-warning-bg:#fff7e6;
+    --c-danger:#f5222d;
+    --c-danger-bg:#fff1f0;
+    --c-text:#333;
+    --c-text-sec:#666;
+    --c-text-minor:#999;
+    --c-border:#f0f0f0;
+    --c-border-strong:#d9d9d9;
+    --c-bg:#f0f2f5;
+    --c-card:#fff;
+    --c-sidebar:#001529;
+    --c-sidebar-active:#1890ff;
+    --c-sidebar-hover:#1e2a3a;
+    --c-sidebar-text:#a0b3c6;
+    --c-sidebar-text-active:#fff;
+
+    --radius:4px;
+    --shadow-modal:0 6px 16px -8px rgba(0,0,0,.08),0 9px 28px 0 rgba(0,0,0,.05),0 12px 48px 16px rgba(0,0,0,.03);
+    --t-fast:.18s cubic-bezier(.4,0,.2,1);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:14px;
+    color:var(--c-text);
+    background:var(--c-bg);
+    -webkit-font-smoothing:antialiased;
+  }
+  ul{list-style:none}
+  button{font-family:inherit}
+  input,select,textarea,button{outline:none}
+  a{color:inherit;text-decoration:none}
+
+  /* App layout */
+  .app{display:flex;min-height:100vh}
+
+  /* ============================== Sidebar ============================== */
+  .sidebar{width:208px;background:var(--c-sidebar);flex-shrink:0;overflow-y:auto}
+  .sidebar::-webkit-scrollbar{width:6px}
+  .sidebar::-webkit-scrollbar-thumb{background:#2a3b4f;border-radius:3px}
+  .menu{padding:8px 0}
+  .menu-group{margin-bottom:4px}
+  .menu-group__title{
+    height:40px;padding:0 20px;line-height:40px;
+    color:var(--c-sidebar-text);font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;
+    transition:background var(--t-fast);position:relative;
+  }
+  .menu-group__title:hover{color:#fff}
+  .menu-group__title .label{display:flex;align-items:center;gap:10px}
+  .menu-group__title .arrow{font-size:10px;transition:transform var(--t-fast);opacity:.65}
+  .menu-group__title.open .arrow{transform:rotate(180deg)}
+  .icon{width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;color:inherit}
+  .submenu{display:none}
+  .menu-group.open>.submenu{display:block}
+  .submenu li{
+    position:relative;color:var(--c-sidebar-text);font-size:13px;
+    line-height:40px;padding:0 20px 0 46px;cursor:pointer;transition:all var(--t-fast);
+  }
+  .submenu li:hover{color:#fff}
+  .submenu li.active{color:var(--c-sidebar-text-active);background:var(--c-sidebar-active)}
+  .menu-single{
+    display:flex;align-items:center;gap:10px;
+    height:40px;padding:0 20px;color:var(--c-sidebar-text);font-size:14px;
+    cursor:pointer;transition:all var(--t-fast);position:relative;
+  }
+  .menu-single:hover{color:#fff;background:var(--c-sidebar-hover)}
+  .menu-single.active{color:var(--c-sidebar-text-active);background:var(--c-sidebar-active)}
+  .menu-single .icon{width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center}
+
+  /* ============================== Main ============================== */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--c-bg)}
+  .topbar{
+    height:48px;background:#fff;padding:0 20px;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 1px 4px rgba(0,21,41,.08);position:relative;z-index:5;
+  }
+  .topbar__left,.topbar__right{display:flex;align-items:center;gap:18px}
+  .topbar__toggle{
+    width:32px;height:32px;cursor:pointer;color:#666;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:var(--radius);transition:all var(--t-fast);
+  }
+  .topbar__toggle:hover{background:#f5f5f5;color:var(--c-primary)}
+  .breadcrumb{font-size:14px;color:var(--c-text-sec)}
+  .breadcrumb .sep{margin:0 8px;color:#ccc}
+  .breadcrumb .current{color:var(--c-text)}
+  .user{display:flex;align-items:center;gap:8px;padding:0 10px;height:36px;border-radius:18px;cursor:pointer;color:var(--c-text-sec);transition:all var(--t-fast)}
+  .user:hover{background:#f5f5f5;color:var(--c-primary)}
+  .user__avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#1890ff,#096dd9);color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center}
+
+  /* Content */
+  .content{flex:1;padding:16px;overflow-y:auto}
+  .page-card{background:var(--c-card);border-radius:var(--radius);padding:20px 24px 12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+
+  .filters{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .field{display:flex;align-items:center}
+  .field__label{color:var(--c-text-sec);margin-right:8px;white-space:nowrap;font-size:13px}
+  .input,.select{
+    height:32px;padding:4px 11px;border:1px solid var(--c-border-strong);
+    border-radius:var(--radius);font-size:14px;background:#fff;
+    transition:all var(--t-fast);color:var(--c-text);min-width:200px;
+  }
+  .input:hover,.select:hover{border-color:var(--c-primary)}
+  .input:focus,.select:focus{border-color:var(--c-primary);box-shadow:0 0 0 2px rgba(24,144,255,.2)}
+  .filter-actions{margin-left:auto;display:flex;gap:8px}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 16px;
+    border:1px solid transparent;border-radius:var(--radius);font-size:14px;cursor:pointer;
+    background:#fff;color:var(--c-text);transition:all var(--t-fast);
+    user-select:none;white-space:nowrap;font-family:inherit;
+  }
+  .btn .ico{width:14px;height:14px}
+  .btn--primary{background:var(--c-primary);border-color:var(--c-primary);color:#fff}
+  .btn--primary:hover{background:var(--c-primary-hover);border-color:var(--c-primary-hover)}
+  .btn--default{background:#fff;border-color:var(--c-border-strong);color:var(--c-text)}
+  .btn--default:hover{color:var(--c-primary);border-color:var(--c-primary)}
+
+  /* ============================== Table ============================== */
+  .table-wrap{border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px}
+  .data-table{width:100%;border-collapse:collapse}
+  .data-table th{
+    background:#fafafa;padding:12px 16px;text-align:left;font-weight:500;
+    color:var(--c-text);border-bottom:1px solid var(--c-border);font-size:14px;white-space:nowrap;
+  }
+  .data-table td{
+    padding:14px 16px;border-bottom:1px solid var(--c-border);
+    font-size:14px;color:var(--c-text);vertical-align:middle;
+  }
+  .data-table tbody tr{transition:background var(--t-fast)}
+  .data-table tbody tr:hover{background:#fafafa}
+  .data-table tbody tr:last-child td{border-bottom:none}
+
+  .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:var(--c-text-sec);font-size:13px}
+  .muted{color:var(--c-text-minor)}
+
+  /* Source tag */
+  .tag{
+    display:inline-flex;align-items:center;height:24px;padding:0 10px;
+    border-radius:4px;font-size:12px;line-height:24px;white-space:nowrap;
+    border:1px solid transparent;
+  }
+  .tag--jump{color:#1890ff;background:#e6f7ff;border-color:#91d5ff}       /* 跳转用户 */
+  .tag--login{color:#52c41a;background:#f6ffed;border-color:#b7eb8f}      /* 登录用户 */
+
+  .empty{padding:64px 20px;text-align:center;color:var(--c-text-minor)}
+  .empty__icon{font-size:48px;margin-bottom:12px;opacity:.4}
+
+  /* ============================== Pagination ============================== */
+  .pagination{display:flex;align-items:center;justify-content:flex-end;padding:16px 4px;gap:8px;color:var(--c-text-sec);font-size:13px}
+  .pagination .total{margin-right:auto}
+  .pagination .total b{color:var(--c-text);font-weight:500;margin:0 4px}
+  .page-size{display:flex;align-items:center;gap:6px}
+  .page-size select{height:28px;padding:0 8px;border:1px solid var(--c-border-strong);border-radius:var(--radius);background:#fff;cursor:pointer;font-size:13px}
+  .page-size select:hover{border-color:var(--c-primary)}
+  .page-nav{display:flex;align-items:center;gap:0}
+  .page-btn{
+    min-width:32px;height:32px;border:1px solid var(--c-border-strong);background:#fff;
+    cursor:pointer;color:var(--c-text-sec);font-size:13px;margin-left:-1px;
+    transition:all var(--t-fast);display:inline-flex;align-items:center;justify-content:center;font-family:inherit;
+  }
+  .page-btn:first-child{margin-left:0;border-radius:var(--radius) 0 0 var(--radius)}
+  .page-btn:last-child{border-radius:0 var(--radius) var(--radius) 0}
+  .page-btn:hover{color:var(--c-primary);border-color:var(--c-primary);position:relative;z-index:1}
+  .page-btn.is-active{color:var(--c-primary);border-color:var(--c-primary);position:relative;z-index:1;background:#fff;font-weight:500}
+  .page-btn:disabled{color:#ccc;cursor:not-allowed;border-color:#f0f0f0}
+  .page-btn:disabled:hover{color:#ccc;border-color:#f0f0f0}
+  .page-jump{display:flex;align-items:center;gap:6px;margin-left:8px}
+  .page-jump input{width:50px;height:28px;border:1px solid var(--c-border-strong);border-radius:var(--radius);text-align:center;font-size:13px}
+  .page-jump input:hover{border-color:var(--c-primary)}
+  .page-jump input:focus{border-color:var(--c-primary);box-shadow:0 0 0 2px rgba(24,144,255,.15)}
+
+  /* ============================== Toast ============================== */
+  .toast{
+    position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);
+    background:rgba(0,0,0,.85);color:#fff;padding:10px 16px;border-radius:var(--radius);
+    z-index:1100;transition:all .25s ease;pointer-events:none;font-size:13px;
+    box-shadow:0 6px 16px rgba(0,0,0,.18);opacity:0;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast--success{background:#52c41a}
+  .toast--error{background:#f5222d}
+  .toast--warning{background:#fa8c16}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar">
+    <ul class="menu">
+      <li class="menu-group">
+        <div class="menu-group__title">
+          <span class="label">
+            <span class="icon">▦</span>
+            智能维护
+          </span>
+        </div>
+      </li>
+      <li class="menu-group open">
+        <div class="menu-group__title open">
+          <span class="label">
+            <span class="icon">⚙</span>
+            系统管理
+          </span>
+          <span class="arrow">⌄</span>
+        </div>
+        <ul class="submenu">
+          <li>用户管理</li>
+          <li>角色权限</li>
+          <li>单位管理</li>
+          <li onclick="location.href='index.html'">license管理</li>
+          <li>系统版本管理</li>
+          <li class="active">用户登录日志</li>
+        </ul>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- ============ Main ============ -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar__left">
+        <div class="topbar__toggle" title="折叠菜单">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>
+        </div>
+        <div class="breadcrumb">
+          系统管理<span class="sep">/</span><span class="current">用户登录日志</span>
+        </div>
+      </div>
+      <div class="topbar__right">
+        <div class="user">
+          <div class="user__avatar">鹏</div>
+          <span>1KQ9527</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="page-card">
+
+        <!-- Filters -->
+        <div class="filters">
+          <div class="field">
+            <input type="text" class="input" id="filterAccount" placeholder="请输入账号（模糊搜索）" style="min-width:260px" />
+          </div>
+          <div class="field">
+            <span class="field__label">来源</span>
+            <select class="select" id="filterSource">
+              <option value="">全部</option>
+              <option value="跳转用户">跳转用户</option>
+              <option value="登录用户">登录用户</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn btn--default" id="btnReset">
+              <svg class="ico" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 7a5 5 0 0 1 8.5-3.5L12 2v4H8"/><path d="M12 7a5 5 0 0 1-8.5 3.5L2 12V8h4"/></svg>
+              重置
+            </button>
+            <button class="btn btn--primary" id="btnSearch">
+              <svg class="ico" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6" cy="6" r="4"/><path d="M9 9l3 3"/></svg>
+              查询
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:20%">账号</th>
+                <th style="width:24%">来源</th>
+                <th style="width:28%">登录时间</th>
+                <th style="width:28%">关联license版本</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <span class="total">共 <b id="totalCount">0</b> 条</span>
+          <div class="page-size">
+            每页
+            <select id="pageSize">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            条
+          </div>
+          <div class="page-nav">
+            <button class="page-btn" id="prevPage">‹</button>
+            <button class="page-btn is-active" id="currentPageBtn">1</button>
+            <button class="page-btn" id="nextPage">›</button>
+          </div>
+          <div class="page-jump">
+            跳至 <input type="text" id="pageInput" value="1" /> 页
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+ * State & seed data
+ * ========================================================= */
+const SOURCES = {
+  '跳转用户': 'tag--jump',
+  '登录用户': 'tag--login',
+};
+
+const state = {
+  items: [],
+  filters: { account: '', source: '' },
+  page: 1,
+  pageSize: 10,
+};
+
+(function seed(){
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const ago = (days, h, m, s) => fmt(new Date(now.getTime() - days*86400000 + ((h*3600 + m*60 + s)*1000)));
+  // 关联license版本取自 license管理 中已存在的版本号（精确到秒，格式 YYYYMMDDHHmmss）
+  const VER = { v1:'20260512120000', v2:'20260720143209', v3:'20260810143922', none:'—' };
+
+  state.items = [
+    { id: 1,  account:'admin01',         source:'跳转用户', loginTime: ago(0,9,12,33),  license: VER.v3 },
+    { id: 2,  account:'wangyc',          source:'登录用户', loginTime: ago(0,8,45,10),  license: VER.v3 },
+    { id: 3,  account:'lihong',          source:'跳转用户', loginTime: ago(1,19,30,2),  license: VER.v2 },
+    { id: 4,  account:'imp_user_07',     source:'登录用户', loginTime: ago(1,14,5,55),   license: VER.v2 },
+    { id: 5,  account:'zhaolei',         source:'跳转用户', loginTime: ago(2,22,18,41),  license: VER.v1 },
+    { id: 6,  account:'sunq',            source:'登录用户', loginTime: ago(2,10,2,9),   license: VER.v1 },
+    { id: 7,  account:'admin02',         source:'登录用户', loginTime: ago(3,16,47,30),  license: VER.none },
+    { id: 8,  account:'chenw',           source:'跳转用户', loginTime: ago(3,9,33,18),  license: VER.v1 },
+    { id: 9,  account:'reg_user_221',    source:'跳转用户', loginTime: ago(4,7,5,0),    license: VER.v2 },
+    { id: 10, account:'liuyang',         source:'登录用户', loginTime: ago(4,13,40,27),  license: VER.v2 },
+    { id: 11, account:'imp_user_15',     source:'登录用户', loginTime: ago(5,11,11,11),  license: VER.v1 },
+    { id: 12, account:'zhangtao',        source:'跳转用户', loginTime: ago(5,20,3,49),   license: VER.v3 },
+    { id: 13, account:'wangfang',        source:'跳转用户', loginTime: ago(6,8,25,16),  license: VER.v1 },
+    { id: 14, account:'admin01',         source:'跳转用户', loginTime: ago(6,18,9,2),   license: VER.v3 },
+    { id: 15, account:'xuyan',           source:'登录用户', loginTime: ago(7,9,58,44),  license: VER.v2 },
+  ];
+})();
+
+/* =========================================================
+ * Helpers
+ * ========================================================= */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+const $toast = document.getElementById('toast');
+let toastTimer = null;
+function toast(msg, type){
+  $toast.textContent = msg;
+  $toast.className = 'toast show' + (type ? ' toast--' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $toast.classList.remove('show'), 2200);
+}
+
+/* =========================================================
+ * Filter & render
+ * ========================================================= */
+function getFiltered(){
+  const k = state.filters.account.trim().toLowerCase();
+  const s = state.filters.source;
+  return state.items.filter(it => {
+    if (k && !it.account.toLowerCase().includes(k)) return false;
+    if (s && it.source !== s) return false;
+    return true;
+  });
+}
+
+function render(){
+  const filtered = getFiltered();
+  const total = filtered.length;
+  document.getElementById('totalCount').textContent = total;
+
+  const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+  if (state.page > totalPages) state.page = totalPages;
+  if (state.page < 1) state.page = 1;
+  const start = (state.page - 1) * state.pageSize;
+  const pageItems = filtered.slice(start, start + state.pageSize);
+
+  const tbody = document.getElementById('tableBody');
+  if (pageItems.length === 0){
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty"><div class="empty__icon">📋</div>暂无用户登录日志</div></td></tr>`;
+  } else {
+    tbody.innerHTML = pageItems.map(it => {
+      const tagClass = SOURCES[it.source] || 'tag--login';
+      const licenseCell = it.license === '—'
+        ? `<span class="muted">—</span>`
+        : `<span class="mono">${escapeHtml(it.license)}</span>`;
+      return `
+        <tr>
+          <td>${escapeHtml(it.account)}</td>
+          <td><span class="tag ${tagClass}">${escapeHtml(it.source)}</span></td>
+          <td class="mono">${escapeHtml(it.loginTime)}</td>
+          <td>${licenseCell}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // pagination controls
+  document.getElementById('currentPageBtn').textContent = state.page;
+  document.getElementById('prevPage').disabled = state.page <= 1;
+  document.getElementById('nextPage').disabled = state.page >= totalPages;
+  const pageInput = document.getElementById('pageInput');
+  pageInput.value = state.page;
+  pageInput.max = totalPages;
+}
+
+/* =========================================================
+ * Events
+ * ========================================================= */
+document.getElementById('btnSearch').addEventListener('click', () => {
+  state.filters.account = document.getElementById('filterAccount').value;
+  state.filters.source = document.getElementById('filterSource').value;
+  state.page = 1;
+  render();
+});
+document.getElementById('filterAccount').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnSearch').click();
+});
+document.getElementById('btnReset').addEventListener('click', () => {
+  document.getElementById('filterAccount').value = '';
+  document.getElementById('filterSource').value = '';
+  state.filters.account = '';
+  state.filters.source = '';
+  state.page = 1;
+  render();
+});
+document.getElementById('pageSize').addEventListener('change', e => {
+  state.pageSize = parseInt(e.target.value, 10) || 10;
+  state.page = 1;
+  render();
+});
+document.getElementById('prevPage').addEventListener('click', () => {
+  if (state.page > 1){ state.page--; render(); }
+});
+document.getElementById('nextPage').addEventListener('click', () => {
+  state.page++; render();
+});
+document.getElementById('pageInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){
+    const v = parseInt(e.target.value, 10);
+    if (!isNaN(v)){ state.page = v; render(); }
+  }
+});
+
+render();
+</script>
+</body>
+</html>

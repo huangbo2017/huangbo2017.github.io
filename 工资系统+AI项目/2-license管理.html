@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>license管理</title>
+<style>
+  /* ==============================
+   * Design tokens
+   * ============================== */
+  :root{
+    --c-primary:#1890ff;
+    --c-primary-hover:#40a9ff;
+    --c-primary-active:#096dd9;
+    --c-primary-bg:#e6f7ff;
+    --c-success:#52c41a;
+    --c-success-bg:#f6ffed;
+    --c-warning:#fa8c16;
+    --c-warning-bg:#fff7e6;
+    --c-danger:#f5222d;
+    --c-danger-bg:#fff1f0;
+    --c-text:#333;
+    --c-text-sec:#666;
+    --c-text-minor:#999;
+    --c-border:#f0f0f0;
+    --c-border-strong:#d9d9d9;
+    --c-bg:#f0f2f5;
+    --c-card:#fff;
+    --c-sidebar:#001529;
+    --c-sidebar-active:#1890ff;
+    --c-sidebar-hover:#1e2a3a;
+    --c-sidebar-text:#a0b3c6;
+    --c-sidebar-text-active:#fff;
+
+    --radius:4px;
+    --shadow-modal:0 6px 16px -8px rgba(0,0,0,.08),0 9px 28px 0 rgba(0,0,0,.05),0 12px 48px 16px rgba(0,0,0,.03);
+    --t-fast:.18s cubic-bezier(.4,0,.2,1);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:14px;
+    color:var(--c-text);
+    background:var(--c-bg);
+    -webkit-font-smoothing:antialiased;
+  }
+  ul{list-style:none}
+  button{font-family:inherit}
+  input,select,textarea,button{outline:none}
+  a{color:inherit;text-decoration:none}
+
+  /* ==============================
+   * App layout
+   * ============================== */
+  .app{display:flex;min-height:100vh}
+
+  /* ==============================
+   * Sidebar
+   * ============================== */
+  .sidebar{
+    width:208px;
+    background:var(--c-sidebar);
+    flex-shrink:0;
+    overflow-y:auto;
+  }
+  .sidebar::-webkit-scrollbar{width:6px}
+  .sidebar::-webkit-scrollbar-thumb{background:#2a3b4f;border-radius:3px}
+
+  .menu{padding:8px 0}
+  .menu-group{margin-bottom:4px}
+  .menu-group__title{
+    height:40px;
+    padding:0 20px;
+    line-height:40px;
+    color:var(--c-sidebar-text);
+    font-size:14px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    transition:background var(--t-fast);
+    position:relative;
+  }
+  .menu-group__title:hover{color:#fff}
+  .menu-group__title .label{
+    display:flex;align-items:center;gap:10px;
+  }
+  .menu-group__title .arrow{
+    font-size:10px;
+    transition:transform var(--t-fast);
+    opacity:.65;
+  }
+  .menu-group__title.open .arrow{transform:rotate(180deg)}
+  .icon{
+    width:14px;height:14px;
+    display:inline-flex;align-items:center;justify-content:center;
+    color:inherit;
+  }
+
+  .submenu{display:none}
+  .menu-group.open>.submenu{display:block}
+  .submenu li{
+    position:relative;
+    color:var(--c-sidebar-text);
+    font-size:13px;
+    line-height:40px;
+    padding:0 20px 0 46px;
+    cursor:pointer;
+    transition:all var(--t-fast);
+  }
+  .submenu li:hover{color:#fff}
+  .submenu li.active{
+    color:var(--c-sidebar-text-active);
+    background:var(--c-sidebar-active);
+  }
+
+  /* Single standalone nav item (no submenu) */
+  .menu-single{
+    display:flex;align-items:center;gap:10px;
+    height:40px;padding:0 20px;
+    color:var(--c-sidebar-text);font-size:14px;
+    cursor:pointer;
+    transition:all var(--t-fast);
+    position:relative;
+  }
+  .menu-single:hover{color:#fff;background:var(--c-sidebar-hover)}
+  .menu-single.active{color:var(--c-sidebar-text-active);background:var(--c-sidebar-active)}
+  .menu-single .icon{width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center}
+
+  /* ==============================
+   * Main area
+   * ============================== */
+  .main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    background:var(--c-bg);
+  }
+
+  /* Topbar */
+  .topbar{
+    height:48px;
+    background:#fff;
+    padding:0 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    box-shadow:0 1px 4px rgba(0,21,41,.08);
+    position:relative;
+    z-index:5;
+  }
+  .topbar__left,.topbar__right{display:flex;align-items:center;gap:18px}
+  .topbar__toggle{
+    width:32px;height:32px;cursor:pointer;color:#666;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:var(--radius);
+    transition:all var(--t-fast);
+  }
+  .topbar__toggle:hover{background:#f5f5f5;color:var(--c-primary)}
+  .breadcrumb{font-size:14px;color:var(--c-text-sec)}
+  .breadcrumb .sep{margin:0 8px;color:#ccc}
+  .breadcrumb .current{color:var(--c-text)}
+  .user{
+    display:flex;align-items:center;gap:8px;
+    padding:0 10px;height:36px;border-radius:18px;
+    cursor:pointer;color:var(--c-text-sec);
+    transition:all var(--t-fast);
+  }
+  .user:hover{background:#f5f5f5;color:var(--c-primary)}
+  .user__avatar{
+    width:26px;height:26px;border-radius:50%;
+    background:linear-gradient(135deg,#1890ff,#096dd9);
+    color:#fff;font-size:12px;font-weight:500;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* Action floating buttons (right edge) */
+  .action-dock{
+    position:fixed;right:24px;top:50%;transform:translateY(-50%);
+    display:flex;flex-direction:column;gap:8px;z-index:20;
+  }
+  .action-dock .dock-btn{
+    width:36px;height:36px;border-radius:50%;
+    background:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.12);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--c-text-sec);cursor:pointer;
+    transition:all var(--t-fast);
+  }
+  .action-dock .dock-btn:hover{color:var(--c-primary);transform:scale(1.05)}
+
+  /* ==============================
+   * Content
+   * ============================== */
+  .content{flex:1;padding:16px;overflow-y:auto}
+  .page-card{
+    background:var(--c-card);
+    border-radius:var(--radius);
+    padding:20px 24px 12px;
+    box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+
+  /* Tabs (page header) */
+  .tabs{
+    display:flex;
+    border-bottom:1px solid var(--c-border);
+    margin:0 -24px 20px;
+    padding:0 24px;
+    position:relative;
+  }
+  .tab{
+    padding:12px 0;
+    margin-right:32px;
+    font-size:14px;
+    color:var(--c-text-sec);
+    cursor:pointer;
+    position:relative;
+    transition:color var(--t-fast);
+  }
+  .tab:hover{color:var(--c-primary)}
+  .tab.active{color:var(--c-primary);font-weight:500}
+  .tab.active::after{
+    content:"";position:absolute;
+    left:0;right:0;bottom:-1px;
+    height:2px;background:var(--c-primary);
+    border-radius:1px;
+  }
+  .tab__badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:18px;height:18px;padding:0 6px;
+    background:var(--c-danger);color:#fff;
+    border-radius:9px;font-size:11px;
+    margin-left:6px;
+    box-shadow:0 0 0 2px #fff;
+  }
+  .tab__badge:empty{display:none}
+
+  /* Filters */
+  .filters{
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .field{
+    display:flex;align-items:center;
+  }
+  .field__label{
+    color:var(--c-text-sec);
+    margin-right:8px;
+    white-space:nowrap;
+    font-size:13px;
+  }
+  .input,.select{
+    height:32px;
+    padding:4px 11px;
+    border:1px solid var(--c-border-strong);
+    border-radius:var(--radius);
+    font-size:14px;
+    background:#fff;
+    transition:all var(--t-fast);
+    color:var(--c-text);
+    min-width:200px;
+  }
+  .input:hover,.select:hover{border-color:var(--c-primary)}
+  .input:focus,.select:focus{
+    border-color:var(--c-primary);
+    box-shadow:0 0 0 2px rgba(24,144,255,.2);
+  }
+  .select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12'><path d='M3 5l3 3 3-3' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+    padding-right:30px;
+    cursor:pointer;
+    min-width:160px;
+  }
+  .filter-actions{margin-left:auto;display:flex;gap:8px}
+
+  /* Buttons */
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    height:32px;
+    padding:0 16px;
+    border:1px solid transparent;
+    border-radius:var(--radius);
+    font-size:14px;
+    cursor:pointer;
+    background:#fff;
+    color:var(--c-text);
+    transition:all var(--t-fast);
+    user-select:none;
+    white-space:nowrap;
+    font-family:inherit;
+  }
+  .btn .ico{width:14px;height:14px}
+  .btn--primary{background:var(--c-primary);border-color:var(--c-primary);color:#fff}
+  .btn--primary:hover{background:var(--c-primary-hover);border-color:var(--c-primary-hover)}
+  .btn--primary:active{background:var(--c-primary-active);border-color:var(--c-primary-active)}
+  .btn--default{background:#fff;border-color:var(--c-border-strong);color:var(--c-text)}
+  .btn--default:hover{color:var(--c-primary);border-color:var(--c-primary)}
+  .btn--danger{background:#fff;border-color:var(--c-danger);color:var(--c-danger)}
+  .btn--danger:hover{background:var(--c-danger-bg)}
+
+  /* File input */
+  .file-input{display:none}
+
+  /* ==============================
+   * Table
+   * ============================== */
+  .table-wrap{
+    border:1px solid var(--c-border);
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  .data-table{
+    width:100%;
+    border-collapse:collapse;
+  }
+  .data-table th{
+    background:#fafafa;
+    padding:12px 16px;
+    text-align:left;
+    font-weight:500;
+    color:var(--c-text);
+    border-bottom:1px solid var(--c-border);
+    font-size:14px;
+    white-space:nowrap;
+  }
+  .data-table td{
+    padding:14px 16px;
+    border-bottom:1px solid var(--c-border);
+    font-size:14px;
+    color:var(--c-text);
+    vertical-align:middle;
+  }
+  .data-table tbody tr{
+    transition:background var(--t-fast);
+  }
+  .data-table tbody tr:hover{background:#fafafa}
+  .data-table tbody tr:last-child td{border-bottom:none}
+
+  .cell-filename{max-width:320px;display:inline-flex;align-items:baseline}
+  .cell-filename__name{
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    display:inline-block;max-width:260px;vertical-align:middle;
+    color:var(--c-primary);
+    cursor:pointer;
+    transition:color var(--t-fast);
+  }
+  .cell-filename__name:hover{color:var(--c-primary-hover);text-decoration:underline}
+  .cell-filename__ext{
+    color:var(--c-primary);margin-left:4px;font-size:12px;opacity:.85;
+  }
+
+  /* Monospace number (version stamp, etc.) */
+  .mono{
+    font-family: 'JetBrains Mono','SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+    letter-spacing:.3px;
+  }
+
+  /* Status pill */
+  .pill{
+    display:inline-flex;align-items:center;gap:4px;
+    height:22px;padding:0 8px;
+    border-radius:2px;font-size:12px;
+    line-height:22px;
+    white-space:nowrap;
+  }
+  .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
+  .pill--pending{color:var(--c-warning);background:var(--c-warning-bg)}
+  .pill--active{color:var(--c-success);background:var(--c-success-bg)}
+  .pill--expired{color:var(--c-text-minor);background:#fafafa}
+
+  /* Action links */
+  .actions{display:flex;align-items:center;gap:0}
+  .link{
+    color:var(--c-primary);
+    cursor:pointer;
+    background:none;border:none;
+    padding:0 8px;
+    font-size:13px;
+    font-family:inherit;
+    transition:all var(--t-fast);
+    height:24px;
+    border-right:1px solid #f0f0f0;
+  }
+  .link:last-child{border-right:none}
+  .link:hover{color:var(--c-primary-hover)}
+  .link--danger{color:var(--c-danger)}
+  .link--danger:hover{color:#cf1322}
+  .link--disabled{
+    color:#ccc;cursor:not-allowed;
+  }
+  .link--disabled:hover{color:#ccc}
+
+  /* Empty state */
+  .empty{
+    padding:64px 20px;
+    text-align:center;
+    color:var(--c-text-minor);
+  }
+  .empty__icon{
+    font-size:48px;margin-bottom:12px;
+    opacity:.4;
+  }
+
+  /* ==============================
+   * Pagination
+   * ============================== */
+  .pagination{
+    display:flex;align-items:center;justify-content:flex-end;
+    padding:16px 4px;
+    gap:8px;
+    color:var(--c-text-sec);
+    font-size:13px;
+  }
+  .pagination .total{margin-right:auto}
+  .pagination .total b{color:var(--c-text);font-weight:500;margin:0 4px}
+  .page-size{
+    display:flex;align-items:center;gap:6px;
+  }
+  .page-size select{
+    height:28px;padding:0 8px;
+    border:1px solid var(--c-border-strong);
+    border-radius:var(--radius);
+    background:#fff;
+    cursor:pointer;
+    font-size:13px;
+  }
+  .page-size select:hover{border-color:var(--c-primary)}
+  .page-nav{display:flex;align-items:center;gap:0}
+  .page-btn{
+    min-width:32px;height:32px;
+    border:1px solid var(--c-border-strong);
+    background:#fff;
+    cursor:pointer;
+    color:var(--c-text-sec);
+    font-size:13px;
+    margin-left:-1px;
+    transition:all var(--t-fast);
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:inherit;
+  }
+  .page-btn:first-child{margin-left:0;border-radius:var(--radius) 0 0 var(--radius)}
+  .page-btn:last-child{border-radius:0 var(--radius) var(--radius) 0}
+  .page-btn:hover{color:var(--c-primary);border-color:var(--c-primary);position:relative;z-index:1}
+  .page-btn.is-active{
+    color:var(--c-primary);border-color:var(--c-primary);
+    position:relative;z-index:1;background:#fff;font-weight:500;
+  }
+  .page-btn:disabled{color:#ccc;cursor:not-allowed;border-color:#f0f0f0}
+  .page-btn:disabled:hover{color:#ccc;border-color:#f0f0f0}
+  .page-jump{
+    display:flex;align-items:center;gap:6px;margin-left:8px;
+  }
+  .page-jump input{
+    width:50px;height:28px;
+    border:1px solid var(--c-border-strong);
+    border-radius:var(--radius);
+    text-align:center;
+    font-size:13px;
+  }
+  .page-jump input:hover{border-color:var(--c-primary)}
+  .page-jump input:focus{border-color:var(--c-primary);box-shadow:0 0 0 2px rgba(24,144,255,.15)}
+
+  /* ==============================
+   * Modal
+   * ============================== */
+  .mask{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:1000;
+    display:none;
+    align-items:center;justify-content:center;
+    animation:fadeIn .2s ease both;
+  }
+  .mask.show{display:flex}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{
+    width:416px;max-width:92vw;
+    background:#fff;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-modal);
+    overflow:hidden;
+    animation:zoomIn .2s cubic-bezier(.4,0,.2,1) both;
+  }
+  @keyframes zoomIn{
+    from{opacity:0;transform:scale(.96)}
+    to{opacity:1;transform:scale(1)}
+  }
+  .modal__head{
+    padding:16px 24px;
+    border-bottom:1px solid var(--c-border);
+    font-size:16px;font-weight:500;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .modal__close{
+    width:24px;height:24px;cursor:pointer;color:var(--c-text-minor);
+    background:none;border:none;font-size:18px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:var(--radius);
+    transition:all var(--t-fast);
+  }
+  .modal__close:hover{background:#f5f5f5;color:var(--c-text)}
+  .modal__body{
+    padding:24px;
+    color:var(--c-text-sec);
+    font-size:14px;
+    line-height:1.6;
+  }
+  .modal__body .warn-icon{
+    width:22px;height:22px;border-radius:50%;
+    background:var(--c-warning-bg);
+    color:var(--c-warning);
+    display:inline-flex;align-items:center;justify-content:center;
+    margin-right:8px;vertical-align:middle;
+    font-size:14px;
+  }
+  .modal__foot{
+    padding:10px 24px 16px;
+    text-align:right;
+  }
+  .modal__foot .btn{margin-left:8px}
+
+  /* Upload dropzone modal */
+  .upload-zone{
+    border:1px dashed var(--c-border-strong);
+    border-radius:var(--radius);
+    padding:32px 24px;
+    text-align:center;
+    color:var(--c-text-sec);
+    background:#fafafa;
+    transition:all var(--t-fast);
+    cursor:pointer;
+  }
+  .upload-zone:hover,.upload-zone.dragover{
+    border-color:var(--c-primary);
+    color:var(--c-primary);
+    background:var(--c-primary-bg);
+  }
+  .upload-zone__icon{
+    font-size:42px;
+    color:var(--c-primary);
+    margin-bottom:8px;
+  }
+  .upload-zone__hint{font-size:13px;color:var(--c-text-minor);margin-top:6px}
+  .upload-zone__file{
+    margin-top:12px;
+    padding:10px 12px;
+    background:#fff;border:1px solid var(--c-border);
+    border-radius:var(--radius);
+    display:flex;align-items:center;justify-content:space-between;
+    color:var(--c-text);
+  }
+
+  /* ==============================
+   * Toast
+   * ============================== */
+  .toast{
+    position:fixed;top:80px;left:50%;
+    transform:translateX(-50%) translateY(-20px);
+    background:rgba(0,0,0,.85);
+    color:#fff;
+    padding:10px 16px;
+    border-radius:var(--radius);
+    z-index:1100;
+    opacity:0;
+    transition:all .25s ease;
+    pointer-events:none;
+    font-size:13px;
+    box-shadow:0 6px 16px rgba(0,0,0,.18);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast--success{background:#52c41a}
+  .toast--error{background:#f5222d}
+  .toast--warning{background:#fa8c16}
+
+  /* Helpers */
+  .text-minor{color:var(--c-text-minor);font-size:13px}
+  .ellipsis{
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    max-width:240px;display:inline-block;vertical-align:middle;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar">
+    <ul class="menu">
+      <li class="menu-group">
+        <div class="menu-group__title">
+          <span class="label">
+            <span class="icon">▦</span>
+            智能维护
+          </span>
+        </div>
+      </li>
+      <li class="menu-group open">
+        <div class="menu-group__title open">
+          <span class="label">
+            <span class="icon">⚙</span>
+            系统管理
+          </span>
+          <span class="arrow">⌄</span>
+        </div>
+        <ul class="submenu">
+          <li>用户管理</li>
+          <li>角色权限</li>
+          <li>单位管理</li>
+          <li class="active" onclick="location.href='index.html'">license管理</li>
+          <li>系统版本管理</li>
+          <li onclick="location.href='login-logs.html'">用户登录日志</li>
+        </ul>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- ============ Main ============ -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar__left">
+        <div class="topbar__toggle" title="折叠菜单">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>
+        </div>
+        <div class="breadcrumb">
+          系统管理<span class="sep">/</span><span class="current">license管理</span>
+        </div>
+      </div>
+      <div class="topbar__right">
+        <div class="user">
+          <div class="user__avatar">鹏</div>
+          <span>1KQ9527</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+      <div class="page-card">
+
+        <!-- Filters -->
+        <div class="filters">
+          <div class="field">
+            <input type="text" class="input" id="filterName" placeholder="请输入文件名 / 版本号（模糊搜索）" />
+          </div>
+          <div class="field">
+            <select class="select" id="filterStatus">
+              <option value="">全部状态</option>
+              <option value="待发布">待发布</option>
+              <option value="生效中">生效中</option>
+              <option value="已失效">已失效</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn btn--default" id="btnReset">
+              <svg class="ico" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 7a5 5 0 0 1 8.5-3.5L12 2v4H8"/><path d="M12 7a5 5 0 0 1-8.5 3.5L2 12V8h4"/></svg>
+              重置
+            </button>
+            <button class="btn btn--default" id="btnSearch">
+              <svg class="ico" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6" cy="6" r="4"/><path d="M9 9l3 3"/></svg>
+              查询
+            </button>
+            <button class="btn btn--primary" id="btnUpload">
+              <svg class="ico" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1v9M3.5 4.5L7 1l3.5 3.5"/><path d="M2 10v2.5A.5.5 0 0 0 2.5 13h9a.5.5 0 0 0 .5-.5V10"/></svg>
+              上传文件
+            </button>
+          </div>
+          <input type="file" id="fileInput" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="file-input" />
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:22%">文件名</th>
+                <th style="width:14%">版本</th>
+                <th style="width:11%">状态</th>
+                <th style="width:11%">上传人</th>
+                <th style="width:17%">上传时间</th>
+                <th style="width:25%">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <span class="total">共 <b id="totalCount">0</b> 条</span>
+          <div class="page-size">
+            <select id="pageSize">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span>条/页</span>
+          </div>
+          <div class="page-nav">
+            <button class="page-btn" id="prevPage" aria-label="上一页">‹</button>
+            <button class="page-btn is-active" id="currentPageBtn">1</button>
+            <button class="page-btn" id="nextPage" aria-label="下一页">›</button>
+          </div>
+          <div class="page-jump">
+            <span>前往</span>
+            <input type="number" id="pageInput" min="1" value="1" />
+            <span>页</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Right action dock -->
+<div class="action-dock">
+  <div class="dock-btn" title="消息">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 13V7a6 6 0 1 1 12 0v6"/><path d="M1 13h14"/></svg>
+  </div>
+  <div class="dock-btn" title="帮助">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.5"/><path d="M6 6.5a2 2 0 1 1 2.5 2V10"/></svg>
+  </div>
+  <div class="dock-btn" title="回到顶部" id="backTop">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 12V4"/><path d="M4 7l4-3 4 3"/></svg>
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="mask" id="deleteModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal__head">
+      <span>确认删除</span>
+      <button class="modal__close" onclick="closeModal('deleteModal')" aria-label="关闭">×</button>
+    </div>
+    <div class="modal__body">
+      <span class="warn-icon">!</span>
+      确认删除该免责声明吗？
+      <div style="margin-top:8px;padding-left:30px;font-size:13px;color:var(--c-text-minor)">
+        文件名：<b id="deletingFileName" style="color:var(--c-text)"></b><br/>
+        删除后数据无法恢复，请谨慎操作。
+        <div id="deleteExtraTip" style="display:none;margin-top:6px;padding:6px 10px;background:var(--c-warning-bg);border-left:3px solid var(--c-warning);color:var(--c-warning);border-radius:2px">
+          ⚠ 该文件为「生效中」版本，删除后将无生效中的免责声明！
+        </div>
+      </div>
+    </div>
+    <div class="modal__foot">
+      <button class="btn btn--default" onclick="closeModal('deleteModal')">取消</button>
+      <button class="btn btn--primary" id="btnConfirmDelete">确定删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload modal -->
+<div class="mask" id="uploadModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal__head">
+      <span>上传免责声明</span>
+      <button class="modal__close" onclick="closeModal('uploadModal')" aria-label="关闭">×</button>
+    </div>
+    <div class="modal__body">
+      <label for="fileInputModal" class="upload-zone" id="dropZone">
+        <div class="upload-zone__icon">
+          <svg width="42" height="42" viewBox="0 0 42 42" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6v22M13 13l8-7 8 7"/><path d="M7 26v8a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2v-8"/></svg>
+        </div>
+        <div><b style="color:var(--c-text)">点击或拖拽文件至此处</b></div>
+        <div class="upload-zone__hint">仅支持 Word(.doc/.docx) / PDF 格式，单个文件，文件大小 ≤ 10 MB</div>
+        <input type="file" id="fileInputModal" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="file-input" />
+      </label>
+      <div class="upload-zone__file" id="pickedFile" style="display:none">
+        <span id="pickedFileName" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <span style="color:var(--c-text-minor);font-size:12px" id="pickedFileSize"></span>
+      </div>
+    </div>
+    <div class="modal__foot">
+      <button class="btn btn--default" onclick="closeModal('uploadModal')">取消</button>
+      <button class="btn btn--primary" id="btnConfirmUpload" disabled>确认上传</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+ * State
+ * ========================================================= */
+const state = {
+  items: [],
+  page: 1,
+  pageSize: 10,
+  filters: { name: '', status: '' },
+  toDelete: null,
+  pendingFile: null
+};
+
+/* =========================================================
+ * Seed data (for demo only — replace with API call)
+ * ========================================================= */
+(function seed() {
+  const now = new Date();
+  const verFmt = (d) => {
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  };
+  const at = (daysAgo, h, m, s) => new Date(now.getTime() - daysAgo * 86400000 + (h * 3600 + m * 60 + s) * 1000);
+  const d1 = verFmt(at(30, 12, 0, 0));   // 30d ago 12:00:00
+  const d2 = verFmt(at(7, 14, 32, 9));   // 7d ago  14:32:09
+  const d3 = verFmt(at(0, 14, 39, 22));  // today   14:39:22
+
+  const html1 = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>免责声明 · ${d2}</title></head><body style="font-family:'PingFang SC',sans-serif;max-width:720px;margin:40px auto;padding:0 24px;color:#333;line-height:1.85"><h2 style="text-align:center">免责声明</h2><p>欢迎使用本系统（以下简称"本平台"）。在访问或使用本平台提供的任何服务前，请仔细阅读以下全部条款：</p><ol><li>本平台所提供的全部内容（包括但不限于文档、数据、图表、接口）仅供参考与学习之用，不构成任何专业建议。</li><li>用户应妥善保管账号、密码及验证信息，因账号被盗用、信息泄露等原因造成的损失，由用户自行承担。</li><li>未经本平台书面授权，禁止以任何形式复制、传播、镜像本站内容。</li><li>本平台保留随时修改本声明条款的权利，更新后的条款将于发布之日起生效。</li></ol><p style="text-align:right;color:#888;margin-top:40px">— 系统管理员</p></body></html>`;
+
+  const html2 = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>免责声明 · ${d1}</title></head><body style="font-family:'PingFang SC',sans-serif;max-width:720px;margin:40px auto;padding:0 24px;color:#333;line-height:1.85"><h2 style="text-align:center">免责声明（历史版本）</h2><p>此为早期版本声明，适用于 2026 年 4 月至 7 月 期间的业务往来。</p></body></html>`;
+
+  const html3 = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>免责声明 · ${d3}</title></head><body style="font-family:'PingFang SC',sans-serif;max-width:720px;margin:40px auto;padding:0 24px;color:#333;line-height:1.85"><h2 style="text-align:center">免责声明</h2><p>用户协议补充说明：</p><ol><li>所有上传至系统的资料仅用于内部业务处理，绝不外泄。</li><li>未经授权，禁止复制、传播本系统中的任何数据。</li><li>本平台对用户操作产生的一切后果不承担法律责任。</li></ol></body></html>`;
+
+  state.items = [
+    { id: 1001, filename: `license_v2_${d2}.pdf`,  version: d2, status: '生效中', uploader: '王有才', uploadTime: formatDateTime(new Date(now.getTime() - 86400000 * 7 + 3600000 * 4)), kind: 'pdf',  content: html1 },
+    { id: 1002, filename: `license_${d3}_模板.docx`, version: d3, status: '待发布', uploader: '王有才', uploadTime: formatDateTime(new Date(now.getTime() - 3600000 * 5)), kind: 'word', content: html3 },
+    { id: 1003, filename: `license_v1_${d1}.docx`, version: d1, status: '已失效', uploader: '李 红', uploadTime: formatDateTime(new Date(now.getTime() - 86400000 * 30 + 3600000 * 6)), kind: 'word', content: html2 },
+  ];
+})();
+
+/* =========================================================
+ * Helpers
+ * ========================================================= */
+function formatDateTime(d) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+function todayVersion() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+function nowDateTime() { return formatDateTime(new Date()); }
+function getExt(name) { return (name.match(/\.[^.]+$/) || [''])[0]; }
+function getBaseName(name) { return name.replace(/\.[^.]+$/, ''); }
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function formatSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+/* =========================================================
+ * Toast
+ * ========================================================= */
+const $toast = document.getElementById('toast');
+let toastTimer = null;
+function toast(msg, type) {
+  $toast.textContent = msg;
+  $toast.className = 'toast show' + (type ? ' toast--' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $toast.classList.remove('show'), 2200);
+}
+
+/* =========================================================
+ * Modal helpers
+ * ========================================================= */
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  if (id === 'uploadModal') {
+    state.pendingFile = null;
+    document.getElementById('fileInputModal').value = '';
+    document.getElementById('pickedFile').style.display = 'none';
+    document.getElementById('btnConfirmUpload').disabled = true;
+  }
+}
+document.querySelectorAll('.mask').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+/* =========================================================
+ * Render
+ * ========================================================= */
+function getFiltered() {
+  const k = state.filters.name.trim().toLowerCase();
+  return state.items.filter(it => {
+    if (k && !it.filename.toLowerCase().includes(k) && !String(it.version).toLowerCase().includes(k)) return false;
+    if (state.filters.status && it.status !== state.filters.status) return false;
+    return true;
+  });
+}
+
+function render() {
+  const filtered = getFiltered();
+  const total = filtered.length;
+  document.getElementById('totalCount').textContent = total;
+
+  const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+  if (state.page > totalPages) state.page = totalPages;
+  if (state.page < 1) state.page = 1;
+  const start = (state.page - 1) * state.pageSize;
+  const pageItems = filtered.slice(start, start + state.pageSize);
+
+  const tbody = document.getElementById('tableBody');
+  if (pageItems.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty__icon">📄</div>暂无免责声明文件</div></td></tr>`;
+  } else {
+    tbody.innerHTML = pageItems.map(it => {
+      const isActive = it.status === '生效中';
+      const ext = getExt(it.filename);
+      const baseName = getBaseName(it.filename);
+      const pillClass = it.status === '待发布' ? 'pill--pending'
+                     : it.status === '生效中' ? 'pill--active'
+                     : 'pill--expired';
+
+      const actions = [
+        `<button class="link" onclick="preview(${it.id})">预览</button>`,
+      ];
+      // 删除：生效中不可删除，隐藏为禁用态；其它状态可点击删除
+      if (isActive) {
+        actions.push(`<button class="link link--disabled" disabled title="生效中的文件不可删除">删除</button>`);
+      } else {
+        actions.push(`<button class="link link--danger" onclick="confirmDelete(${it.id})">删除</button>`);
+      }
+      if (isActive) {
+        actions.push(`<button class="link link--disabled" disabled>发布</button>`);
+      } else {
+        actions.push(`<button class="link" onclick="publish(${it.id})">发布</button>`);
+      }
+
+      return `
+        <tr>
+          <td>
+            <a class="cell-filename" href="javascript:void(0)" onclick="preview(${it.id})" title="点击预览 ${escapeHtml(it.filename)}">
+              <span class="cell-filename__name">${escapeHtml(baseName)}</span><span class="cell-filename__ext">${escapeHtml(ext)}</span>
+            </a>
+          </td>
+          <td class="mono">${escapeHtml(it.version)}</td>
+          <td><span class="pill ${pillClass}">${it.status}</span></td>
+          <td>${escapeHtml(it.uploader)}</td>
+          <td>${escapeHtml(it.uploadTime)}</td>
+          <td><div class="actions">${actions.join('')}</div></td>
+        </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('currentPageBtn').textContent = state.page;
+  document.getElementById('prevPage').disabled = state.page <= 1;
+  document.getElementById('nextPage').disabled = state.page >= totalPages;
+  document.getElementById('pageInput').value = state.page;
+  document.getElementById('pageInput').max = totalPages;
+}
+
+/* =========================================================
+ * Actions
+ * ========================================================= */
+window.preview = function(id) {
+  const it = state.items.find(x => x.id === id);
+  if (!it) return;
+  const w = window.open('about:blank', '_blank');
+  if (!w) { toast('请允许浏览器弹出窗口以预览', 'warning'); return; }
+  let html;
+  if (it.kind === 'pdf' && it.blobUrl) {
+    // PDF：浏览器原生支持内联预览
+    html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(it.filename)}</title>
+      <style>html,body{margin:0;height:100%}</style></head>
+      <body><embed src="${it.blobUrl}" type="application/pdf" width="100%" height="100%"></body></html>`;
+  } else if (it.kind === 'word' && it.blobUrl) {
+    // Word：浏览器无法内联渲染，提供下载入口
+    html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(it.filename)}</title>
+      <style>body{font-family:'PingFang SC',sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#333}
+      .card{text-align:center;padding:40px 56px;border:1px solid #e8e8e8;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+      .icon{font-size:48px}.btn{display:inline-block;margin-top:18px;padding:11px 28px;background:#1890ff;color:#fff;border-radius:6px;text-decoration:none;font-size:15px}
+      p{color:#888;margin-top:10px}</style></head>
+      <body><div class="card"><div class="icon">📄</div><h2 style="margin:14px 0 0">${escapeHtml(it.filename)}</h2>
+      <p>Word 文档浏览器暂不支持直接预览，请下载后查看。</p>
+      <a class="btn" href="${it.blobUrl}" download="${escapeHtml(it.filename)}">下载并查看</a></div></body></html>`;
+  } else {
+    // 示例 / 历史 HTML 内容兜底
+    html = it.content
+      || `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(it.filename)}</title></head>
+         <body style="font-family:PingFang SC,sans-serif;padding:40px">
+         <h2>${escapeHtml(it.filename)}</h2>
+         <p style="color:#999">（示例文件，无预览内容）</p></body></html>`;
+  }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.document.title = `${it.filename} · 预览`;
+};
+
+window.confirmDelete = function(id) {
+  const it = state.items.find(x => x.id === id);
+  if (!it) return;
+  state.toDelete = id;
+  document.getElementById('deletingFileName').textContent = it.filename;
+  // 生效中文件删除时给出更明确的风险提示
+  const extraTip = document.getElementById('deleteExtraTip');
+  if (extraTip) {
+    extraTip.style.display = (it.status === '生效中') ? 'block' : 'none';
+  }
+  openModal('deleteModal');
+};
+
+document.getElementById('btnConfirmDelete').addEventListener('click', () => {
+  const id = state.toDelete;
+  if (id == null) return;
+  const it = state.items.find(x => x.id === id);
+  if (it && it.blobUrl) URL.revokeObjectURL(it.blobUrl);
+  state.items = state.items.filter(x => x.id !== id);
+  state.toDelete = null;
+  // Re-evaluate pagination
+  render();
+  toast(`已删除「${it ? it.filename : ''}」`, 'success');
+  closeModal('deleteModal');
+});
+
+window.publish = function(id) {
+  const it = state.items.find(x => x.id === id);
+  if (!it) return;
+  if (it.status === '生效中') return;
+  // Demote any currently active to 已失效
+  state.items.forEach(x => { if (x.status === '生效中') x.status = '已失效'; });
+  it.status = '生效中';
+  render();
+  toast(`版本 ${it.version} 已发布为最新生效版本`, 'success');
+};
+
+/* =========================================================
+ * Upload
+ * ========================================================= */
+document.getElementById('btnUpload').addEventListener('click', () => openModal('uploadModal'));
+
+function handleFileSelect(file) {
+  if (!file) return;
+  if (!/\.(doc|docx|pdf)$/i.test(file.name)) {
+    toast('只允许上传 Word(.doc/.docx) 或 PDF 文件', 'error');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    toast('文件大小不能超过 10 MB', 'error');
+    return;
+  }
+  state.pendingFile = file;
+  document.getElementById('pickedFileName').textContent = file.name;
+  document.getElementById('pickedFileSize').textContent = formatSize(file.size);
+  document.getElementById('pickedFile').style.display = 'flex';
+  document.getElementById('btnConfirmUpload').disabled = false;
+}
+
+document.getElementById('fileInputModal').addEventListener('change', e => {
+  handleFileSelect(e.target.files[0]);
+});
+
+// Drag & drop
+const dropZone = document.getElementById('dropZone');
+['dragenter', 'dragover'].forEach(evt => {
+  dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+});
+['dragleave', 'drop'].forEach(evt => {
+  dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+});
+dropZone.addEventListener('drop', e => {
+  const file = e.dataTransfer.files[0];
+  handleFileSelect(file);
+  // sync to the hidden input so cancel/refresh works
+  const dt = new DataTransfer();
+  if (file) dt.items.add(file);
+  document.getElementById('fileInputModal').files = dt.files;
+});
+
+document.getElementById('btnConfirmUpload').addEventListener('click', () => {
+  const file = state.pendingFile;
+  if (!file) return;
+  const id = Date.now();
+  const blobUrl = URL.createObjectURL(file);
+  const kind = /\.pdf$/i.test(file.name) ? 'pdf' : 'word';
+  state.items.unshift({
+    id,
+    filename: file.name,
+    version: todayVersion(),
+    status: '待发布',
+    uploader: '王有才',         // mock uploader — replace with current user
+    uploadTime: nowDateTime(),
+    kind,
+    blobUrl
+  });
+  state.page = 1;
+  render();
+  toast(`已上传「${file.name}」`, 'success');
+  closeModal('uploadModal');
+});
+
+/* =========================================================
+ * Filters
+ * ========================================================= */
+document.getElementById('btnSearch').addEventListener('click', () => {
+  state.filters.name = document.getElementById('filterName').value.trim();
+  state.filters.status = document.getElementById('filterStatus').value;
+  state.page = 1;
+  render();
+});
+document.getElementById('btnReset').addEventListener('click', () => {
+  document.getElementById('filterName').value = '';
+  document.getElementById('filterStatus').value = '';
+  state.filters = { name: '', status: '' };
+  state.page = 1;
+  render();
+});
+// Enter to search
+document.getElementById('filterName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnSearch').click();
+});
+
+/* =========================================================
+ * Pagination
+ * ========================================================= */
+document.getElementById('prevPage').addEventListener('click', () => {
+  if (state.page > 1) { state.page--; render(); }
+});
+document.getElementById('nextPage').addEventListener('click', () => {
+  state.page++; render();
+});
+document.getElementById('currentPageBtn').addEventListener('click', e => {
+  e.currentTarget.blur();
+});
+document.getElementById('pageInput').addEventListener('change', e => {
+  const v = parseInt(e.target.value, 10);
+  if (!isNaN(v) && v >= 1) { state.page = v; render(); } else { e.target.value = state.page; }
+});
+document.getElementById('pageInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('pageInput').dispatchEvent(new Event('change'));
+});
+document.getElementById('pageSize').addEventListener('change', e => {
+  state.pageSize = parseInt(e.target.value, 10);
+  state.page = 1;
+  render();
+});
+
+/* =========================================================
+ * Back to top
+ * ========================================================= */
+document.getElementById('backTop').addEventListener('click', () => {
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* =========================================================
+ * ESC to close modals
+ * ========================================================= */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.mask.show').forEach(m => m.classList.remove('show'));
+  }
+});
+
+/* =========================================================
+ * Init
+ * ========================================================= */
+render();
+</script>
+</body>
+</html>

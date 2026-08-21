@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能维护管理 - 运维数据监控</title>
+  <style>
+    :root {
+      --sidebar-bg: #001529;
+      --sidebar-hover: #1890ff;
+      --sidebar-active: #1890ff;
+      --sidebar-text: rgba(255, 255, 255, 0.65);
+      --sidebar-text-active: #fff;
+      --primary: #1890ff;
+      --primary-hover: #40a9ff;
+      --primary-active: #096dd9;
+      --border-color: #e8e8e8;
+      --bg-color: #f0f2f5;
+      --card-bg: #fff;
+      --text-main: #262626;
+      --text-secondary: #595959;
+      --text-muted: #8c8c8c;
+      --success: #52c41a;
+      --warning: #faad14;
+      --error: #f5222d;
+      --cyan: #13c2c2;
+      --purple: #722ed1;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-main);
+      min-width: 1200px;
+    }
+
+    /* 布局 */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 208px;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .menu {
+      padding: 8px 0;
+    }
+
+    .menu-group {
+      margin-bottom: 2px;
+    }
+
+    .menu-group.collapsed .menu-items {
+      display: none;
+    }
+
+    .menu-title {
+      display: flex;
+      align-items: center;
+      padding: 9px 16px;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .menu-title:hover {
+      color: #fff;
+    }
+
+    .menu-title-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-title-arrow {
+      margin-left: auto;
+      font-size: 12px;
+      transition: transform 0.2s;
+    }
+
+    .menu-group.collapsed .menu-title-arrow {
+      transform: rotate(-90deg);
+    }
+
+    .menu-items {
+      list-style: none;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px 8px 36px;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .menu-item:hover {
+      color: #fff;
+    }
+
+    .menu-item.active {
+      background: var(--sidebar-active);
+      color: #fff;
+    }
+
+    .menu-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #fff;
+    }
+
+    /* 主内容区 */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* 顶部栏 */
+    .header {
+      height: 56px;
+      background: #fff;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb-icon {
+      margin-right: 10px;
+      font-size: 16px;
+    }
+
+    .breadcrumb-split {
+      margin: 0 8px;
+      color: var(--text-muted);
+    }
+
+    .breadcrumb-current {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .header-user-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      margin-right: 8px;
+    }
+
+    /* 内容 */
+    .content {
+      flex: 1;
+      padding: 16px;
+      overflow: auto;
+    }
+
+    /* 主卡片 */
+    .card {
+      background: var(--card-bg);
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    /* 系统标签 */
+    .system-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 16px;
+      background: #fafafa;
+    }
+
+    .system-tab {
+      padding: 10px 16px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .system-tab:hover {
+      color: var(--primary);
+    }
+
+    .system-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: #fff;
+      font-weight: 500;
+    }
+
+    /* 搜索栏 */
+    .search-bar {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .form-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .form-input {
+      height: 32px;
+      padding: 0 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s;
+      min-width: 180px;
+    }
+
+    .form-input:hover {
+      border-color: var(--primary-hover);
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .date-range {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .date-split {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .btn {
+      height: 32px;
+      padding: 0 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-default {
+      background: #fff;
+      border-color: var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .btn-default:hover {
+      color: var(--primary);
+      border-color: var(--primary-hover);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .search-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* 多选下拉 */
+    .multi-select {
+      position: relative;
+      min-width: 180px;
+    }
+
+    .multi-select-trigger {
+      height: 32px;
+      padding: 0 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+      color: var(--text-main);
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .multi-select-trigger:hover {
+      border-color: var(--primary-hover);
+    }
+
+    .multi-select.open .multi-select-trigger {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+
+    .multi-select-text {
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .multi-select.has-value .multi-select-text {
+      color: var(--text-main);
+    }
+
+    .multi-select-arrow {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-left: 8px;
+      transition: transform 0.2s;
+    }
+
+    .multi-select.open .multi-select-arrow {
+      transform: rotate(180deg);
+    }
+
+    .multi-select-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      max-height: 240px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .multi-select.open .multi-select-dropdown {
+      display: block;
+    }
+
+    .multi-select-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .multi-select-option:hover {
+      background: #e6f7ff;
+    }
+
+    .multi-select-option input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    /* 表格 */
+    .table-container {
+      padding: 0 16px 16px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 9px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    th {
+      background: #fafafa;
+      color: var(--text-main);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    td {
+      color: var(--text-secondary);
+    }
+
+    tbody tr:hover {
+      background: #e6f7ff;
+    }
+
+    .th-with-tip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tip-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid var(--text-muted);
+      color: var(--text-muted);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: help;
+      font-weight: 400;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .tag-online {
+      background: #f6ffed;
+      color: var(--success);
+      border: 1px solid #b7eb8f;
+    }
+
+    .tag-offline {
+      background: #f5f5f5;
+      color: var(--text-muted);
+      border: 1px solid #d9d9d9;
+    }
+
+    .area-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      background: #e6f7ff;
+      color: var(--primary);
+      border: 1px solid #91d5ff;
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+
+    .area-tag:last-child {
+      margin-right: 0;
+    }
+
+    .load-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .load-progress {
+      width: 80px;
+      height: 8px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .load-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .load-progress-fill.low {
+      background: var(--success);
+    }
+
+    .load-progress-fill.medium {
+      background: var(--warning);
+    }
+
+    .load-progress-fill.high {
+      background: var(--error);
+    }
+
+    /* 分页 */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 12px 16px;
+      gap: 8px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .pagination-info {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-right: 8px;
+    }
+
+    .page-btn {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      border: 1px solid var(--border-color);
+      background: #fff;
+      color: var(--text-secondary);
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .page-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .page-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      padding: 48px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* 实时状态点 */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .status-dot.online {
+      background: var(--success);
+      box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2);
+    }
+
+    .status-dot.offline {
+      background: #bfbfbf;
+    }
+
+    /* 滚动条 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        智能维护管理
+      </div>
+      <nav class="menu">
+        <div class="menu-group">
+          <div class="menu-title">
+            <span class="menu-title-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13L1 7L7 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></span>
+            <span>智能维护</span>
+            <span class="menu-title-arrow">▼</span>
+          </div>
+          <ul class="menu-items">
+            <li class="menu-item">知识库管理</li>
+            <li class="menu-item">数据洞察</li>
+            <li class="menu-item">对话记录</li>
+            <li class="menu-item">在线咨询</li>
+            <li class="menu-item">咨询实施监管</li>
+            <li class="menu-item active">运维数据统计</li>
+            <li class="menu-item">待办事项</li>
+            <li class="menu-item">文件上传</li>
+            <li class="menu-item">问题反馈</li>
+          </ul>
+        </div>
+        <div class="menu-group">
+          <div class="menu-title">
+            <span class="menu-title-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13L1 7L7 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></span>
+            <span>系统管理</span>
+            <span class="menu-title-arrow">▼</span>
+          </div>
+          <ul class="menu-items">
+            <li class="menu-item">用户管理</li>
+            <li class="menu-item">角色权限</li>
+            <li class="menu-item">单位管理</li>
+            <li class="menu-item">license管理</li>
+            <li class="menu-item">系统版本管理</li>
+            <li class="menu-item">操作日志</li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- 主内容 -->
+    <main class="main">
+      <!-- 顶部栏 -->
+      <header class="header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-icon">☰</span>
+          <span>智能维护</span>
+          <span class="breadcrumb-split">/</span>
+          <span class="breadcrumb-current">运维数据统计</span>
+        </div>
+        <div class="header-user">
+          <div class="header-user-icon">L</div>
+          <span>LCH</span>
+        </div>
+      </header>
+
+      <!-- 内容区 -->
+      <div class="content">
+        <!-- 数据表格卡片 -->
+        <div class="card">
+          <!-- 系统标签 -->
+          <div class="system-tabs">
+            <div class="system-tab active">事业工资系统（单机版）</div>
+            <div class="system-tab">事业工资系统（网络版）</div>
+            <div class="system-tab">年报系统</div>
+          </div>
+
+          <!-- 搜索栏 -->
+          <div class="search-bar">
+            <div class="form-item">
+              <label class="form-label">客服</label>
+              <input type="text" class="form-input" placeholder="请输入客服名称">
+            </div>
+            <div class="form-item">
+              <label class="form-label">关联区域</label>
+              <div class="multi-select" id="areaSelect">
+                <div class="multi-select-trigger" onclick="toggleAreaSelect()">
+                  <span class="multi-select-text">请选择</span>
+                  <span class="multi-select-arrow">▼</span>
+                </div>
+                <div class="multi-select-dropdown">
+                  <label class="multi-select-option"><input type="checkbox" value="华北"><span>华北</span></label>
+                  <label class="multi-select-option"><input type="checkbox" value="华东"><span>华东</span></label>
+                  <label class="multi-select-option"><input type="checkbox" value="华南"><span>华南</span></label>
+                  <label class="multi-select-option"><input type="checkbox" value="华中"><span>华中</span></label>
+                  <label class="multi-select-option"><input type="checkbox" value="西南"><span>西南</span></label>
+                  <label class="multi-select-option"><input type="checkbox" value="西北"><span>西北</span></label>
+                  <label class="multi-select-option"><input type="checkbox" value="东北"><span>东北</span></label>
+                </div>
+              </div>
+            </div>
+            <div class="form-item">
+              <label class="form-label">状态</label>
+              <select class="form-input" style="min-width: 120px;">
+                <option value="">全部</option>
+                <option value="online">在线</option>
+                <option value="offline">离线</option>
+              </select>
+            </div>
+            <div class="search-actions">
+              <button class="btn btn-default" onclick="resetSearch()">重置</button>
+              <button class="btn btn-primary" onclick="searchData()">搜索</button>
+            </div>
+          </div>
+
+          <!-- 表格 -->
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>客服</th>
+                  <th>关联区域</th>
+                  <th>
+                    <span class="th-with-tip">
+                      平均响应时长(min)
+                      <span class="tip-icon" title="客服首次回复用户的平均等待时间">?</span>
+                    </span>
+                  </th>
+                  <th>
+                    <span class="th-with-tip">
+                      服务单位总数(家)
+                      <span class="tip-icon" title="该客服累计服务过的单位数量">?</span>
+                    </span>
+                  </th>
+                  <th>
+                    <span class="th-with-tip">
+                      会话总数(条)
+                      <span class="tip-icon" title="该客服累计处理的会话数量">?</span>
+                    </span>
+                  </th>
+                  <th>
+                    <span class="th-with-tip">
+                      实时负载
+                      <span class="tip-icon" title="当前正在服务的用户数量">?</span>
+                    </span>
+                  </th>
+                  <th>
+                    <span class="th-with-tip">
+                      活跃天数
+                      <span class="tip-icon" title="统计周期内有服务记录的累计天数">?</span>
+                    </span>
+                  </th>
+                  <th>
+                    <span class="th-with-tip">
+                      日均处理会话数
+                      <span class="tip-icon" title="平均每天处理的会话数量">?</span>
+                    </span>
+                  </th>
+                  <th>
+                    <span class="th-with-tip">
+                      平均处理时长(min)
+                      <span class="tip-icon" title="每次会话从接受到结束的平均时长">?</span>
+                    </span>
+                  </th>
+                  <th>状态</th>
+                  <th>非常满意</th>
+                  <th>满意</th>
+                  <th>一般</th>
+                  <th>不满意</th>
+                </tr>
+              </thead>
+              <tbody id="dataTableBody">
+                <tr>
+                  <td><span class="status-dot online"></span>张敏</td>
+                  <td><span class="area-tag">华北</span><span class="area-tag">华东</span></td>
+                  <td>1.2</td>
+                  <td>5</td>
+                  <td>400</td>
+                  <td>3</td>
+                  <td>22</td>
+                  <td>18</td>
+                  <td>3.8</td>
+                  <td><span class="tag tag-online">在线</span></td>
+                  <td>120</td>
+                  <td>80</td>
+                  <td>25</td>
+                  <td>5</td>
+                </tr>
+                <tr>
+                  <td><span class="status-dot online"></span>李强</td>
+                  <td><span class="area-tag">华南</span></td>
+                  <td>2.4</td>
+                  <td>2</td>
+                  <td>389</td>
+                  <td>7</td>
+                  <td>24</td>
+                  <td>16</td>
+                  <td>5.2</td>
+                  <td><span class="tag tag-online">在线</span></td>
+                  <td>95</td>
+                  <td>65</td>
+                  <td>30</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td><span class="status-dot offline"></span>王芳</td>
+                  <td><span class="area-tag">华东</span><span class="area-tag">华中</span></td>
+                  <td>2.4</td>
+                  <td>4</td>
+                  <td>234</td>
+                  <td>0</td>
+                  <td>18</td>
+                  <td>13</td>
+                  <td>4.1</td>
+                  <td><span class="tag tag-offline">离线</span></td>
+                  <td>88</td>
+                  <td>70</td>
+                  <td>20</td>
+                  <td>8</td>
+                </tr>
+                <tr>
+                  <td><span class="status-dot offline"></span>赵磊</td>
+                  <td><span class="area-tag">西南</span><span class="area-tag">西北</span></td>
+                  <td>3.0</td>
+                  <td>7</td>
+                  <td>109</td>
+                  <td>9</td>
+                  <td>15</td>
+                  <td>7</td>
+                  <td>6.5</td>
+                  <td><span class="tag tag-offline">离线</span></td>
+                  <td>60</td>
+                  <td>45</td>
+                  <td>15</td>
+                  <td>10</td>
+                </tr>
+                <tr>
+                  <td><span class="status-dot online"></span>刘洋</td>
+                  <td><span class="area-tag">东北</span></td>
+                  <td>0.3</td>
+                  <td>2</td>
+                  <td>56</td>
+                  <td>1</td>
+                  <td>12</td>
+                  <td>5</td>
+                  <td>2.3</td>
+                  <td><span class="tag tag-online">在线</span></td>
+                  <td>150</td>
+                  <td>90</td>
+                  <td>20</td>
+                  <td>3</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 分页 -->
+          <div class="pagination">
+            <span class="pagination-info">共 5 条记录 第 1/1 页</span>
+            <button class="page-btn" disabled>上一页</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn" disabled>下一页</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // 标签切换
+    document.querySelectorAll('.system-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.system-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // 菜单项切换
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // 一级菜单展开 / 收起
+    document.querySelectorAll('.menu-title').forEach(title => {
+      title.addEventListener('click', function() {
+        this.closest('.menu-group').classList.toggle('collapsed');
+      });
+    });
+
+    // 关联区域多选下拉
+    function toggleAreaSelect() {
+      document.getElementById('areaSelect').classList.toggle('open');
+    }
+
+    function updateAreaSelectText() {
+      const select = document.getElementById('areaSelect');
+      const checked = select.querySelectorAll('input[type="checkbox"]:checked');
+      const text = select.querySelector('.multi-select-text');
+      if (checked.length === 0) {
+        text.textContent = '请选择';
+        select.classList.remove('has-value');
+      } else {
+        const values = Array.from(checked).map(cb => cb.value);
+        text.textContent = values.join('，');
+        select.classList.add('has-value');
+      }
+    }
+
+    document.querySelectorAll('#areaSelect input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', updateAreaSelectText);
+    });
+
+    document.addEventListener('click', function(e) {
+      const select = document.getElementById('areaSelect');
+      if (!select.contains(e.target)) {
+        select.classList.remove('open');
+      }
+    });
+
+    // 搜索功能
+    function searchData() {
+      const btn = document.querySelector('.btn-primary');
+      const originalText = btn.textContent;
+      btn.textContent = '搜索中...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }, 500);
+    }
+
+    // 重置功能
+    function resetSearch() {
+      document.querySelectorAll('.form-input').forEach(input => {
+        if (input.tagName === 'SELECT') {
+          input.selectedIndex = 0;
+        } else if (input.type === 'text') {
+          input.value = '';
+        }
+      });
+      document.querySelectorAll('#areaSelect input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+      });
+      updateAreaSelectText();
+    }
+  </script>
+</body>
+</html>

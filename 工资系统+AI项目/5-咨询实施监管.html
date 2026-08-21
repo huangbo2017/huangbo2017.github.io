@@ -1,0 +1,2567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>咨询实施监管 · 智能维护</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ========================= Design Tokens ========================= */
+  :root {
+    /* Surfaces */
+    --bg-app: #f0f2f5;
+    --bg-canvas: #ffffff;
+    --bg-canvas-soft: #fafbfc;
+    --bg-hover: #f5f7fa;
+    --bg-subtle: #f3f4f6;
+
+    /* Sidebar */
+    --sb-bg: #001529;
+    --sb-bg-elev: #002140;
+    --sb-bg-active: linear-gradient(90deg, #1890ff 0%, #1890ff 100%);
+    --sb-border: rgba(255,255,255,.06);
+    --sb-text: #c0c8d0;
+    --sb-text-strong: #ffffff;
+    --sb-text-muted: #7a8595;
+
+    /* Brand — Antd-blue */
+    --brand-50:  #e6f4ff;
+    --brand-100: #bae0ff;
+    --brand-200: #91caff;
+    --brand-300: #69b1ff;
+    --brand-400: #4096ff;
+    --brand-500: #1677ff;
+    --brand-600: #0958d9;
+    --brand-700: #003eb3;
+
+    /* Semantic */
+    --pending-50:  #fff7e6;
+    --pending-500: #fa8c16;
+    --pending-600: #d46b08;
+    --pending-100: #ffe7ba;
+
+    --active-50:  #e6f4ff;
+    --active-500: #1677ff;
+    --active-100: #bae0ff;
+
+    --timeout-50:  #fff1f0;
+    --timeout-500: #ff4d4f;
+    --timeout-100: #ffccc7;
+
+    --closing-50:  #fffbe6;
+    --closing-500: #faad14;
+    --closing-100: #ffe58f;
+
+    --closed-50:  #f6ffed;
+    --closed-500: #52c41a;
+    --closed-100: #b7eb8f;
+
+    /* Neutrals */
+    --ink-900: #1f1f1f;
+    --ink-800: #262626;
+    --ink-700: #434343;
+    --ink-600: #595959;
+    --ink-500: #8c8c8c;
+    --ink-400: #bfbfbf;
+    --ink-300: #d9d9d9;
+    --ink-200: #f0f0f0;
+    --ink-100: #fafafa;
+
+    /* Effects */
+    --ring: 0 0 0 2px rgba(22,119,255,.12);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.03);
+    --shadow-md: 0 2px 8px rgba(0,0,0,.06);
+    --shadow-lg: 0 6px 16px rgba(0,0,0,.08);
+    --shadow-2xl: 0 12px 32px rgba(0,0,0,.12);
+
+    /* Typography */
+    --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+    /* Radius */
+    --r-xs: 4px;
+    --r-sm: 6px;
+    --r-md: 8px;
+    --r-lg: 10px;
+    --r-xl: 12px;
+    --r-full: 999px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--ink-800);
+    background: var(--bg-app);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  .app {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 208px 1fr;
+  }
+
+  /* =========================== Sidebar =========================== */
+  .sidebar {
+    background:
+      linear-gradient(180deg, #002140 0%, #001529 100%);
+    color: var(--sb-text);
+    border-right: 1px solid #000c17;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.05); border-radius: 4px; }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 18px;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  .brand .logo {
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, #1677ff, #69b1ff);
+    border-radius: 6px;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(22,119,255,.3);
+  }
+  .brand .logo svg { width: 16px; height: 16px; }
+  .brand .name {
+    color: var(--sb-text-strong);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -.2px;
+    line-height: 1.2;
+  }
+  .brand .name .sub {
+    display: block;
+    color: var(--sb-text-muted);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .nav-group { margin-top: 4px; padding: 0 8px; }
+  .nav-group-title {
+    display: flex; align-items: center;
+    font-size: 14px;
+    color: var(--sb-text-strong);
+    padding: 10px 12px;
+    font-weight: 400;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .nav-group-title:hover { background: rgba(255,255,255,.04); }
+  .nav-group-title .caret {
+    margin-left: auto;
+    color: var(--sb-text-muted);
+    display: flex; align-items: center;
+  }
+  .nav-children {
+    margin: 2px 0 6px;
+    padding-left: 0;
+  }
+  .nav-child {
+    display: block;
+    padding: 7px 12px 7px 28px;
+    margin: 1px 0;
+    border-radius: 4px;
+    color: var(--sb-text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+  }
+  .nav-child:hover { color: var(--sb-text-strong); }
+  .nav-child.active {
+    color: var(--sb-text-strong);
+    background: var(--brand-500);
+    font-weight: 500;
+  }
+
+  .sidebar-foot {
+    margin-top: auto;
+    padding: 12px;
+    border-top: 1px solid rgba(255,255,255,.05);
+  }
+
+  /* =========================== Main =========================== */
+  .main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .topbar {
+    background: var(--bg-canvas);
+    border-bottom: 1px solid var(--ink-200);
+    padding: 0 24px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .crumbs {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--ink-500);
+    font-size: 13px;
+  }
+  .crumbs .sep { color: var(--ink-300); margin: 0 2px; }
+  .crumbs .current { color: var(--ink-900); font-weight: 500; }
+  .topbar-spacer { flex: 1; }
+
+  .topbar-user {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .12s ease;
+  }
+  .topbar-user:hover { background: var(--bg-hover); }
+  .topbar-user .avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg, #1677ff, #69b1ff);
+    display: grid; place-items: center;
+    color: #fff; font-weight: 600;
+    font-size: 11px;
+  }
+  .topbar-user .meta { font-size: 12px; color: var(--ink-700); }
+  .topbar-user .meta small { display: block; font-size: 11px; color: var(--ink-500); line-height: 1.1; }
+
+  /* Content */
+  .content {
+    padding: 16px 24px 32px;
+    flex: 1;
+  }
+
+  /* ===================== Panel ===================== */
+  .panel {
+    background: var(--bg-canvas);
+    border: 1px solid var(--ink-200);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  /* ===================== System Tabs ===================== */
+  .sys-tabs {
+    padding: 0 16px;
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--ink-200);
+    background: var(--bg-canvas);
+    height: 44px;
+    gap: 0;
+  }
+  .sys-tab {
+    background: none; border: none;
+    padding: 0 16px;
+    height: 44px;
+    font: inherit; font-size: 14px;
+    color: var(--ink-600);
+    cursor: pointer;
+    position: relative;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: color .12s ease;
+  }
+  .sys-tab:hover { color: var(--ink-900); }
+  .sys-tab .count {
+    font-size: 11px;
+    color: var(--ink-500);
+    font-weight: 400;
+  }
+  .sys-tab.active {
+    color: var(--brand-500);
+    font-weight: 500;
+  }
+  .sys-tab.active::after {
+    content: "";
+    position: absolute;
+    left: 16px; right: 16px;
+    bottom: 0;
+    height: 2px;
+    background: var(--brand-500);
+    border-radius: 2px 2px 0 0;
+  }
+  .sys-tab.active .count { color: var(--brand-500); }
+
+  /* ===================== Region Multi-select ===================== */
+  .region-filter {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px;
+    color: var(--ink-700);
+  }
+  .region-filter .label { color: var(--ink-500); margin-right: 2px; }
+  .region-select {
+    position: relative;
+    display: inline-flex; align-items: center;
+    min-width: 220px;
+    min-height: 30px;
+    padding: 2px 8px 2px 10px;
+    background: var(--bg-canvas);
+    border: 1px solid var(--ink-300);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: border-color .12s ease, box-shadow .12s ease;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .region-select:hover { border-color: var(--brand-400); }
+  .region-select.open { border-color: var(--brand-500); box-shadow: var(--ring); }
+  .region-select .placeholder { color: var(--ink-400); font-size: 13px; }
+  .region-select .sel-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--brand-50);
+    color: var(--brand-600);
+    border: 1px solid var(--brand-100);
+    padding: 1px 4px 1px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+  .region-select .sel-chip .x {
+    width: 14px; height: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    color: var(--brand-500);
+    cursor: pointer;
+  }
+  .region-select .sel-chip .x:hover { background: rgba(22,119,255,.15); }
+  .region-select .arrow {
+    margin-left: auto;
+    color: var(--ink-400);
+    transition: transform .15s ease;
+    display: flex; align-items: center;
+  }
+  .region-select.open .arrow { transform: rotate(180deg); }
+
+  .region-popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 280px;
+    background: var(--bg-canvas);
+    border: 1px solid var(--ink-200);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 50;
+    display: none;
+    overflow: hidden;
+  }
+  .region-popover.show { display: block; }
+  .region-popover .head {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--ink-200);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px;
+    color: var(--ink-500);
+  }
+  .region-popover .head .all {
+    color: var(--brand-500);
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .region-popover .head .all:hover { text-decoration: underline; }
+  .region-popover .search {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--ink-200);
+  }
+  .region-popover .search input {
+    width: 100%;
+    height: 28px;
+    border: 1px solid var(--ink-300);
+    border-radius: 4px;
+    padding: 0 10px;
+    font: inherit;
+    font-size: 13px;
+    background: var(--bg-canvas-soft);
+  }
+  .region-popover .search input:focus { outline: none; border-color: var(--brand-500); box-shadow: var(--ring); }
+  .region-popover .list {
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+  .region-popover .opt {
+    padding: 6px 12px;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ink-800);
+    transition: background .1s ease;
+  }
+  .region-popover .opt:hover { background: var(--bg-hover); }
+  .region-popover .opt input[type="checkbox"] { margin: 0; accent-color: var(--brand-500); }
+  .region-popover .opt .region-tag {
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    background: var(--brand-50);
+    color: var(--brand-500);
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .region-popover .foot {
+    padding: 8px 12px;
+    border-top: 1px solid var(--ink-200);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    background: var(--bg-canvas-soft);
+  }
+
+  /* ===================== Filter Bar ===================== */
+  .filterbar {
+    padding: 12px 16px;
+    display: flex; gap: 8px;
+    align-items: center;
+    border-bottom: 1px solid var(--ink-200);
+    background: var(--bg-canvas);
+  }
+  .input, .select {
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid var(--ink-300);
+    border-radius: var(--r-sm);
+    font: inherit;
+    font-size: 13px;
+    background: var(--bg-canvas);
+    color: var(--ink-800);
+    transition: border-color .12s ease, box-shadow .12s ease;
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+  }
+  .input:focus, .select:focus { outline: none; border-color: var(--brand-500); box-shadow: var(--ring); }
+  .input::placeholder { color: var(--ink-400); }
+  .input.search {
+    padding-left: 30px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23bfbfbf' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/></svg>");
+    background-repeat: no-repeat;
+    background-position: 10px center;
+    width: 240px;
+  }
+  .filterbar .label {
+    font-size: 13px;
+    color: var(--ink-700);
+    white-space: nowrap;
+  }
+  .select {
+    appearance: none;
+    padding-right: 26px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+  }
+  .select.date-input {
+    padding-right: 30px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><path d='M16 2v4M8 2v4M3 10h18'/></svg>"),
+                      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center, right 26px center;
+  }
+
+  .filter-actions { margin-left: auto; display: flex; gap: 6px; }
+  .btn {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: var(--r-sm);
+    font: inherit; font-size: 13px;
+    font-weight: 400;
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .btn svg { width: 13px; height: 13px; }
+  .btn-primary {
+    background: var(--brand-500);
+    color: #fff;
+    border-color: var(--brand-500);
+  }
+  .btn-primary:hover { background: var(--brand-600); border-color: var(--brand-600); }
+  .btn-ghost {
+    background: var(--bg-canvas);
+    color: var(--ink-700);
+    border-color: var(--ink-300);
+  }
+  .btn-ghost:hover { background: var(--bg-hover); color: var(--brand-500); border-color: var(--brand-500); }
+  .btn-link {
+    background: transparent;
+    color: var(--brand-500);
+    border: none;
+    height: auto;
+    padding: 0 4px;
+  }
+  .btn-link:hover { color: var(--brand-600); }
+  .btn-link.danger { color: var(--timeout-500); }
+  .btn-link.danger:hover { color: #cf1322; }
+  .btn-link.delete { color: #fa8c16; }
+  .btn-link.delete:hover { color: #d46b08; }
+
+  /* ===================== State Tabs (segmented pills) ===================== */
+  .state-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0;
+    border-bottom: none;
+    background: transparent;
+  }
+  .state-tab {
+    background: var(--bg-canvas);
+    border: 1px solid var(--ink-200);
+    padding: 0 14px;
+    height: 32px;
+    border-radius: var(--r-full);
+    font: inherit; font-size: 13px;
+    color: var(--ink-600);
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: background .12s ease, border-color .12s ease, color .12s ease, box-shadow .12s ease;
+  }
+  .state-tab:hover { border-color: var(--brand-400); color: var(--ink-900); }
+  .state-tab .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ink-300);
+    transition: background .12s ease;
+  }
+  .state-tab .num {
+    font-size: 12px;
+    color: var(--ink-500);
+    font-weight: 400;
+    font-family: var(--font-mono);
+  }
+  .state-tab.active {
+    background: var(--brand-500);
+    border-color: var(--brand-500);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+  .state-tab.active .num { color: rgba(255,255,255,.9); }
+  .state-tab.active .dot { background: #fff; }
+
+  /* inactive status-colored dots */
+  .state-tab[data-state="queue"] .dot { background: var(--pending-500); }
+  .state-tab[data-state="process"] .dot { background: var(--active-500); }
+  .state-tab[data-state="timeout"] .dot { background: var(--timeout-500); }
+  .state-tab[data-state="closing"] .dot { background: var(--closing-500); }
+  .state-tab[data-state="closed"] .dot { background: #8c8c8c; }
+  /* keep dot colored even on active for better semantic cue */
+  .state-tab[data-state="queue"].active .dot { background: var(--pending-100); }
+  .state-tab[data-state="timeout"].active .dot { background: var(--timeout-100); }
+  .state-tab[data-state="closing"].active .dot { background: var(--closing-100); }
+  .state-tab[data-state="closed"].active .dot { background: #d9d9d9; }
+
+  /* ===================== State Tabs Wrap ===================== */
+  .state-tabs-wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 10px 16px;
+    border-bottom: 1px solid var(--ink-200);
+    background: var(--bg-canvas-soft);
+  }
+  .state-tabs-actions {
+    display: flex; align-items: center; gap: 8px;
+    flex: none;
+  }
+  .cfg-btn { flex: none; align-self: center; }
+
+  /* ===================== Config Modal ===================== */
+  .cfg-form { display: flex; flex-direction: column; gap: 14px; padding: 4px 0 2px; }
+  .cfg-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .cfg-row > label { font-size: 13px; color: var(--ink-700); }
+  .cfg-label { display: flex; flex-direction: column; gap: 3px; }
+  .cfg-name { font-size: 13px; color: var(--ink-700); }
+  .cfg-sub { font-size: 12px; color: var(--ink-500); line-height: 1.4; }
+  .cfg-input { display: inline-flex; align-items: center; gap: 6px; }
+  .cfg-input input {
+    width: 92px; height: 30px; padding: 0 10px;
+    border: 1px solid var(--ink-300); border-radius: var(--r-sm);
+    font: inherit; font-size: 13px; text-align: right; color: var(--ink-800);
+  }
+  .cfg-input input:focus { outline: none; border-color: var(--brand-500); box-shadow: var(--ring); }
+  .cfg-input .unit { font-size: 13px; color: var(--ink-500); }
+  .cfg-hint {
+    font-size: 12px; color: var(--ink-500);
+    background: var(--bg-canvas-soft);
+    border: 1px dashed var(--ink-300); border-radius: var(--r-sm);
+    padding: 7px 10px;
+  }
+  .cfg-err {
+    font-size: 12px; color: var(--timeout-500);
+    background: var(--timeout-50); border: 1px solid var(--timeout-100);
+    border-radius: var(--r-sm); padding: 7px 10px;
+  }
+  .cfg-row--col { flex-direction: column; align-items: stretch; gap: 8px; }
+  .cfg-input--full { width: 100%; }
+  .cfg-input--full input { width: 100%; text-align: left; }
+
+  /* ---- Config grouping (sections) ---- */
+  .cfg-section {
+    border: 1px solid var(--ink-200);
+    border-radius: var(--r-md);
+    background: #fff;
+    padding: 14px 16px 16px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .cfg-section-head { display: flex; flex-direction: column; gap: 2px; }
+  .cfg-section-title {
+    font-size: 13px; font-weight: 600; color: var(--ink-900);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .cfg-section-title::before {
+    content: ""; width: 3px; height: 13px;
+    background: var(--brand-500); border-radius: 2px;
+  }
+  .cfg-section-desc { font-size: 12px; color: var(--ink-500); padding-left: 10px; }
+
+  /* scene cards: 客服未回复 / 用户未回复 */
+  .cfg-scene {
+    border: 1px solid var(--ink-200);
+    border-radius: var(--r-sm);
+    background: var(--bg-canvas-soft);
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 11px;
+  }
+  .cfg-scene-head { display: flex; flex-direction: column; gap: 7px; }
+  .cfg-scene-tag {
+    align-self: flex-start;
+    font-size: 12px; font-weight: 600; line-height: 1;
+    padding: 5px 9px; border-radius: 4px;
+  }
+  .cfg-scene-tag.tag-timeout { color: var(--timeout-500); background: var(--timeout-50); border: 1px solid var(--timeout-100); }
+  .cfg-scene-tag.tag-closing { color: var(--closing-500); background: var(--closing-50); border: 1px solid var(--closing-100); }
+  .cfg-scene-flow { font-size: 12px; color: var(--ink-600); line-height: 1.7; }
+  .cfg-scene-flow b { font-weight: 600; }
+  .cfg-scene-flow .st-timeout { color: var(--timeout-500); }
+  .cfg-scene-flow .st-closing { color: var(--closing-500); }
+  .cfg-scene-flow .st-closed { color: var(--ink-500); }
+
+  /* ===================== Table (sticky columns) ===================== */
+  .table-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: var(--bg-canvas);
+    border-bottom: 1px solid var(--ink-200);
+  }
+  .table-wrap::-webkit-scrollbar { height: 6px; }
+  .table-wrap::-webkit-scrollbar-thumb { background: var(--ink-300); border-radius: 4px; }
+  .table-wrap::-webkit-scrollbar-track { background: var(--bg-canvas-soft); }
+
+  table.table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    table-layout: fixed;
+  }
+
+  table.table thead th {
+    background: var(--bg-canvas-soft);
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--ink-700);
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--ink-200);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+  }
+  table.table tbody td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--ink-200);
+    color: var(--ink-800);
+    vertical-align: middle;
+    white-space: nowrap;
+    background: var(--bg-canvas);
+  }
+  table.table tbody tr:hover td { background: var(--bg-hover); }
+  table.table tbody tr:last-child td { border-bottom: none; }
+
+  /* sticky left columns */
+  table.table th.sticky-left,
+  table.table td.sticky-left {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    background: var(--bg-canvas);
+    box-shadow: 4px 0 6px -4px rgba(0,0,0,.08);
+  }
+  table.table th.sticky-left-2,
+  table.table td.sticky-left-2 {
+    position: sticky;
+    left: 60px;
+    z-index: 4;
+    background: var(--bg-canvas);
+  }
+  table.table th.sticky-left-3,
+  table.table td.sticky-left-3 {
+    position: sticky;
+    left: 180px;
+    z-index: 4;
+    background: var(--bg-canvas);
+  }
+  /* sticky right column (actions) */
+  table.table th.sticky-right,
+  table.table td.sticky-right {
+    position: sticky;
+    right: 0;
+    z-index: 4;
+    background: var(--bg-canvas);
+    box-shadow: -4px 0 6px -4px rgba(0,0,0,.08);
+  }
+  table.table tbody tr:hover td.sticky-left,
+  table.table tbody tr:hover td.sticky-left-2,
+  table.table tbody tr:hover td.sticky-left-3,
+  table.table tbody tr:hover td.sticky-right { background: var(--bg-hover); }
+
+  td.id { font-family: var(--font-mono); font-size: 12px; color: var(--ink-500); text-align: left; }
+
+  .region-cell {
+    display: inline-flex; align-items: center;
+    font-size: 13px;
+    color: var(--ink-700);
+  }
+
+  .unit-cell { display: flex; flex-direction: column; line-height: 1.35; max-width: 100%; }
+  .unit-cell .name { font-weight: 500; color: var(--ink-900); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .unit-cell .sub { color: var(--ink-500); font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+
+  .assign-log {
+    font-size: 12px;
+    color: var(--ink-700);
+    line-height: 1.5;
+    max-width: 180px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    cursor: help;
+  }
+  .assign-log .log-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .assign-log .t {
+    color: var(--ink-500);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  /* status badges - simpler */
+  .status {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 1px 8px;
+    border-radius: var(--r-sm);
+    font-size: 12px;
+    font-weight: 400;
+    border: 1px solid transparent;
+    line-height: 20px;
+  }
+  .status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+  }
+  .status.s-queue {
+    background: var(--pending-50);
+    color: var(--pending-600);
+    border-color: var(--pending-100);
+  }
+  .status.s-queue .dot { background: var(--pending-500); }
+
+  .status.s-process { background: var(--active-50); color: var(--active-500); border-color: var(--active-100); }
+  .status.s-process .dot { background: var(--active-500); }
+
+  .status.s-timeout { background: var(--timeout-50); color: var(--timeout-500); border-color: var(--timeout-100); }
+  .status.s-timeout .dot { background: var(--timeout-500); }
+
+  .status.s-closing { background: var(--closing-50); color: #d48806; border-color: var(--closing-100); }
+  .status.s-closing .dot { background: var(--closing-500); }
+
+  .status.s-closed { background: #fafafa; color: #595959; border-color: #d9d9d9; }
+  .status.s-closed .dot { background: #8c8c8c; }
+
+  /* priority (重点用户) */
+  .pri {
+    display: inline-flex; align-items: center;
+    font-size: 12px;
+    padding: 0 8px;
+    height: 20px;
+    border-radius: var(--r-xs);
+    font-weight: 400;
+    border: 1px solid transparent;
+  }
+  .pri.yes {
+    background: #fff1f0;
+    color: #cf1322;
+    border-color: #ffa39e;
+  }
+  .pri.no {
+    background: var(--ink-100);
+    color: var(--ink-600);
+    border-color: var(--ink-200);
+  }
+
+  /* agent */
+  .agent {
+    display: flex; align-items: center;
+    font-size: 13px;
+    line-height: 1.35;
+    height: 100%;
+  }
+  .agent .name { font-weight: 500; color: var(--ink-800); }
+  .agent .meta { color: var(--ink-500); font-size: 12px; }
+  .dash { color: var(--ink-400); }
+
+  /* mono cells */
+  .mono {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-700);
+  }
+  .time-cell {
+    display: flex; flex-direction: column; line-height: 1.3;
+  }
+  .time-cell .d { color: var(--ink-800); font-size: 12.5px; }
+  .time-cell .t { color: var(--ink-500); font-size: 11.5px; font-family: var(--font-mono); }
+  .time-cell.empty { color: var(--ink-400); font-size: 12px; }
+  .time-oneline {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-800);
+    white-space: nowrap;
+  }
+
+  .dur {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-700);
+  }
+  .dur.warn { color: var(--timeout-500); font-weight: 500; }
+  .dur.good { color: var(--closed-500); }
+
+  .row-actions {
+    display: inline-flex;
+    gap: 0;
+  }
+  .row-actions .btn-link { font-size: 13px; }
+  .row-actions .divider { color: var(--ink-300); margin: 0 2px; }
+
+  /* ===================== Pagination ===================== */
+  .pager {
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-top: 1px solid var(--ink-200);
+    background: var(--bg-canvas);
+    font-size: 13px;
+    color: var(--ink-500);
+  }
+  .pager .right { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  .page-btn {
+    min-width: 28px; height: 28px; padding: 0 6px;
+    border-radius: var(--r-xs); border: 1px solid var(--ink-300);
+    background: var(--bg-canvas);
+    color: var(--ink-700);
+    font: inherit; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .page-btn:hover:not([disabled]) { border-color: var(--brand-500); color: var(--brand-500); }
+  .page-btn.on {
+    background: var(--brand-500); border-color: var(--brand-500);
+    color: #fff; font-weight: 500;
+  }
+  .page-btn[disabled] { opacity: .5; cursor: not-allowed; }
+  .size-select {
+    height: 28px; padding: 0 22px 0 8px;
+    border: 1px solid var(--ink-300);
+    border-radius: var(--r-xs);
+    background: var(--bg-canvas);
+    color: var(--ink-700);
+    font: inherit;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+  }
+
+  /* ===================== Drawer (Chat) ===================== */
+  .scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity .2s ease;
+  }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+
+  .drawer {
+    position: fixed;
+    top: 0; right: 0;
+    height: 100vh;
+    width: 480px;
+    max-width: 100%;
+    background: var(--bg-canvas);
+    box-shadow: var(--shadow-2xl);
+    transform: translateX(100%);
+    transition: transform .25s ease;
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer.show { transform: translateX(0); }
+  .drawer-resizer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 6px; height: 100%;
+    cursor: col-resize;
+    z-index: 102;
+    background: transparent;
+    transition: background .15s ease;
+  }
+  .drawer-resizer:hover { background: var(--brand-200); }
+  .drawer-resizer.dragging { background: var(--brand-400); }
+  .drawer-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--ink-200);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .drawer-head .ttl {
+    font-size: 14px; font-weight: 500; color: var(--ink-900);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .drawer-head .id { color: var(--ink-500); font-size: 12px; font-family: var(--font-mono); }
+  .drawer-head .close {
+    margin-left: auto;
+    background: transparent; border: none;
+    color: var(--ink-500);
+    cursor: pointer;
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    border-radius: 4px;
+  }
+  .drawer-head .close:hover { background: var(--bg-hover); color: var(--ink-900); }
+  .drawer-body {
+    flex: 1;
+    overflow: auto;
+    padding: 16px 18px;
+  }
+  .drawer-foot {
+    padding: 12px 18px;
+    border-top: 1px solid var(--ink-200);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  /* assign-log list inside drawer */
+  .log-list { display: flex; flex-direction: column; gap: 0; }
+  .log-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--ink-200);
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-item .lt {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-500);
+  }
+  .log-item .ld {
+    font-size: 13px;
+    color: var(--ink-800);
+    line-height: 1.5;
+  }
+  .assign-hint { margin-bottom: 12px; }
+
+  .chat-meta {
+    padding: 12px 18px;
+    background: var(--bg-canvas-soft);
+    border-bottom: 1px solid var(--ink-200);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 18px;
+    font-size: 12px;
+  }
+  .chat-meta .item { display: flex; align-items: center; gap: 6px; }
+  .chat-meta .label { color: var(--ink-500); flex: none; }
+  .chat-meta .val { color: var(--ink-800); font-weight: 500; }
+
+  .timeline {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    background: var(--bg-canvas-soft);
+  }
+  .timeline::-webkit-scrollbar { width: 6px; }
+  .timeline::-webkit-scrollbar-thumb { background: var(--ink-300); border-radius: 4px; }
+
+  .day-marker {
+    display: flex; align-items: center; gap: 10px;
+    margin: 8px 0 12px;
+  }
+  .day-marker::before, .day-marker::after {
+    content: ""; flex: 1;
+    height: 1px; background: var(--ink-200);
+  }
+  .day-marker .lbl {
+    font-size: 11px;
+    color: var(--ink-500);
+    padding: 2px 8px;
+    background: var(--bg-canvas);
+    border: 1px solid var(--ink-200);
+    border-radius: var(--r-full);
+  }
+
+  .msg {
+    display: flex; gap: 8px;
+    margin-bottom: 14px;
+  }
+  .msg.me { flex-direction: row-reverse; }
+  .msg .av {
+    width: 28px; height: 28px; border-radius: 50%;
+    flex: none;
+    display: grid; place-items: center;
+    font-weight: 600; font-size: 11px;
+    color: #fff;
+  }
+  .msg .col { display: flex; flex-direction: column; max-width: 340px; }
+  .msg .meta {
+    font-size: 11px; color: var(--ink-500); margin-bottom: 4px;
+    display: flex; gap: 6px; align-items: center;
+  }
+  .msg .name { font-weight: 500; color: var(--ink-700); }
+  .msg.me .meta { justify-content: flex-end; }
+  .msg .bub {
+    background: var(--bg-canvas);
+    border: 1px solid var(--ink-200);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--ink-800);
+    line-height: 1.6;
+    font-size: 13px;
+  }
+  .msg.me .bub {
+    background: var(--brand-500);
+    color: #fff;
+    border-color: var(--brand-500);
+  }
+  .msg .bub.attachment {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+  }
+  .msg .bub.attachment .ico {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    background: var(--brand-50);
+    color: var(--brand-500);
+    display: grid; place-items: center;
+  }
+  .msg.me .bub.attachment .ico { background: rgba(255,255,255,.18); color: #fff; }
+  .msg .bub.attachment .info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .msg .bub.attachment .fname { font-size: 12px; font-weight: 500; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .msg .bub.attachment .fsize { font-size: 11px; opacity: .7; }
+  .msg.me .bub.attachment .fname { color: #fff; }
+  .msg .bub code {
+    background: var(--ink-100);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .msg.me .bub code { background: rgba(255,255,255,.18); color: #fff; }
+
+  .msg.system { justify-content: center; }
+  .msg.system .sys-line {
+    background: var(--ink-200);
+    color: var(--ink-500);
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: var(--r-full);
+  }
+
+  .chat-session {
+    padding: 12px;
+    border-radius: var(--r-md);
+    margin-bottom: 14px;
+  }
+  .chat-session:last-child { margin-bottom: 0; }
+  .chat-session.agent-0 { background: var(--active-50); border: 1px solid var(--active-100); }
+  .chat-session.agent-1 { background: #f6ffed; border: 1px solid var(--closed-100); }
+  .session-hint {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 11px; color: var(--ink-500);
+    margin-bottom: 10px;
+  }
+  .session-hint::before, .session-hint::after {
+    content: ""; flex: 1; height: 1px; background: currentColor; opacity: .25;
+  }
+
+  .timeline-foot {
+    padding: 10px 18px;
+    border-top: 1px solid var(--ink-200);
+    background: var(--bg-canvas);
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-500);
+  }
+
+  /* ===================== Assign Modal ===================== */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal.show { display: flex; }
+  .modal .scrim-inside {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.45);
+  }
+  .modal-card {
+    position: relative;
+    width: 480px; max-width: 90%;
+    background: var(--bg-canvas);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-2xl);
+    overflow: hidden;
+  }
+  /* Config modal: fixed 80vh height with scrollable body */
+  #configModal .modal-card {
+    height: 80vh; max-height: 80vh;
+    display: flex; flex-direction: column;
+  }
+  #configModal .modal-head,
+  #configModal .modal-foot { flex: none; }
+  #configModal .modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  #configModal .modal-body::-webkit-scrollbar { width: 8px; }
+  #configModal .modal-body::-webkit-scrollbar-thumb {
+    background: var(--ink-300); border-radius: 4px;
+  }
+  .modal-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--ink-200);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .modal-head h3 {
+    margin: 0; font-size: 15px; color: var(--ink-900);
+    font-weight: 500;
+  }
+  .modal-head .close {
+    margin-left: auto;
+    background: transparent; border: none;
+    color: var(--ink-400);
+    cursor: pointer;
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    display: grid; place-items: center;
+  }
+  .modal-head .close:hover { background: var(--bg-hover); color: var(--ink-900); }
+  .modal-body { padding: 16px 18px; }
+  .btn-sm { height: 24px; padding: 0 10px; font-size: 12px; }
+
+  .assign-hint {
+    font-size: 12px;
+    color: var(--ink-500);
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    background: var(--bg-canvas-soft);
+    border: 1px solid var(--ink-200);
+    border-radius: var(--r-sm);
+  }
+  .agent-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+  }
+  .agent-table th, .agent-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--ink-200);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .agent-table thead th {
+    background: var(--bg-canvas-soft);
+    font-weight: 500;
+    color: var(--ink-700);
+  }
+  .agent-table tbody tr:last-child td { border-bottom: none; }
+  .agent-table tbody tr:hover td { background: var(--bg-hover); }
+  .agent-name {
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .agent-name .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #8c8c8c;
+  }
+  .agent-name .dot.online { background: #52c41a; }
+  .agent-name .dot.away { background: #faad14; }
+  .agent-name .dot.offline { background: #bfbfbf; }
+
+  .agent-table tbody tr { cursor: pointer; }
+  .agent-table tbody tr.selected td,
+  .agent-table tbody tr.selected:hover td { background: var(--brand-50); }
+  .radio {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--ink-300);
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    transition: border-color .12s ease;
+  }
+  .agent-row.selected .radio {
+    border-color: var(--brand-500);
+    border-width: 4px;
+  }
+  .agent-row.selected .radio::after {
+    content: "";
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 4px; height: 4px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  .modal-foot {
+    padding: 12px 18px;
+    border-top: 1px solid var(--ink-200);
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+
+  /* ===================== Delete Confirm Modal ===================== */
+  #deleteModal .modal-card {
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    padding: 30px 36px 28px;
+    border-radius: 6px;
+  }
+  #deleteModal .modal-head {
+    padding: 0;
+    border-bottom: none;
+    justify-content: center;
+  }
+  #deleteModal .modal-head h3,
+  #deleteModal .modal-head .close { display: none; }
+  .delete-dialog {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+  }
+  .delete-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 4px solid #ffb26b;
+    color: #ff8a00;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .delete-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: #262626;
+    line-height: 1.25;
+  }
+  .delete-desc {
+    font-size: 14px;
+    color: #8c8c8c;
+    line-height: 1.4;
+  }
+  #deleteModal .modal-body {
+    padding: 10px 0 0;
+  }
+  #deleteModal .modal-foot {
+    border-top: none;
+    padding: 28px 0 0;
+    justify-content: center;
+  }
+  #deleteModal .modal-foot .btn {
+    min-width: 88px;
+    height: 36px;
+    padding: 0 16px;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+  #deleteModal .modal-foot .btn-ghost {
+    background: #fff;
+    color: #262626;
+    border-color: #d9d9d9;
+  }
+  #deleteModal .modal-foot .btn-primary {
+    background: #1677ff;
+    border-color: #1677ff;
+  }
+
+  /* ===================== Banner Actions ===================== */
+  .banner-actions {
+    display: flex; align-items: center; gap: 8px;
+    margin-left: 12px; flex: none; align-self: center;
+  }
+
+  /* ===================== Auto Reply Modal ===================== */
+  .modal-desc {
+    font-size: 13px;
+    color: var(--ink-500);
+    margin-bottom: 12px;
+  }
+  .auto-reply-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px 12px;
+    border: 1px solid var(--ink-300);
+    border-radius: var(--r-sm);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-900);
+    background: var(--bg-canvas);
+    resize: vertical;
+    outline: none;
+    transition: border-color .12s ease, box-shadow .12s ease;
+  }
+  .auto-reply-textarea:focus {
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 2px rgba(22,119,255,.12);
+  }
+  .auto-reply-textarea::placeholder { color: var(--ink-400); }
+
+  /* ===================== Cleanup Modal ===================== */
+  .cleanup-form { font-size: 13px; }
+  .cleanup-row { margin-bottom: 18px; }
+  .cleanup-row:last-child { margin-bottom: 0; }
+  .cleanup-label {
+    display: flex; align-items: center; gap: 4px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: 10px;
+  }
+  .cleanup-label .required { color: var(--error-500); }
+  .cleanup-dates {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .cleanup-dates input[type="date"] {
+    flex: 1;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--ink-300);
+    border-radius: var(--r-sm);
+    font-size: 13px;
+    color: var(--ink-900);
+    background: var(--bg-canvas);
+    outline: none;
+    transition: border-color .12s ease, box-shadow .12s ease;
+  }
+  .cleanup-dates input[type="date"]:focus {
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 2px rgba(22,119,255,.12);
+  }
+  .cleanup-dates .sep { color: var(--ink-500); font-size: 13px; }
+  .cleanup-targets {
+    display: flex; flex-wrap: wrap; gap: 24px;
+  }
+  .cleanup-targets label {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--ink-800);
+    cursor: pointer;
+  }
+  .cleanup-targets input[type="checkbox"] {
+    width: 14px; height: 14px;
+    accent-color: var(--brand-500);
+    cursor: pointer;
+  }
+  .cleanup-warning {
+    font-size: 12px;
+    color: var(--ink-500);
+    line-height: 1.7;
+    padding: 10px 12px;
+    background: var(--bg-canvas-soft);
+    border-radius: var(--r-sm);
+  }
+  .cleanup-err {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--error-500);
+    display: none;
+  }
+
+  /* ===================== Misc ===================== */
+  @media (max-width: 1100px) {
+    .content { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============================== Sidebar ============================== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div class="name">
+        智能维护管理
+        <span class="sub">OPS · V3.2</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <a class="nav-group-title">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 4px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        智能维护
+        <span class="caret">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        </span>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child">知识库管理</a>
+        <a class="nav-child">数据洞察</a>
+        <a class="nav-child">对话记录</a>
+        <a class="nav-child">在线咨询</a>
+        <a class="nav-child active">咨询实施监管</a>
+        <a class="nav-child">运维数据统计</a>
+        <a class="nav-child">待办事项</a>
+        <a class="nav-child">文件上传</a>
+        <a class="nav-child">问题反馈</a>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <a class="nav-group-title">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 4px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        系统管理
+        <span class="caret">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        </span>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child">用户管理</a>
+        <a class="nav-child">角色权限</a>
+        <a class="nav-child">单位管理</a>
+        <a class="nav-child">license管理</a>
+        <a class="nav-child">系统版本管理</a>
+        <a class="nav-child">操作日志</a>
+      </div>
+    </div>
+
+    <div class="sidebar-foot"></div>
+  </aside>
+
+  <!-- ============================== Main ============================== -->
+  <main class="main">
+    <header class="topbar">
+      <nav class="crumbs">
+        <span>智能维护</span>
+        <span class="sep">/</span>
+        <span class="current">咨询实施监管</span>
+      </nav>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-user">
+        <div class="avatar" style="background: #1677ff;">L</div>
+        <div class="meta" style="color: var(--ink-900); font-weight: 500;">LCH</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="panel">
+        <!-- System Tabs -->
+        <div class="sys-tabs">
+          <button class="sys-tab active">
+            事业工资系统（单机版）
+            <span class="count">28</span>
+          </button>
+          <button class="sys-tab">
+            事业工资系统（网络版）
+            <span class="count">42</span>
+          </button>
+          <button class="sys-tab">
+            年报系统
+            <span class="count">11</span>
+          </button>
+        </div>
+
+        <!-- State Tabs -->
+        <div class="state-tabs-wrap">
+          <div class="state-tabs" id="stateTabs">
+            <button class="state-tab active" data-state="all">
+              <span class="dot"></span>
+              全部
+              <span class="num">2,083</span>
+            </button>
+            <button class="state-tab" data-state="queue">
+              <span class="dot"></span>
+              排队中
+              <span class="num">128</span>
+            </button>
+            <button class="state-tab" data-state="process">
+              <span class="dot"></span>
+              处理中
+              <span class="num">42</span>
+            </button>
+            <button class="state-tab" data-state="timeout">
+              <span class="dot"></span>
+              已超时
+              <span class="num">6</span>
+            </button>
+            <button class="state-tab" data-state="closing">
+              <span class="dot"></span>
+              待关闭
+              <span class="num">15</span>
+            </button>
+            <button class="state-tab" data-state="closed">
+              <span class="dot"></span>
+              已关闭
+              <span class="num">1,892</span>
+            </button>
+          </div>
+          <div class="state-tabs-actions">
+            <button class="btn btn-ghost" id="autoReplyBtn" onclick="openAutoReply()">自动回复</button>
+            <button class="btn btn-ghost" onclick="openCleanup()">数据清理</button>
+            <button class="btn btn-ghost cfg-btn" onclick="openConfig()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              配置
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filterbar">
+          <div class="label">关键词</div>
+          <input class="input search" placeholder="单位 / 经办人 / 客服" />
+          <div class="region-filter">
+            <span class="label">区域联动</span>
+            <div class="region-select" id="regionSelect" onclick="toggleRegion(event)">
+              <span class="placeholder" id="regionPlaceholder">全部区域</span>
+              <span class="arrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </span>
+              <div class="region-popover" id="regionPopover" onclick="event.stopPropagation()">
+                <div class="head">
+                  <span>已选 <strong id="regionCount">0</strong> 项</span>
+                  <span class="all" onclick="clearRegion()">清空</span>
+                </div>
+                <div class="search">
+                  <input type="text" placeholder="搜索区域" id="regionSearch" oninput="filterRegion()">
+                </div>
+                <div class="list" id="regionList">
+                  <label class="opt"><input type="checkbox" value="all" data-text="全部区域"><span class="region-tag-small">全</span><span>全部区域</span></label>
+                  <label class="opt"><input type="checkbox" value="east" data-text="华东" data-region="east"><span class="region-tag-small">华</span><span>华东</span></label>
+                  <label class="opt"><input type="checkbox" value="south" data-text="华南" data-region="south"><span class="region-tag-small south">华</span><span>华南</span></label>
+                  <label class="opt"><input type="checkbox" value="north" data-text="华北" data-region="north"><span class="region-tag-small north">华</span><span>华北</span></label>
+                  <label class="opt"><input type="checkbox" value="west" data-text="西南" data-region="west"><span class="region-tag-small west">西</span><span>西南</span></label>
+                  <label class="opt"><input type="checkbox" value="nw" data-text="西北" data-region="nw"><span class="region-tag-small nw">西</span><span>西北</span></label>
+                  <label class="opt"><input type="checkbox" value="ne" data-text="东北" data-region="ne"><span class="region-tag-small">东</span><span>东北</span></label>
+                  <label class="opt"><input type="checkbox" value="huazhong" data-text="华中" data-region="huazhong"><span class="region-tag-small">华</span><span>华中</span></label>
+                </div>
+                <div class="foot">
+                  <button class="btn btn-ghost" onclick="clearRegion()">重置</button>
+                  <button class="btn btn-primary" onclick="confirmRegion()">确定</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="label">时间范围</div>
+          <input class="input date-input" type="text" value="2026-08-01 ~ 2026-08-12" style="width: 200px;" />
+          <div class="label">重点用户</div>
+          <select class="select">
+            <option>全部</option>
+            <option>是</option>
+            <option>否</option>
+          </select>
+          <div class="filter-actions">
+            <button class="btn btn-ghost">重置</button>
+            <button class="btn btn-primary">搜索</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th class="sticky-left" style="width: 60px;">序号</th>
+                <th class="sticky-left-2" style="width: 120px;">区域</th>
+                <th class="sticky-left-3" style="width: 200px;">单位</th>
+                <th style="width: 90px;">重点单位</th>
+                <th style="width: 110px;">状态</th>
+                <th style="width: 150px;">经办人</th>
+                <th style="width: 150px;">当前客服</th>
+                <th style="width: 180px;">开始时间</th>
+                <th style="width: 130px;">结束时间</th>
+                <th style="width: 110px;">处理总耗时</th>
+                <th style="width: 110px;">最长等待时间</th>
+                <th style="width: 100px;">重点用户</th>
+                <th style="width: 120px;">分配记录</th>
+                <th class="sticky-right" style="width: 160px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-state="queue">
+                <td class="sticky-left id">1</td>
+                <td class="sticky-left-2"><div class="region-cell">华东·上海</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">上海市徐汇区卫生健康委员会</span></div></td>
+                <td><span class="pri yes">是</span></td>
+                <td><span class="status s-queue"><span class="dot"></span>排队中</span></td>
+                <td><div class="agent offline"><div class="name">陈思宇</div></div></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="time-oneline">2026.08.12 14:32:08</span></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="pri yes">是</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.12 13:23:34 由系统分配给张敏处理||2026.08.12 13:36:22 由李工指派给小白处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link" data-action="assign">指派</button></div></td>
+              </tr>
+              <tr data-state="queue">
+                <td class="sticky-left id">2</td>
+                <td class="sticky-left-2"><div class="region-cell">华东·苏州</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">苏州工业园区人社局</span></div></td>
+                <td><span class="pri no">否</span></td>
+                <td><span class="status s-queue"><span class="dot"></span>排队中</span></td>
+                <td><div class="agent online"><div class="name">赵明远</div></div></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="time-oneline">2026.08.12 13:58:42</span></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="pri no">否</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.12 13:20:11 由系统分配给李欣怡处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link" data-action="assign">指派</button></div></td>
+              </tr>
+              <tr data-state="queue">
+                <td class="sticky-left id">3</td>
+                <td class="sticky-left-2"><div class="region-cell">华南·深圳</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">深圳市南山区财政局</span></div></td>
+                <td><span class="pri no">否</span></td>
+                <td><span class="status s-queue"><span class="dot"></span>排队中</span></td>
+                <td><div class="agent away"><div class="name">林晓彤</div></div></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="time-oneline">2026.08.12 13:42:11</span></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="dash">-</span></td>
+                <td><span class="pri no">否</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.12 13:15:08 由系统分配给王磊处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link" data-action="assign">指派</button></div></td>
+              </tr>
+              <tr data-state="process">
+                <td class="sticky-left id">4</td>
+                <td class="sticky-left-2"><div class="region-cell">华北·北京</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">北京市朝阳区民政局</span></div></td>
+                <td><span class="pri yes">是</span></td>
+                <td><span class="status s-process"><span class="dot"></span>处理中</span></td>
+                <td><div class="agent online"><div class="name">周雅琪</div></div></td>
+                <td><div class="agent online"><div class="name">刘子昂</div></div></td>
+                <td><span class="time-oneline">2026.08.12 11:24:36</span></td>
+                <td><span class="time-cell empty">— 进行中 —</span></td>
+                <td><span class="dur">14:21</span></td>
+                <td><span class="dur">00:21</span></td>
+                <td><span class="pri yes">是</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.12 11:20:36 由系统分配给刘子昂处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link" data-action="assign">转派</button></div></td>
+              </tr>
+              <tr data-state="timeout">
+                <td class="sticky-left id">5</td>
+                <td class="sticky-left-2"><div class="region-cell">西南·成都</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">成都市锦江区教育局</span></div></td>
+                <td><span class="pri no">否</span></td>
+                <td><span class="status s-timeout"><span class="dot"></span>已超时</span></td>
+                <td><div class="agent offline"><div class="name">何敏</div></div></td>
+                <td><div class="agent away"><div class="name">徐铭哲</div></div></td>
+                <td><span class="time-oneline">2026.08.12 10:08:21</span></td>
+                <td><span class="time-cell empty" style="color: var(--timeout-500);">— 已超时 32min —</span></td>
+                <td><span class="dur warn">52:08</span></td>
+                <td><span class="dur warn">08:42</span></td>
+                <td><span class="pri yes">是</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.12 10:05:21 由系统分配给徐铭哲处理||2026.08.12 10:30:45 由主管指派给李欣怡处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link" data-action="assign">转派</button></div></td>
+              </tr>
+              <tr data-state="closing">
+                <td class="sticky-left id">6</td>
+                <td class="sticky-left-2"><div class="region-cell">西北·西安</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">西安市未央区人力资源与社会保障局</span></div></td>
+                <td><span class="pri yes">是</span></td>
+                <td><span class="status s-closing"><span class="dot"></span>待关闭</span></td>
+                <td><div class="agent online"><div class="name">钱泽宇</div></div></td>
+                <td><div class="agent online"><div class="name">孙雨萱</div></div></td>
+                <td><span class="time-oneline">2026.08.12 09:48:02</span></td>
+                <td><div class="time-cell"><span class="d">08-12</span><span class="t">11:14:55</span></div></td>
+                <td><span class="dur good">01:26:53</span></td>
+                <td><span class="dur">00:14</span></td>
+                <td><span class="pri no">否</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.12 09:45:02 由系统分配给孙雨萱处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link" data-action="assign">转派</button></div></td>
+              </tr>
+              <tr data-state="closed">
+                <td class="sticky-left id">7</td>
+                <td class="sticky-left-2"><div class="region-cell">华东·杭州</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">杭州市西湖区财政局</span></div></td>
+                <td><span class="pri no">否</span></td>
+                <td><span class="status s-closed"><span class="dot"></span>已关闭</span></td>
+                <td><div class="agent offline"><div class="name">郑静雯</div></div></td>
+                <td><div class="agent online"><div class="name">吴梓豪</div></div></td>
+                <td><span class="time-oneline">2026.08.12 08:32:14</span></td>
+                <td><div class="time-cell"><span class="d">08-12</span><span class="t">08:54:02</span></div></td>
+                <td><span class="dur good">21:48</span></td>
+                <td><span class="dur">00:08</span></td>
+                <td><span class="pri no">否</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.12 08:30:14 由系统分配给吴梓豪处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link delete" data-action="delete">删除</button></div></td>
+              </tr>
+              <tr data-state="closed">
+                <td class="sticky-left id">8</td>
+                <td class="sticky-left-2"><div class="region-cell">华南·广州</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">广州市天河区人社局</span></div></td>
+                <td><span class="pri no">否</span></td>
+                <td><span class="status s-closed"><span class="dot"></span>已关闭</span></td>
+                <td><div class="agent online"><div class="name">梁博文</div></div></td>
+                <td><div class="agent online"><div class="name">郑思颖</div></div></td>
+                <td><span class="time-oneline">2026.08.12 08:08:21</span></td>
+                <td><div class="time-cell"><span class="d">08-12</span><span class="t">08:42:55</span></div></td>
+                <td><span class="dur good">34:34</span></td>
+                <td><span class="dur">00:11</span></td>
+                <td><span class="pri no">否</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.12 08:06:21 由系统分配给郑思颖处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link delete" data-action="delete">删除</button></div></td>
+              </tr>
+              <tr data-state="closing">
+                <td class="sticky-left id">9</td>
+                <td class="sticky-left-2"><div class="region-cell">华北·天津</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">天津市河西区卫健委</span></div></td>
+                <td><span class="pri yes">是</span></td>
+                <td><span class="status s-closing"><span class="dot"></span>待关闭</span></td>
+                <td><div class="agent online"><div class="name">段鹏涛</div></div></td>
+                <td><div class="agent away"><div class="name">魏诗涵</div></div></td>
+                <td><span class="time-oneline">2026.08.12 07:54:11</span></td>
+                <td><span class="time-cell empty">— 进行中 —</span></td>
+                <td><span class="dur">02:18:24</span></td>
+                <td><span class="dur">00:18</span></td>
+                <td><span class="pri yes">是</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.12 07:52:11 由系统分配给魏诗涵处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link" data-action="assign">转派</button></div></td>
+              </tr>
+              <tr data-state="closed">
+                <td class="sticky-left id">10</td>
+                <td class="sticky-left-2"><div class="region-cell">华东·南京</div></td>
+                <td class="sticky-left-3"><div class="unit-cell"><span class="name">南京市鼓楼区统计局</span></div></td>
+                <td><span class="pri no">否</span></td>
+                <td><span class="status s-closed"><span class="dot"></span>已关闭</span></td>
+                <td><div class="agent online"><div class="name">曹艺涵</div></div></td>
+                <td><div class="agent offline"><div class="name">冯雅琪</div></div></td>
+                <td><span class="time-oneline">2026.08.11 16:42:08</span></td>
+                <td><div class="time-cell"><span class="d">08-11</span><span class="t">17:08:42</span></div></td>
+                <td><span class="dur good">26:34</span></td>
+                <td><span class="dur">00:06</span></td>
+                <td><span class="pri no">否</span></td>
+                <td><button class="btn btn-link" data-action="view-assign" data-log="2026.08.11 16:40:08 由系统分配给冯雅琪处理">查看</button></td>
+                <td class="sticky-right"><div class="row-actions"><button class="btn btn-link" data-action="chat">对话记录</button><span class="divider">|</span><button class="btn btn-link delete" data-action="delete">删除</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pager">
+          <div class="left" style="display: flex; align-items: center; gap: 6px;">
+            <select class="size-select">
+              <option>10 条/页</option><option>20 条/页</option><option>50 条/页</option>
+            </select>
+          </div>
+          <span>共 128 条记录 · 第 1/12 页</span>
+          <div class="right">
+            <button class="page-btn" disabled>上一页</button>
+            <button class="page-btn on">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">4</button>
+            <span style="padding: 0 4px; color: var(--ink-300);">...</span>
+            <button class="page-btn">12</button>
+            <button class="page-btn">下一页</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============================== Drawer (Chat History) ============================== -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-resizer" id="drawerResizer"></div>
+  <header class="drawer-head">
+    <div class="ttl">
+      对话记录
+      <span class="id">#T2026-0801</span>
+    </div>
+    <button class="close" onclick="closeDrawer()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </header>
+
+  <div class="chat-meta">
+    <div class="item"><span class="label">系统：</span><span class="val">事业工资（单机版）</span></div>
+    <div class="item"><span class="label">重点用户：</span><span class="val" style="color: var(--timeout-500);">是</span></div>
+    <div class="item"><span class="label">当前客服：</span><span class="val">张敏 · A0182</span></div>
+    <div class="item"><span class="label">经办人：</span><span class="val">陈思宇</span></div>
+    <div class="item"><span class="label">开始时间：</span><span class="val">2026.08.12 14:32:08</span></div>
+    <div class="item"><span class="label">已耗时：</span><span class="val" style="color: var(--brand-500); font-family: var(--font-mono);">02:14:32</span></div>
+  </div>
+
+  <div class="timeline" id="timeline">
+    <div class="day-marker"><span class="lbl">2026-08-11 · 周二</span></div>
+
+    <div class="chat-session agent-1">
+      <div class="session-hint">历史客服 · 李欣怡</div>
+
+      <div class="msg system"><span class="sys-line">系统于 08-11 16:20:05 自动将用户分配至 李欣怡 客服</span></div>
+
+      <div class="msg">
+        <div class="col">
+          <div class="meta"><span class="name">陈思宇</span><span>16:21:12</span></div>
+          <div class="bub">李工您好，请问单机版系统的单位信息如何批量导入？</div>
+        </div>
+      </div>
+
+      <div class="msg me">
+        <div class="col">
+          <div class="meta"><span class="name">李欣怡</span><span>16:22:08</span></div>
+          <div class="bub">您好，可以在「系统管理 → 单位信息 → 批量导入」中下载模板后导入，注意编码格式选择 UTF-8。</div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="col">
+          <div class="meta"><span class="name">陈思宇</span><span>16:25:44</span></div>
+          <div class="bub">明白了，谢谢！</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-marker"><span class="lbl">2026-08-12 · 周三</span></div>
+
+    <div class="chat-session agent-0">
+      <div class="session-hint">当前客服 · 张敏</div>
+
+      <div class="msg system"><span class="sys-line">系统于 14:32:00 自动将用户分配至 张敏 客服</span></div>
+
+      <div class="msg">
+        <div class="col">
+          <div class="meta"><span class="name">陈思宇</span><span>14:32:08</span></div>
+          <div class="bub">您好，我们单位 8 月工资数据导入到单机版系统后，所有"教育背景"字段显示空白，能否协助排查一下？</div>
+        </div>
+      </div>
+
+      <div class="msg me">
+        <div class="col">
+          <div class="meta"><span class="name">张敏</span><span>14:32:42</span></div>
+          <div class="bub">您好，陈老师。已经看到您的问题，请先导出错误日志，方便我们定位字段映射的问题。可以使用「工资管理 → 数据导入 → 导出日志」。</div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="col">
+          <div class="meta"><span class="name">陈思宇</span><span>14:34:08</span></div>
+          <div class="bub attachment">
+            <div class="ico">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="info">
+              <span class="fname">error_log_20260812.csv</span>
+              <span class="fsize">142.6 KB · 由系统生成</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg me">
+        <div class="col">
+          <div class="meta"><span class="name">张敏</span><span>14:35:22</span></div>
+          <div class="bub">收到。看到日志中第 47 行提示 <code>EDU_BG_FIELD_NULL</code> 错误码。怀疑是新版 GBK 编码表与旧版模板冲突导致，建议清空 <code>education_template.xml</code> 缓存后重试。</div>
+        </div>
+      </div>
+
+      <div class="msg system"><span class="sys-line">客服将工单标记为「重点用户」</span></div>
+
+      <div class="msg">
+        <div class="col">
+          <div class="meta"><span class="name">陈思宇</span><span>14:42:08</span></div>
+          <div class="bub">已按您说的方式操作，确实恢复了。但我们发现另一个问题——导入完成后系统提示「在线激活失效」，单机版不需要激活码吧？</div>
+        </div>
+      </div>
+
+      <div class="msg me">
+        <div class="col">
+          <div class="meta"><span class="name">张敏</span><span>14:43:11</span></div>
+          <div class="bub">单机版（事业工资系统）确实不需要单独激活码。这个提示是页面缓存异常导致的，麻烦您重启应用或清空 <code>.license</code> 隐藏目录。我这边帮您在线查看一下许可证状态。</div>
+        </div>
+      </div>
+
+      <div class="msg me">
+        <div class="col">
+          <div class="meta"><span class="name">张敏</span><span>14:48:52</span></div>
+          <div class="bub attachment">
+            <div class="ico">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="info">
+              <span class="fname">diagnosis_report_T0801.pdf</span>
+              <span class="fsize">诊断报告 · 286 KB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="col">
+          <div class="meta"><span class="name">陈思宇</span><span>15:08:32</span></div>
+          <div class="bub">好的，我先清缓存再重启，谢谢您！</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline-foot">
+    共 9 条消息
+  </div>
+</aside>
+
+<!-- ============================== Assign Modal ============================== -->
+<div class="scrim" id="assignScrim" onclick="closeAssign()"></div>
+<aside class="drawer" id="assignDrawer" style="width: 560px;">
+  <header class="drawer-head">
+    <div class="ttl">指派客服</div>
+    <button class="close" onclick="closeAssign()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </header>
+  <div class="drawer-body">
+    <div class="assign-hint">只显示与用户区域关联的客服</div>
+    <table class="agent-table" id="agentTable">
+      <thead>
+        <tr>
+          <th style="width: 40px;"></th>
+          <th style="width: 100px;">姓名</th>
+          <th style="width: 160px;">关联区域</th>
+          <th style="width: 140px;">当前服务用户</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="agent-row" data-name="李欣怡">
+          <td><span class="radio"></span></td>
+          <td><div class="agent-name"><span class="dot online"></span>李欣怡</div></td>
+          <td>华东、华南</td>
+          <td>8 人</td>
+        </tr>
+        <tr class="agent-row" data-name="张敏">
+          <td><span class="radio"></span></td>
+          <td><div class="agent-name"><span class="dot online"></span>张敏</div></td>
+          <td>华东、华北</td>
+          <td>12 人</td>
+        </tr>
+        <tr class="agent-row" data-name="刘子昂">
+          <td><span class="radio"></span></td>
+          <td><div class="agent-name"><span class="dot online"></span>刘子昂</div></td>
+          <td>华北、东北</td>
+          <td>3 人</td>
+        </tr>
+        <tr class="agent-row" data-name="魏诗涵">
+          <td><span class="radio"></span></td>
+          <td><div class="agent-name"><span class="dot away"></span>魏诗涵</div></td>
+          <td>西南、西北</td>
+          <td>5 人</td>
+        </tr>
+        <tr class="agent-row" data-name="王磊">
+          <td><span class="radio"></span></td>
+          <td><div class="agent-name"><span class="dot offline"></span>王磊</div></td>
+          <td>华东、西南</td>
+          <td>0 人</td>
+        </tr>
+        <tr class="agent-row" data-name="孙雨萱">
+          <td><span class="radio"></span></td>
+          <td><div class="agent-name"><span class="dot offline"></span>孙雨萱</div></td>
+          <td>华南、西北</td>
+          <td>0 人</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn btn-ghost" onclick="closeAssign()">取消</button>
+    <button class="btn btn-primary" id="confirmAssignBtn" onclick="confirmAssign()" disabled>确认指派</button>
+  </div>
+</aside>
+
+<!-- ============================== Assign Log Drawer ============================== -->
+<div class="scrim" id="assignLogScrim" onclick="closeAssignLog()"></div>
+<aside class="drawer" id="assignLogDrawer" style="width: 460px;">
+  <header class="drawer-head">
+    <div class="ttl">分配记录</div>
+    <button class="close" onclick="closeAssignLog()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </header>
+  <div class="drawer-body">
+    <div class="log-list" id="assignLogBody"></div>
+  </div>
+</aside>
+
+<!-- ============================== Config Modal ============================== -->
+<div class="modal" id="configModal">
+  <div class="scrim-inside" onclick="closeConfig()"></div>
+  <div class="modal-card" style="width: 540px;">
+    <div class="modal-head">
+      <h3>时效与容量配置</h3>
+      <button class="close" onclick="closeConfig()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="cfg-form">
+
+        <!-- ===== 会话失效 ===== -->
+        <section class="cfg-section">
+          <div class="cfg-section-head">
+            <span class="cfg-section-title">会话失效</span>
+            <span class="cfg-section-desc">按「客服未回复」「用户未回复」两种静默场景，分别配置阈值与自动处理规则</span>
+          </div>
+
+          <!-- 场景一：客服未回复 → 已超时 -->
+          <div class="cfg-scene">
+            <div class="cfg-scene-head">
+              <span class="cfg-scene-tag tag-timeout">客服未回复</span>
+              <div class="cfg-scene-flow">用户发来消息 → 客服超过静默阈值未回复 → 会话变为 <b class="st-timeout">已超时</b></div>
+            </div>
+            <div class="cfg-row">
+              <div class="cfg-label">
+                <span class="cfg-name">静默阈值</span>
+                <span class="cfg-sub">用户发来消息后，客服超过该时长未回复，会话状态变为「已超时」</span>
+              </div>
+              <div class="cfg-input"><input type="number" id="cfgAgentSilence" value="2" min="1" /><span class="unit">分钟</span></div>
+            </div>
+          </div>
+
+          <!-- 场景二：用户未回复 → 待关闭 → 已关闭 -->
+          <div class="cfg-scene">
+            <div class="cfg-scene-head">
+              <span class="cfg-scene-tag tag-closing">用户未回复</span>
+              <div class="cfg-scene-flow">客服发出消息 → 用户超过静默阈值未回复 → 会话变为 <b class="st-closing">待关闭</b> 并自动发送询问 → 用户仍未回复超过关闭阈值 → 会话变为 <b class="st-closed">已关闭</b></div>
+            </div>
+            <div class="cfg-row">
+              <div class="cfg-label">
+                <span class="cfg-name">静默阈值</span>
+                <span class="cfg-sub">客服发出消息后，用户超过该时长未回复，会话状态变为「待关闭」，并自动发送询问</span>
+              </div>
+              <div class="cfg-input"><input type="number" id="cfgUserSilence" value="5" min="1" /><span class="unit">分钟</span></div>
+            </div>
+            <div class="cfg-row cfg-row--col">
+              <div class="cfg-label"><span class="cfg-name">询问内容</span></div>
+              <div class="cfg-input cfg-input--full"><input type="text" id="cfgInquiryText" value="是否还有其它问题？" /></div>
+            </div>
+            <div class="cfg-row">
+              <div class="cfg-label">
+                <span class="cfg-name">关闭静默阈值</span>
+                <span class="cfg-sub">发送询问后，用户仍未回复超过该时长，会话状态变为「已关闭」</span>
+              </div>
+              <div class="cfg-input"><input type="number" id="cfgCloseSilence" value="10" min="1" /><span class="unit">分钟</span></div>
+            </div>
+            <div class="cfg-hint">需满足：用户未回复静默阈值 &lt; 关闭静默阈值</div>
+          </div>
+        </section>
+
+        <!-- ===== 服务容量 ===== -->
+        <section class="cfg-section">
+          <div class="cfg-section-head">
+            <span class="cfg-section-title">服务容量</span>
+            <span class="cfg-section-desc">限制单个客服同时服务的用户数量</span>
+          </div>
+          <div class="cfg-row">
+            <div class="cfg-label">
+              <span class="cfg-name">客服最大服务用户上限</span>
+              <span class="cfg-sub">单个客服可同时处理的会话数量</span>
+            </div>
+            <div class="cfg-input"><input type="number" id="cfgMaxUsers" value="5" min="1" /><span class="unit">人</span></div>
+          </div>
+        </section>
+
+        <div class="cfg-err" id="cfgErr" style="display: none;"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeConfig()">取消</button>
+      <button class="btn btn-primary" onclick="saveConfig()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== Auto Reply Modal ============================== -->
+<div class="modal" id="autoReplyModal">
+  <div class="scrim-inside" onclick="closeAutoReply()"></div>
+  <div class="modal-card" style="width: 520px;">
+    <div class="modal-head">
+      <h3>开启自动回复</h3>
+      <button class="close" onclick="closeAutoReply()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc">填写自动回复内容，开启后系统自动回复用户消息</div>
+      <textarea class="auto-reply-textarea" id="autoReplyContent" placeholder="请输入自动回复内容..."></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeAutoReply()">取消</button>
+      <button class="btn btn-primary" onclick="saveAutoReply()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== Delete Confirm Modal ============================== -->
+<div class="modal" id="deleteModal">
+  <div class="scrim-inside" onclick="closeDelete()"></div>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>确认删除</h3>
+      <button class="close" onclick="closeDelete()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-dialog">
+        <div style="display:flex;align-items:center;gap:18px;justify-content:center;">
+          <div class="delete-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          </div>
+          <div style="text-align:left;">
+            <div class="delete-title">确认删除?</div>
+            <div class="delete-desc">删除后数据无法恢复</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeDelete()">取消</button>
+      <button class="btn btn-primary" onclick="confirmDelete()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== Cleanup Modal ============================== -->
+<div class="modal" id="cleanupModal">
+  <div class="scrim-inside" onclick="closeCleanup()"></div>
+  <div class="modal-card" style="width: 520px;">
+    <div class="modal-head">
+      <h3>数据清理</h3>
+      <button class="close" onclick="closeCleanup()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="cleanup-form">
+        <div class="cleanup-row">
+          <div class="cleanup-label"><span class="required">*</span> 选择清理日期：</div>
+          <div class="cleanup-dates">
+            <input type="date" id="cleanupStart" />
+            <span class="sep">至</span>
+            <input type="date" id="cleanupEnd" />
+          </div>
+        </div>
+        <div class="cleanup-row">
+          <div class="cleanup-label"><span class="required">*</span> 清理对象</div>
+          <div class="cleanup-targets">
+            <label><input type="checkbox" id="cleanupUserFiles" /> 用户发送的文件：9个</label>
+            <label><input type="checkbox" id="cleanupAgentFiles" /> 客服发送的文件：5个</label>
+          </div>
+        </div>
+        <div class="cleanup-row">
+          <div class="cleanup-warning">
+            将删除所选时间范围内、所选对象发送的所有对话图片、word、pdf、视频，包括服务器存储的物理文件。此操作不可撤销。
+          </div>
+          <div class="cleanup-err" id="cleanupErr"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeCleanup()">取消</button>
+      <button class="btn btn-primary" onclick="startCleanup()">开始清理</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // State tabs — filter rows by status
+  function filterRowsByState(state) {
+    document.querySelectorAll('table.table tbody tr').forEach(row => {
+      row.style.display = (state === 'all' || row.dataset.state === state) ? '' : 'none';
+    });
+  }
+  document.querySelectorAll('#stateTabs .state-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#stateTabs .state-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      filterRowsByState(tab.dataset.state);
+    });
+  });
+  // init
+  const initialStateTab = document.querySelector('#stateTabs .state-tab.active');
+  if (initialStateTab) filterRowsByState(initialStateTab.dataset.state);
+
+  // System tabs
+  document.querySelectorAll('.sys-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.sys-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // Region multi-select
+  const regionSelect = document.getElementById('regionSelect');
+  const regionPopover = document.getElementById('regionPopover');
+  const regionCount = document.getElementById('regionCount');
+  const regionPlaceholder = document.getElementById('regionPlaceholder');
+
+  function toggleRegion(e) {
+    if (e.target.closest('.region-popover')) return;
+    const isOpen = regionSelect.classList.toggle('open');
+    regionPopover.classList.toggle('show', isOpen);
+  }
+
+  function clearRegion() {
+    document.querySelectorAll('#regionList input[type="checkbox"]').forEach(cb => cb.checked = false);
+    updateRegionDisplay();
+  }
+
+  function confirmRegion() {
+    updateRegionDisplay();
+    regionSelect.classList.remove('open');
+    regionPopover.classList.remove('show');
+  }
+
+  function filterRegion() {
+    const q = document.getElementById('regionSearch').value.toLowerCase();
+    document.querySelectorAll('#regionList .opt').forEach(opt => {
+      const txt = opt.textContent.toLowerCase();
+      opt.style.display = txt.includes(q) ? 'flex' : 'none';
+    });
+  }
+
+  function updateRegionDisplay() {
+    const checked = document.querySelectorAll('#regionList input[type="checkbox"]:checked');
+    regionCount.textContent = checked.length;
+    // Render selected chips
+    const selectBox = regionSelect;
+    // Remove old chips
+    selectBox.querySelectorAll('.sel-chip').forEach(c => c.remove());
+    // Insert placeholder visibility
+    regionPlaceholder.style.display = checked.length === 0 ? 'inline' : 'none';
+    // Add chips
+    const arrow = selectBox.querySelector('.arrow');
+    checked.forEach(cb => {
+      const txt = cb.dataset.text || cb.parentElement.textContent.trim();
+      const chip = document.createElement('span');
+      chip.className = 'sel-chip';
+      chip.innerHTML = `${txt}<span class="x" onclick="event.stopPropagation();">×</span>`;
+      chip.querySelector('.x').addEventListener('click', (e) => {
+        e.stopPropagation();
+        cb.checked = false;
+        updateRegionDisplay();
+      });
+      selectBox.insertBefore(chip, arrow);
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!regionSelect.contains(e.target) && !regionPopover.contains(e.target)) {
+      regionSelect.classList.remove('open');
+      regionPopover.classList.remove('show');
+    }
+  });
+
+  // Allocate
+  document.querySelectorAll('#regionList input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const list = document.querySelectorAll('#regionList input[type="checkbox"]:checked');
+      // 'all' is exclusive
+      if (cb.value === 'all' && cb.checked) {
+        document.querySelectorAll('#regionList input[type="checkbox"]').forEach(x => {
+          if (x !== cb) x.checked = false;
+        });
+      } else if (cb.value !== 'all' && cb.checked) {
+        const all = document.querySelector('#regionList input[value="all"]');
+        if (all) all.checked = false;
+      }
+      updateRegionDisplay();
+    });
+  });
+  updateRegionDisplay();
+
+  // Drawer
+  const drawer = document.getElementById('drawer');
+  const scrim = document.getElementById('scrim');
+  function openDrawer() {
+    drawer.classList.add('show');
+    scrim.classList.add('show');
+    setTimeout(() => {
+      const t = document.getElementById('timeline');
+      if (t) t.scrollTop = t.scrollHeight;
+    }, 50);
+  }
+  function closeDrawer() {
+    drawer.classList.remove('show');
+    scrim.classList.remove('show');
+  }
+  scrim.addEventListener('click', closeDrawer);
+  document.querySelectorAll('[data-action="chat"]').forEach(b => b.addEventListener('click', openDrawer));
+
+  // Drawer resize
+  const resizer = document.getElementById('drawerResizer');
+  let isResizing = false;
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    resizer.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    const startX = e.clientX;
+    const startWidth = drawer.offsetWidth;
+    function onMove(ev) {
+      if (!isResizing) return;
+      const delta = startX - ev.clientX;
+      let newWidth = startWidth + delta;
+      const minW = 360;
+      const maxW = Math.min(Math.floor(window.innerWidth * 0.85), 900);
+      newWidth = Math.max(minW, Math.min(maxW, newWidth));
+      drawer.style.width = newWidth + 'px';
+      drawer.style.maxWidth = 'none';
+    }
+    function onUp() {
+      isResizing = false;
+      resizer.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+
+  // Assign drawer (slides from right, consistent with chat drawer)
+  const assignDrawer = document.getElementById('assignDrawer');
+  const assignScrim = document.getElementById('assignScrim');
+  const confirmAssignBtn = document.getElementById('confirmAssignBtn');
+  let selectedAgentName = '';
+
+  function openAssign() {
+    assignDrawer.classList.add('show');
+    assignScrim.classList.add('show');
+  }
+  function closeAssign() {
+    assignDrawer.classList.remove('show');
+    assignScrim.classList.remove('show');
+    selectedAgentName = '';
+    document.querySelectorAll('.agent-row').forEach(r => r.classList.remove('selected'));
+    confirmAssignBtn.disabled = true;
+  }
+  assignScrim.addEventListener('click', closeAssign);
+  document.querySelectorAll('[data-action="assign"]').forEach(b => b.addEventListener('click', openAssign));
+
+  // Assign-log drawer (slides from right, consistent with chat drawer)
+  const assignLogDrawer = document.getElementById('assignLogDrawer');
+  const assignLogScrim = document.getElementById('assignLogScrim');
+  const assignLogBody = document.getElementById('assignLogBody');
+  function openAssignLog(log) {
+    assignLogBody.innerHTML = '';
+    (log || '').split('||').forEach(rec => {
+      if (!rec.trim()) return;
+      const m = rec.match(/^(.*?)\s+(.*)$/);
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      if (m) {
+        item.innerHTML = '<span class="lt">' + m[1] + '</span><span class="ld">' + m[2] + '</span>';
+      } else {
+        item.innerHTML = '<span class="ld">' + rec + '</span>';
+      }
+      assignLogBody.appendChild(item);
+    });
+    assignLogDrawer.classList.add('show');
+    assignLogScrim.classList.add('show');
+  }
+  function closeAssignLog() {
+    assignLogDrawer.classList.remove('show');
+    assignLogScrim.classList.remove('show');
+  }
+  assignLogScrim.addEventListener('click', closeAssignLog);
+  document.querySelectorAll('[data-action="view-assign"]').forEach(b => {
+    b.addEventListener('click', () => openAssignLog(b.dataset.log));
+  });
+
+  function confirmAssign() {
+    if (!selectedAgentName) return;
+    // Real-world: call assign API here
+    closeAssign();
+  }
+
+  document.querySelectorAll('.agent-row').forEach(row => {
+    row.addEventListener('click', () => {
+      document.querySelectorAll('.agent-row').forEach(r => r.classList.remove('selected'));
+      row.classList.add('selected');
+      selectedAgentName = row.dataset.name;
+      confirmAssignBtn.disabled = false;
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeDrawer(); closeAssign(); closeAssignLog(); closeConfig(); closeAutoReply(); closeCleanup(); }
+  });
+
+  // Delete confirm modal
+  const deleteModal = document.getElementById('deleteModal');
+  let deleteTargetRow = null;
+  function openDelete(row) {
+    deleteTargetRow = row;
+    deleteModal.classList.add('show');
+  }
+  function closeDelete() {
+    deleteModal.classList.remove('show');
+    deleteTargetRow = null;
+  }
+  function confirmDelete() {
+    if (deleteTargetRow) deleteTargetRow.remove();
+    closeDelete();
+  }
+  document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openDelete(btn.closest('tr'));
+    });
+  });
+
+  // Config modal
+  const configModal = document.getElementById('configModal');
+  const cfgErr = document.getElementById('cfgErr');
+  function openConfig() { configModal.classList.add('show'); cfgErr.style.display = 'none'; }
+  function closeConfig() { configModal.classList.remove('show'); }
+  function saveConfig() {
+    const agent = parseInt(document.getElementById('cfgAgentSilence').value, 10);
+    const user = parseInt(document.getElementById('cfgUserSilence').value, 10);
+    const close = parseInt(document.getElementById('cfgCloseSilence').value, 10);
+    const max = parseInt(document.getElementById('cfgMaxUsers').value, 10);
+    const inquiryText = document.getElementById('cfgInquiryText').value.trim();
+    if (isNaN(agent) || isNaN(user) || isNaN(close) || isNaN(max) || agent < 1 || user < 1 || close < 1 || max < 1) {
+      cfgErr.textContent = '请填写大于 0 的正整数。';
+      cfgErr.style.display = 'block';
+      return;
+    }
+    if (!inquiryText) {
+      cfgErr.textContent = '请填写询问内容。';
+      cfgErr.style.display = 'block';
+      return;
+    }
+    if (!(user < close)) {
+      cfgErr.textContent = '需满足：用户未回复静默阈值 < 关闭静默阈值。';
+      cfgErr.style.display = 'block';
+      return;
+    }
+    cfgErr.style.display = 'none';
+    closeConfig();
+  }
+
+  // Auto Reply modal (button toggles between 自动回复 / 关闭自动回复)
+  const autoReplyModal = document.getElementById('autoReplyModal');
+  const autoReplyContent = document.getElementById('autoReplyContent');
+  const autoReplyBtn = document.getElementById('autoReplyBtn');
+  let autoReplyOn = false;
+  function openAutoReply() {
+    if (autoReplyOn) {
+      // toggling off
+      autoReplyOn = false;
+      autoReplyBtn.textContent = '自动回复';
+      return;
+    }
+    autoReplyModal.classList.add('show');
+    autoReplyContent.focus();
+  }
+  function closeAutoReply() {
+    autoReplyModal.classList.remove('show');
+  }
+  function saveAutoReply() {
+    const content = autoReplyContent.value.trim();
+    if (!content) {
+      alert('请填写自动回复内容');
+      autoReplyContent.focus();
+      return;
+    }
+    autoReplyOn = true;
+    autoReplyBtn.textContent = '关闭自动回复';
+    // Real-world: call auto-reply API here
+    closeAutoReply();
+  }
+
+  // Cleanup modal
+  const cleanupModal = document.getElementById('cleanupModal');
+  const cleanupErr = document.getElementById('cleanupErr');
+  function openCleanup() {
+    cleanupModal.classList.add('show');
+    cleanupErr.style.display = 'none';
+  }
+  function closeCleanup() {
+    cleanupModal.classList.remove('show');
+    cleanupErr.style.display = 'none';
+  }
+  function startCleanup() {
+    const start = document.getElementById('cleanupStart').value;
+    const end = document.getElementById('cleanupEnd').value;
+    const userFiles = document.getElementById('cleanupUserFiles').checked;
+    const agentFiles = document.getElementById('cleanupAgentFiles').checked;
+    if (!start || !end) {
+      cleanupErr.textContent = '请选择清理日期范围。';
+      cleanupErr.style.display = 'block';
+      return;
+    }
+    if (start > end) {
+      cleanupErr.textContent = '开始日期不能晚于结束日期。';
+      cleanupErr.style.display = 'block';
+      return;
+    }
+    if (!userFiles && !agentFiles) {
+      cleanupErr.textContent = '请至少选择一个清理对象。';
+      cleanupErr.style.display = 'block';
+      return;
+    }
+    cleanupErr.style.display = 'none';
+    // Real-world: call cleanup API here
+    closeCleanup();
+  }
+</script>
+
+</body>
+</html>

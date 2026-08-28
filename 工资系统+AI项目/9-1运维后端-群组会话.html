@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能维护管理 - 群组会话</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+            sidebar: '#0b1a3a',
+            sidebarActive: '#1d4ed8',
+          },
+          fontFamily: {
+            sans: ['"Noto Sans SC"', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            'soft': '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+            'card': '0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Noto Sans SC', system-ui, sans-serif; }
+    .chat-bubble::before {
+      content: '';
+      position: absolute;
+      top: 12px;
+      width: 0;
+      height: 0;
+      border-style: solid;
+    }
+    .bubble-left::before {
+      left: -6px;
+      border-width: 6px 8px 6px 0;
+      border-color: transparent #f1f5f9 transparent transparent;
+    }
+    .bubble-right::before {
+      right: -6px;
+      border-width: 6px 0 6px 8px;
+      border-color: transparent transparent transparent #3b82f6;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .line-clamp-4 {
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex">
+
+  <!-- 左侧边栏 -->
+  <aside class="w-56 bg-sidebar text-slate-300 flex flex-col flex-shrink-0 h-screen overflow-y-auto custom-scrollbar">
+    <!-- Logo -->
+    <div class="h-14 flex items-center px-4 gap-3 border-b border-slate-700/40">
+      <div class="w-7 h-7 rounded-md bg-brand-500 flex items-center justify-center text-white">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="text-white text-sm font-semibold leading-tight">智能维护管理</div>
+      </div>
+    </div>
+
+    <!-- 导航 -->
+    <nav class="flex-1 py-3 text-sm">
+      <!-- 智能维护分组 -->
+      <div class="mb-1">
+        <button class="w-full flex items-center justify-between px-4 py-2.5 text-slate-200 hover:text-white hover:bg-white/5 transition-colors">
+          <span class="flex items-center gap-2.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+            </svg>
+            <span class="font-medium">智能维护</span>
+          </span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+          </svg>
+        </button>
+        <div class="pl-4">
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>知识库管理
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>数据洞察
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>对话记录
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>在线咨询
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-white font-medium bg-brand-600/30 border-l-2 border-brand-500">
+            <span class="w-1 h-1 rounded-full bg-white mr-3"></span>群组会话
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>咨询实施监管
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>运维数据统计
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>待办事项
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>文件上传
+          </a>
+        </div>
+      </div>
+
+      <!-- 系统管理分组 -->
+      <div>
+        <button class="w-full flex items-center justify-between px-4 py-2.5 text-slate-200 hover:text-white hover:bg-white/5 transition-colors">
+          <span class="flex items-center gap-2.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="font-medium">系统管理</span>
+          </span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+          </svg>
+        </button>
+        <div class="pl-4">
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>用户管理
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>角色权限
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>单位管理
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>license管理
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>系统版本管理
+          </a>
+          <a href="#" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+            <span class="w-1 h-1 rounded-full bg-slate-500 mr-3"></span>操作日志
+          </a>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 flex flex-col min-w-0 h-screen">
+    <!-- 顶部 Header -->
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0">
+      <div class="flex items-center text-sm text-slate-500">
+        <span>当前位置</span>
+        <span class="mx-2 text-slate-300">/</span>
+        <span class="text-slate-700 font-medium">群组会话</span>
+      </div>
+      <div class="flex items-center gap-2 text-sm text-slate-700">
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+        </svg>
+        <span class="font-medium">系统管理员</span>
+      </div>
+    </header>
+
+    <!-- 可滚动内容 -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
+      <!-- 三栏工作区 -->
+      <div class="grid grid-cols-12 h-[calc(100vh-80px)] min-h-[520px] bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <!-- 左栏：群组列表 -->
+        <section class="col-span-3 flex flex-col border-r border-slate-200 overflow-hidden">
+          <div class="p-3 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-800">群组列表</h3>
+            </div>
+            <button id="btnCreateGroup" class="text-xs text-brand-600 font-medium hover:text-brand-700 flex items-center gap-0.5 cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              创建
+            </button>
+          </div>
+          <div class="p-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1">
+                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input id="searchInput" type="text" placeholder="搜索群昵称..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+              </div>
+              <select id="regionSelect" class="w-28 flex-shrink-0 px-2 py-2 text-xs bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-600">
+                <option value="">全部区域</option>
+                <option>锦江区</option>
+                <option>青羊区</option>
+                <option>金牛区</option>
+                <option>武侯区</option>
+                <option>成华区</option>
+                <option>龙泉驿区</option>
+                <option>青白江区</option>
+                <option>新都区</option>
+                <option>温江区</option>
+                <option>双流区</option>
+                <option>郫都区</option>
+                <option>新津区</option>
+                <option>金堂县</option>
+                <option>大邑县</option>
+                <option>蒲江县</option>
+                <option>都江堰市</option>
+                <option>彭州市</option>
+                <option>邛崃市</option>
+                <option>崇州市</option>
+                <option>简阳市</option>
+              </select>
+            </div>
+          </div>
+          <div id="groupList" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
+            <div class="group-item p-3 rounded-lg bg-brand-50 border border-brand-100 cursor-pointer transition-colors" data-name="咨询实施群 01" data-region="锦江区">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-semibold text-slate-800">咨询实施群 01</span>
+                <span class="text-xs text-slate-400">8 人</span>
+              </div>
+              <div class="text-xs text-slate-500">群所属区域：锦江区</div>
+            </div>
+            <div class="group-item p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors" data-name="年报答疑群" data-region="青羊区">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-semibold text-slate-800">年报答疑群</span>
+                <span class="text-xs text-slate-400">5 人</span>
+              </div>
+              <div class="text-xs text-slate-500">群所属区域：青羊区</div>
+            </div>
+            <div class="group-item p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors" data-name="license异常群" data-region="金牛区">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-semibold text-slate-800">license异常群</span>
+                <span class="text-xs text-slate-400">3 人</span>
+              </div>
+              <div class="text-xs text-slate-500">群所属区域：金牛区</div>
+            </div>
+            <div class="group-item p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors" data-name="数据迁移交流群" data-region="武侯区">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-semibold text-slate-800">数据迁移交流群</span>
+                <span class="text-xs text-slate-400">12 人</span>
+              </div>
+              <div class="text-xs text-slate-500">群所属区域：武侯区</div>
+            </div>
+            <div class="group-item p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors" data-name="系统升级通知群" data-region="成华区">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-semibold text-slate-800">系统升级通知群</span>
+                <span class="text-xs text-slate-400">6 人</span>
+              </div>
+              <div class="text-xs text-slate-500">群所属区域：成华区</div>
+            </div>
+            <div id="emptyHint" class="hidden p-6 text-center text-xs text-slate-400">没有匹配的群组</div>
+          </div>
+        </section>
+
+        <!-- 中栏：聊天区域 -->
+        <section class="col-span-6 flex flex-col overflow-hidden">
+          <!-- 聊天头部 -->
+          <div class="p-4 border-b border-slate-100 flex-shrink-0">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-3">
+                <h3 id="chatGroupName" class="text-base font-semibold text-slate-800">咨询实施群 01</h3>
+                <span id="chatMemberBadge" class="px-2 py-0.5 text-xs text-emerald-600 bg-emerald-50 rounded-full">8 名成员</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="btnMute" class="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">
+                  禁言
+                </button>
+                <button id="btnAddMember" class="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">
+                  添加成员
+                </button>
+              </div>
+            </div>
+            <div id="chatNoticeBar" class="min-h-[28px]"></div>
+          </div>
+
+          <!-- 消息列表 -->
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3 bg-white">
+            <div class="text-center">
+              <span class="inline-block px-3 py-1 text-xs text-slate-400 bg-slate-100 rounded-full">2026-08-12</span>
+            </div>
+
+            <!-- 用户消息 1 -->
+            <div class="flex gap-2">
+              <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 flex-shrink-0">陈</div>
+              <div class="max-w-[75%]">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-xs font-medium text-slate-700">陈思宇</span>
+                  <span class="text-xs text-slate-400">14:08</span>
+                </div>
+                <div class="relative inline-block chat-bubble bubble-left bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-sm leading-snug">
+                  群里有三位同事都遇到“教育背景字段为空”的问题，能统一说明一下处理方式吗？
+                </div>
+              </div>
+            </div>
+
+            <!-- 客服统一回复 -->
+            <div class="flex flex-row-reverse gap-2">
+              <div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-xs font-medium text-brand-600 flex-shrink-0">客</div>
+              <div class="max-w-[80%]">
+                <div class="flex items-center justify-end gap-2 mb-1">
+                  <span class="text-xs text-slate-400">14:09</span>
+                  <span class="text-xs font-medium text-slate-700">张敏</span>
+                </div>
+                <div class="relative inline-block chat-bubble bubble-right bg-brand-500 text-white px-3 py-1.5 rounded-lg text-sm leading-snug">
+                  <div class="mb-2">可以统一处理。请先将导入模板切换为最新版，再清空 <code class="px-1 py-0.5 bg-white/20 rounded text-xs">.license</code> 缓存目录后重试。</div>
+                  <div class="text-xs text-brand-100 border-t border-white/20 pt-2 mt-1">
+                    统一回复范围：咨询实施群 01 内所有成员可见。
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 用户消息 2 -->
+            <div class="flex gap-2">
+              <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 flex-shrink-0">李</div>
+              <div class="max-w-[75%]">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-xs font-medium text-slate-700">李文静</span>
+                  <span class="text-xs text-slate-400">14:10</span>
+                </div>
+                <div class="relative inline-block chat-bubble bubble-left bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-sm leading-snug">
+                  我已经按这个方法恢复了，另外激活提示还能继续忽略吗？
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 输入框 -->
+          <div class="p-3 border-t border-slate-100 bg-white flex-shrink-0">
+            <div class="bg-white border border-slate-200 rounded-lg flex flex-col">
+              <textarea rows="3" placeholder="输入回复内容..." class="w-full h-20 max-h-20 bg-transparent text-sm text-slate-700 placeholder-slate-400 resize-none focus:outline-none py-2 px-4 overflow-y-auto custom-scrollbar leading-5"></textarea>
+              <div class="flex items-center justify-between px-3 pb-2.5">
+                <div class="flex items-center gap-4">
+                  <button class="flex items-center gap-1 text-xs text-slate-500 hover:text-brand-600 transition-colors" title="常见问题">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    常见问题
+                  </button>
+                  <button class="flex items-center gap-1 text-xs text-slate-500 hover:text-brand-600 transition-colors" title="本地文件">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                    本地文件
+                  </button>
+                  <button class="flex items-center gap-1 text-xs text-slate-500 hover:text-rose-600 transition-colors" title="清空输入">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    清空输入
+                  </button>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-xs text-slate-400">Enter 发送，Shift+Enter 换行</span>
+                  <button class="flex items-center gap-1 text-xs text-slate-500 hover:text-brand-600 transition-colors" title="语音">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                    </svg>
+                    语音
+                  </button>
+                  <button class="px-5 py-1.5 text-xs font-medium text-white bg-brand-500 rounded-md hover:bg-brand-600 transition-colors">
+                    发送
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 右栏：管理面板 -->
+        <section class="col-span-3 flex flex-col border-l border-slate-200 overflow-y-auto custom-scrollbar">
+          <!-- 基础信息 -->
+          <div class="p-4 border-b border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-semibold text-slate-800">基础信息</h3>
+              <button id="btnEditInfo" class="text-xs font-medium text-brand-600 hover:text-brand-700">编辑</button>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 flex-shrink-0">群昵称</span>
+                <span id="infoName" class="text-xs text-slate-900 truncate">咨询实施群 01</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 flex-shrink-0">群所属区域</span>
+                <span id="infoRegion" class="text-xs text-slate-900">锦江区</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 群成员 -->
+          <div class="p-4 border-b border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-semibold text-slate-800">群成员</h3>
+              <span id="memberDetailCount" class="text-xs text-slate-400">0 人</span>
+            </div>
+            <div id="memberListView" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-1"></div>
+          </div>
+
+          <!-- 自动回复 -->
+          <div class="p-4 border-b border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-semibold text-slate-800">自动回复</h3>
+              <button id="btnToggleAuto" class="px-3 py-1 text-xs font-medium text-brand-600 border border-brand-200 rounded-md hover:bg-brand-50 transition-colors">开启自动</button>
+            </div>
+            <div id="autoReplyView"></div>
+          </div>
+
+          <!-- 群文件 -->
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-semibold text-slate-800">群文件</h3>
+              <div class="flex items-center gap-2">
+                <span id="fileCount" class="text-xs text-slate-400">0 个</span>
+                <label id="uploadLabel" class="px-3 py-1 text-xs font-medium text-brand-600 border border-brand-200 rounded-md hover:bg-brand-50 transition-colors flex items-center justify-center gap-1 cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                  </svg>
+                  上传
+                  <input id="fileInput" type="file" multiple class="hidden">
+                </label>
+              </div>
+            </div>
+
+            <!-- 群文件上传权限开关（在上传后面） -->
+            <div class="mb-3 flex items-center gap-2.5 rounded-md bg-slate-50 border border-slate-100 px-3 py-2.5">
+              <button type="button" id="btnToggleUpload" role="switch" aria-checked="true"
+                class="relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full bg-brand-500 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30">
+                <span class="upload-dot inline-block h-4 w-4 translate-x-4 rounded-full bg-white shadow transition-transform duration-200"></span>
+              </button>
+              <div id="uploadPermText" class="min-w-0 text-xs font-medium text-slate-700 leading-tight">已允许成员上传群文件</div>
+            </div>
+
+            <div id="fileList" class="space-y-1 max-h-64 overflow-y-auto custom-scrollbar pr-1"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- 创建群组弹窗 -->
+  <div id="createModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="w-full max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="text-base font-semibold text-slate-800">创建群组</h3>
+        <button id="btnCloseX" class="text-slate-400 hover:text-slate-600 transition-colors" title="关闭">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form id="groupForm" class="px-5 py-4 space-y-3">
+        <!-- 基础信息 -->
+        <div class="bg-slate-50 rounded-lg border border-slate-200 p-3">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-semibold flex items-center justify-center">1</span>
+            <h4 class="text-sm font-semibold text-slate-800">基础信息</h4>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-slate-500 mb-1">群昵称</label>
+              <input id="groupName" type="text" placeholder="请输入群昵称" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-500 mb-1">群所属区域</label>
+              <select id="groupRegion" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-600 transition-all">
+                <option value="">请选择区域</option>
+                <option>锦江区</option>
+                <option>青羊区</option>
+                <option>金牛区</option>
+                <option>武侯区</option>
+                <option>成华区</option>
+                <option>龙泉驿区</option>
+                <option>青白江区</option>
+                <option>新都区</option>
+                <option>温江区</option>
+                <option>双流区</option>
+                <option>郫都区</option>
+                <option>新津区</option>
+                <option>金堂县</option>
+                <option>大邑县</option>
+                <option>蒲江县</option>
+                <option>都江堰市</option>
+                <option>彭州市</option>
+                <option>邛崃市</option>
+                <option>崇州市</option>
+                <option>简阳市</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 群成员 -->
+        <div class="bg-white rounded-lg border border-slate-200 p-3">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 text-xs font-semibold flex items-center justify-center">2</span>
+            <h4 class="text-sm font-semibold text-slate-800">群成员</h4>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex items-center justify-between mb-1 gap-2">
+                <label class="block text-xs text-slate-500">普通成员（来自用户管理表中-普通用户）</label>
+                <div class="flex items-center gap-2">
+                  <select id="createRegularRegion" class="px-2 py-1 text-xs bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-600">
+                    <option value="">全部区域</option>
+                    <option>锦江区</option>
+                    <option>青羊区</option>
+                    <option>金牛区</option>
+                    <option>武侯区</option>
+                    <option>成华区</option>
+                    <option>龙泉驿区</option>
+                    <option>青白江区</option>
+                    <option>新都区</option>
+                    <option>温江区</option>
+                    <option>双流区</option>
+                    <option>郫都区</option>
+                    <option>新津区</option>
+                    <option>金堂县</option>
+                    <option>大邑县</option>
+                    <option>蒲江县</option>
+                    <option>都江堰市</option>
+                    <option>彭州市</option>
+                    <option>邛崃市</option>
+                    <option>崇州市</option>
+                    <option>简阳市</option>
+                  </select>
+                  <label class="flex items-center gap-1 text-xs text-slate-500 cursor-pointer select-none">
+                    <input type="checkbox" id="selectAllRegular" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-500 focus:ring-brand-500/20">
+                    全选
+                  </label>
+                </div>
+              </div>
+              <div id="regularList" class="max-h-48 overflow-y-auto custom-scrollbar bg-white border border-slate-200 rounded-md divide-y divide-slate-100"></div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs text-slate-500">管理人员（来自用户管理表中-管理员）</label>
+                <label class="flex items-center gap-1 text-xs text-slate-500 cursor-pointer select-none">
+                  <input type="checkbox" id="selectAllAdmin" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-500 focus:ring-brand-500/20">
+                  全选
+                </label>
+              </div>
+              <div id="adminList" class="max-h-48 overflow-y-auto custom-scrollbar bg-white border border-slate-200 rounded-md divide-y divide-slate-100"></div>
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400">已选 <span id="memberCount" class="text-slate-600 font-medium">0</span> 人（普通成员 + 管理人员）</p>
+      </form>
+      <div class="px-5 py-4 border-t border-slate-100 flex justify-end gap-2">
+        <button id="btnCancel" class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">取消</button>
+        <button id="btnCreateConfirm" class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-md hover:bg-brand-600 transition-colors">创建</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加成员弹窗 -->
+  <div id="addMemberModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="w-full max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden flex flex-col h-[80vh]">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="text-base font-semibold text-slate-800">添加成员</h3>
+        <button id="btnAddMemberClose" class="text-slate-400 hover:text-slate-600 transition-colors" title="关闭">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="px-5 py-4 flex-1 flex flex-col overflow-hidden">
+        <div class="grid grid-cols-2 gap-3 flex-1 min-h-0">
+          <div class="flex flex-col min-h-0">
+            <div class="flex items-center justify-between mb-1 gap-2">
+              <label class="block text-xs text-slate-500">普通成员（来自用户管理表中-普通用户）</label>
+              <div class="flex items-center gap-2">
+                <select id="addMemberRegularRegion" class="px-2 py-1 text-xs bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-600">
+                  <option value="">全部区域</option>
+                  <option>锦江区</option>
+                  <option>青羊区</option>
+                  <option>金牛区</option>
+                  <option>武侯区</option>
+                  <option>成华区</option>
+                  <option>龙泉驿区</option>
+                  <option>青白江区</option>
+                  <option>新都区</option>
+                  <option>温江区</option>
+                  <option>双流区</option>
+                  <option>郫都区</option>
+                  <option>新津区</option>
+                  <option>金堂县</option>
+                  <option>大邑县</option>
+                  <option>蒲江县</option>
+                  <option>都江堰市</option>
+                  <option>彭州市</option>
+                  <option>邛崃市</option>
+                  <option>崇州市</option>
+                  <option>简阳市</option>
+                </select>
+                <label class="flex items-center gap-1 text-xs text-slate-500 cursor-pointer select-none">
+                  <input type="checkbox" id="selectAllAddRegular" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-500 focus:ring-brand-500/20">
+                  全选
+                </label>
+              </div>
+            </div>
+            <div id="addMemberRegularList" class="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-white border border-slate-200 rounded-md divide-y divide-slate-100"></div>
+          </div>
+          <div class="flex flex-col min-h-0">
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs text-slate-500">管理人员（来自用户管理表中-管理员）</label>
+              <label class="flex items-center gap-1 text-xs text-slate-500 cursor-pointer select-none">
+                <input type="checkbox" id="selectAllAddAdmin" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-500 focus:ring-brand-500/20">
+                全选
+              </label>
+            </div>
+            <div id="addMemberAdminList" class="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-white border border-slate-200 rounded-md divide-y divide-slate-100"></div>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 mt-2">已选 <span id="addMemberCount" class="text-slate-600 font-medium">0</span> 人（普通成员 + 管理人员）</p>
+      </div>
+      <div class="px-5 py-4 border-t border-slate-100 flex justify-end gap-2">
+        <button id="btnAddMemberCancel" class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">取消</button>
+        <button id="btnAddMemberConfirm" class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-md hover:bg-brand-600 transition-colors">确认添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 禁言确认弹窗 -->
+  <div id="muteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="w-full max-w-sm bg-white rounded-lg shadow-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 id="muteTitle" class="text-base font-semibold text-slate-800">确认禁言</h3>
+        <button id="btnMuteClose" class="text-slate-400 hover:text-slate-600 transition-colors" title="关闭">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div id="muteBody" class="px-5 py-5 text-sm text-slate-700">
+        禁言后除管理员外，其它群成员不能发送聊天消息
+      </div>
+      <div class="px-5 py-4 border-t border-slate-100 flex justify-end gap-2">
+        <button id="btnMuteCancel" class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">取消</button>
+        <button id="btnMuteConfirm" class="px-4 py-2 text-sm font-medium text-white bg-rose-500 rounded-md hover:bg-rose-600 transition-colors">确认禁言</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 群公告详情弹窗 -->
+  <div id="noticeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden max-h-[80vh] flex flex-col">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+        <h3 class="text-base font-semibold text-slate-800">群公告</h3>
+        <button id="btnNoticeModalClose" class="text-slate-400 hover:text-slate-600 transition-colors" title="关闭">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div id="noticeModalContent" class="px-5 py-5 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar flex-1"></div>
+      <div class="px-5 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+        <button id="btnNoticeModalOk" class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-md hover:bg-brand-600 transition-colors">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑群公告弹窗 -->
+  <div id="noticeEditModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="text-base font-semibold text-slate-800">编辑群公告</h3>
+        <button id="btnNoticeEditClose" class="text-slate-400 hover:text-slate-600 transition-colors" title="关闭">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="px-5 py-5">
+        <label class="block text-xs text-slate-500 mb-1">公告内容</label>
+        <textarea id="noticeEditContent" rows="6" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"></textarea>
+      </div>
+      <div class="px-5 py-4 border-t border-slate-100 flex justify-end gap-2">
+        <button id="btnNoticeEditCancel" class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">取消</button>
+        <button id="btnNoticeEditSave" class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-md hover:bg-brand-600 transition-colors">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑基础信息弹窗 -->
+  <div id="infoEditModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="w-full max-w-sm bg-white rounded-lg shadow-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="text-base font-semibold text-slate-800">编辑基础信息</h3>
+        <button id="btnInfoEditClose" class="text-slate-400 hover:text-slate-600 transition-colors" title="关闭">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="px-5 py-5 space-y-4">
+        <div>
+          <label class="block text-xs text-slate-500 mb-1">群昵称</label>
+          <input id="infoEditName" type="text" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-500 mb-1">群所属区域</label>
+          <select id="infoEditRegion" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-600">
+            <option>锦江区</option>
+            <option>青羊区</option>
+            <option>金牛区</option>
+            <option>武侯区</option>
+            <option>成华区</option>
+            <option>龙泉驿区</option>
+            <option>青白江区</option>
+            <option>新都区</option>
+            <option>温江区</option>
+            <option>双流区</option>
+            <option>郫都区</option>
+            <option>新津区</option>
+            <option>金堂县</option>
+            <option>大邑县</option>
+            <option>蒲江县</option>
+            <option>都江堰市</option>
+            <option>彭州市</option>
+            <option>邛崃市</option>
+            <option>崇州市</option>
+            <option>简阳市</option>
+          </select>
+        </div>
+      </div>
+      <div class="px-5 py-4 border-t border-slate-100 flex justify-end gap-2">
+        <button id="btnInfoEditCancel" class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">取消</button>
+        <button id="btnInfoEditSave" class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-md hover:bg-brand-600 transition-colors">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自动回复弹窗 -->
+  <div id="autoReplyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="text-base font-semibold text-slate-800">自动回复</h3>
+        <button id="btnAutoReplyClose" class="text-slate-400 hover:text-slate-600 transition-colors" title="关闭">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="px-5 py-5">
+        <label class="block text-xs text-slate-500 mb-1">自动回复内容（最多50字）</label>
+        <textarea id="autoReplyContent" rows="4" maxlength="50" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"></textarea>
+        <div class="flex justify-end mt-1">
+          <span id="autoReplyCharCount" class="text-[10px] text-slate-400">0/50</span>
+        </div>
+      </div>
+      <div class="px-5 py-4 border-t border-slate-100 flex justify-end gap-2">
+        <button id="btnAutoReplyCancel" class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">取消</button>
+        <button id="btnAutoReplySave" class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-md hover:bg-brand-600 transition-colors">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 用户管理表（示例数据）：普通用户 + 管理人员
+    const userTable = {
+      regular: [
+        { name: '陈思宇', phone: '138 0011 2233', region: '锦江区', organization: '锦江区财政局' },
+        { name: '李文静', phone: '138 0044 5566', region: '青羊区', organization: '青羊区教育局' },
+        { name: '赵磊',   phone: '139 0077 8899', region: '金牛区', organization: '金牛区卫健局' },
+        { name: '孙悦',   phone: '137 0022 3344', region: '武侯区', organization: '武侯区行政审批局' },
+        { name: '吴敏',   phone: '136 0055 6677', region: '成华区', organization: '成华区民政局' },
+        { name: '郑浩',   phone: '135 0088 9900', region: '龙泉驿区', organization: '龙泉驿区交通运输局' },
+        { name: '刘洋',   phone: '134 0011 2233', region: '青白江区', organization: '青白江区农业农村局' },
+        { name: '黄丽',   phone: '133 0055 6677', region: '新都区', organization: '新都区人社局' }
+      ],
+      admin: [
+        { name: '张敏', phone: '139 1100 2233', region: '锦江区' },
+        { name: '李欣', phone: '139 1144 5566', region: '青羊区' },
+        { name: '王强', phone: '139 1177 8899', region: '金牛区' },
+        { name: '周涛', phone: '139 0022 3344', region: '武侯区' },
+        { name: '钱昊', phone: '139 0099 8877', region: '成华区' }
+      ]
+    };
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    // 群组状态（驱动三栏联动）
+    let groups = [
+      { id: 1, name: '咨询实施群 01', region: '锦江区', members: 8, muted: false, unread: 3, announcement: '本群用于咨询实施相关问题反馈、进度同步及经验交流。\n一、进群请修改群昵称：单位+姓名；\n二、禁止发送与咨询实施无关的广告、链接或敏感信息；\n三、问题描述请尽量附带截图、单位名称及联系方式，便于管理员快速定位；\n四、工作日 9:00-18:00 将由值班管理员统一回复，紧急问题请直接电话联系管理员。', autoReply: { enabled: false, content: '' }, allowMemberUpload: true,
+        files: [
+          { name: '薪资录入模板.xlsx', size: '248KB', uploader: '群助手' },
+          { name: '半月起薪计算说明.pdf', size: '920KB', uploader: '钱多多' },
+          { name: '工资项校验清单.docx', size: '512KB', uploader: '向钱进' },
+          { name: '导入失败截图示例.png', size: '340KB', uploader: '王会计' }
+        ],
+        memberList: [
+          { type: 'admin', name: '张敏', online: true },
+          { type: 'regular', name: '陈思宇', region: '锦江区', organization: '锦江区财政局', online: true },
+          { type: 'regular', name: '李文静', region: '青羊区', organization: '青羊区教育局', online: false },
+          { type: 'regular', name: '赵磊',   region: '金牛区', organization: '金牛区卫健局', online: true },
+          { type: 'regular', name: '孙悦',   region: '武侯区', organization: '武侯区行政审批局', online: false },
+          { type: 'regular', name: '吴敏',   region: '成华区', organization: '成华区民政局', online: true },
+          { type: 'regular', name: '郑浩',   region: '龙泉驿区', organization: '龙泉驿区交通运输局', online: false },
+          { type: 'regular', name: '刘洋',   region: '青白江区', organization: '青白江区农业农村局', online: false }
+        ]
+      },
+      { id: 2, name: '年报答疑群',   region: '青羊区', members: 5, muted: false, unread: 0, announcement: '', autoReply: { enabled: false, content: '' }, allowMemberUpload: true, files: [],
+        memberList: [
+          { type: 'admin', name: '李欣', online: true },
+          { type: 'regular', name: '陈思宇', region: '锦江区', organization: '锦江区财政局', online: false },
+          { type: 'regular', name: '李文静', region: '青羊区', organization: '青羊区教育局', online: true },
+          { type: 'regular', name: '赵磊',   region: '金牛区', organization: '金牛区卫健局', online: false },
+          { type: 'regular', name: '孙悦',   region: '武侯区', organization: '武侯区行政审批局', online: true }
+        ]
+      },
+      { id: 3, name: 'license异常群', region: '金牛区', members: 3, muted: false, unread: 5, announcement: '', autoReply: { enabled: false, content: '' }, allowMemberUpload: true, files: [],
+        memberList: [
+          { type: 'admin', name: '王强', online: true },
+          { type: 'regular', name: '赵磊', region: '金牛区', organization: '金牛区卫健局', online: false },
+          { type: 'regular', name: '黄丽', region: '新都区', organization: '新都区人社局', online: true }
+        ]
+      },
+      { id: 4, name: '数据迁移交流群', region: '武侯区', members: 12, muted: false, unread: 0, announcement: '', autoReply: { enabled: false, content: '' }, allowMemberUpload: true, files: [],
+        memberList: [
+          { type: 'admin', name: '周涛', online: true },
+          { type: 'admin', name: '钱昊', online: false },
+          { type: 'regular', name: '陈思宇', region: '锦江区', organization: '锦江区财政局', online: true },
+          { type: 'regular', name: '李文静', region: '青羊区', organization: '青羊区教育局', online: false },
+          { type: 'regular', name: '赵磊',   region: '金牛区', organization: '金牛区卫健局', online: true },
+          { type: 'regular', name: '孙悦',   region: '武侯区', organization: '武侯区行政审批局', online: false },
+          { type: 'regular', name: '吴敏',   region: '成华区', organization: '成华区民政局', online: true },
+          { type: 'regular', name: '郑浩',   region: '龙泉驿区', organization: '龙泉驿区交通运输局', online: false },
+          { type: 'regular', name: '刘洋',   region: '青白江区', organization: '青白江区农业农村局', online: true },
+          { type: 'regular', name: '黄丽',   region: '新都区', organization: '新都区人社局', online: false }
+        ]
+      },
+      { id: 5, name: '系统升级通知群', region: '成华区', members: 6, muted: false, unread: 2, announcement: '', autoReply: { enabled: false, content: '' }, allowMemberUpload: true, files: [],
+        memberList: [
+          { type: 'admin', name: '钱昊', online: true },
+          { type: 'regular', name: '吴敏', region: '成华区', organization: '成华区民政局', online: false },
+          { type: 'regular', name: '郑浩', region: '龙泉驿区', organization: '龙泉驿区交通运输局', online: true },
+          { type: 'regular', name: '刘洋', region: '青白江区', organization: '青白江区农业农村局', online: false },
+          { type: 'regular', name: '黄丽', region: '新都区', organization: '新都区人社局', online: true }
+        ]
+      }
+    ];
+    let currentGroupId = 1;
+    let currentUserRole = 'admin'; // 'admin' | 'member' — 当前操作身份（演示用）
+    const getGroup = id => groups.find(g => g.id === id);
+
+    // 左侧群组列表渲染（含筛选）
+    const groupListEl = document.getElementById('groupList');
+    const searchInput = document.getElementById('searchInput');
+    const regionSelect = document.getElementById('regionSelect');
+    function renderGroupList() {
+      const kw = searchInput.value.trim().toLowerCase();
+      const region = regionSelect.value;
+      const filtered = groups.filter(g =>
+        g.name.toLowerCase().includes(kw) && (!region || g.region === region)
+      );
+      groupListEl.innerHTML = filtered.map(g => `
+        <div class="group-item p-3 rounded-lg ${g.id === currentGroupId ? 'bg-brand-50 border border-brand-100' : 'border border-slate-100 hover:bg-slate-50'} cursor-pointer transition-colors"
+             data-id="${g.id}" data-name="${escapeHtml(g.name)}" data-region="${escapeHtml(g.region)}">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-semibold text-slate-800 truncate">${escapeHtml(g.name)}</span>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              ${g.unread > 0 ? `<span class="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-medium flex items-center justify-center">${g.unread > 99 ? '99+' : g.unread}</span>` : ''}
+              <span class="text-xs text-slate-400">${g.members} 人</span>
+            </div>
+          </div>
+          <div class="text-xs text-slate-500">群所属区域：${escapeHtml(g.region)}</div>
+        </div>
+      `).join('') + `<div class="p-6 text-center text-xs text-slate-400 ${filtered.length ? 'hidden' : ''}">没有匹配的群组</div>`;
+      groupListEl.querySelectorAll('.group-item').forEach(el => {
+        el.addEventListener('click', () => selectGroup(Number(el.dataset.id)));
+      });
+    }
+    searchInput.addEventListener('input', renderGroupList);
+    regionSelect.addEventListener('change', renderGroupList);
+
+    // 群公告
+    const noticeView = document.getElementById('chatNoticeBar');
+    function openNoticeDetail(content) {
+      document.getElementById('noticeModalContent').textContent = content;
+      document.getElementById('noticeModal').classList.remove('hidden');
+    }
+    function renderNotice(g) {
+      if (g.announcement) {
+        noticeView.innerHTML = `
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-amber-50 border border-amber-100">
+            <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+            </svg>
+            <span class="text-xs text-slate-600 truncate flex-1">${escapeHtml(g.announcement)}</span>
+            <button id="btnViewNotice" type="button" class="text-xs font-medium text-brand-600 hover:text-brand-700 flex-shrink-0">查看</button>
+            <button id="btnEditNotice" type="button" class="text-xs font-medium text-slate-400 hover:text-slate-600 flex-shrink-0">编辑</button>
+          </div>`;
+        noticeView.querySelector('#btnViewNotice').addEventListener('click', () => openNoticeDetail(g.announcement));
+        noticeView.querySelector('#btnEditNotice').addEventListener('click', openNoticeEditModal);
+      } else {
+        noticeView.innerHTML = `
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-100">
+            <span class="text-xs text-slate-400 flex-1">暂无群公告</span>
+            <button id="btnEditNotice" type="button" class="text-xs font-medium text-brand-600 hover:text-brand-700 flex-shrink-0">添加</button>
+          </div>`;
+        noticeView.querySelector('#btnEditNotice').addEventListener('click', openNoticeEditModal);
+      }
+    }
+    // 编辑群公告弹窗
+    const noticeEditModal = document.getElementById('noticeEditModal');
+    const noticeEditContent = document.getElementById('noticeEditContent');
+    function openNoticeEditModal() {
+      noticeEditContent.value = getGroup(currentGroupId).announcement;
+      noticeEditModal.classList.remove('hidden');
+    }
+    const closeNoticeEdit = () => noticeEditModal.classList.add('hidden');
+    document.getElementById('btnNoticeEditClose').addEventListener('click', closeNoticeEdit);
+    document.getElementById('btnNoticeEditCancel').addEventListener('click', closeNoticeEdit);
+    noticeEditModal.addEventListener('click', e => { if (e.target === noticeEditModal) closeNoticeEdit(); });
+    document.getElementById('btnNoticeEditSave').addEventListener('click', () => {
+      const content = noticeEditContent.value.trim();
+      getGroup(currentGroupId).announcement = content;
+      renderNotice(getGroup(currentGroupId));
+      closeNoticeEdit();
+    });
+
+    // 禁言按钮状态
+    const btnMute = document.getElementById('btnMute');
+    function updateMuteButton(g) {
+      if (g.muted) {
+        btnMute.textContent = '已禁言';
+        btnMute.className = 'px-3 py-1.5 text-xs font-medium text-rose-600 border border-rose-300 rounded-md hover:bg-rose-50 transition-colors';
+      } else {
+        btnMute.textContent = '禁言';
+        btnMute.className = 'px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors';
+      }
+    }
+
+    // 禁言确认弹窗
+    const muteModal = document.getElementById('muteModal');
+    const muteTitle = document.getElementById('muteTitle');
+    const muteBody = document.getElementById('muteBody');
+    const btnMuteConfirm = document.getElementById('btnMuteConfirm');
+    const closeMute = () => muteModal.classList.add('hidden');
+    function openMute() {
+      const g = getGroup(currentGroupId);
+      if (g.muted) {
+        muteTitle.textContent = '解除禁言';
+        muteBody.textContent = '确认解除禁言，恢复群成员聊天消息发送功能';
+        btnMuteConfirm.textContent = '确认解除';
+        btnMuteConfirm.className = 'px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-md hover:bg-brand-600 transition-colors';
+      } else {
+        muteTitle.textContent = '确认禁言';
+        muteBody.textContent = '禁言后除管理员外，其它群成员不能发送聊天消息';
+        btnMuteConfirm.textContent = '确认禁言';
+        btnMuteConfirm.className = 'px-4 py-2 text-sm font-medium text-white bg-rose-500 rounded-md hover:bg-rose-600 transition-colors';
+      }
+      muteModal.classList.remove('hidden');
+    }
+    btnMute.addEventListener('click', openMute);
+    document.getElementById('btnMuteCancel').addEventListener('click', closeMute);
+    document.getElementById('btnMuteClose').addEventListener('click', closeMute);
+    muteModal.addEventListener('click', e => { if (e.target === muteModal) closeMute(); });
+    btnMuteConfirm.addEventListener('click', () => {
+      const g = getGroup(currentGroupId);
+      g.muted = !g.muted;
+      updateMuteButton(g);
+      closeMute();
+    });
+
+    // 群公告详情弹窗
+    const noticeModal = document.getElementById('noticeModal');
+    const closeNoticeModal = () => noticeModal.classList.add('hidden');
+    document.getElementById('btnNoticeModalClose').addEventListener('click', closeNoticeModal);
+    document.getElementById('btnNoticeModalOk').addEventListener('click', closeNoticeModal);
+    noticeModal.addEventListener('click', e => { if (e.target === noticeModal) closeNoticeModal(); });
+
+    // 选择群组 -> 联动中栏与右栏
+    function selectGroup(id) {
+      const g = getGroup(id);
+      if (!g) return;
+      currentGroupId = id;
+      if (g.unread > 0) g.unread = 0;
+      document.getElementById('chatGroupName').textContent = g.name;
+      document.getElementById('chatMemberBadge').textContent = g.members + ' 名成员';
+      document.getElementById('infoName').textContent = g.name;
+      document.getElementById('infoRegion').textContent = g.region;
+      renderNotice(g);
+      renderAutoReply(g);
+      renderFiles(g);
+      applyUploadPermission(g);
+      renderMemberList(g);
+      updateMuteButton(g);
+      renderGroupList();
+    }
+
+    // 右侧 - 自动回复（标题右侧开关 + 弹窗编辑）
+    const autoReplyView = document.getElementById('autoReplyView');
+    const btnToggleAuto = document.getElementById('btnToggleAuto');
+    function renderAutoReply(g) {
+      if (g.autoReply.enabled) {
+        autoReplyView.innerHTML = `
+          <div class="p-3 rounded-md bg-emerald-50 border border-emerald-100">
+            <div class="text-xs font-medium text-emerald-700 mb-1">自动回复已开启</div>
+            <p class="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">${escapeHtml(g.autoReply.content)}</p>
+          </div>`;
+        btnToggleAuto.textContent = '关闭自动回复';
+        btnToggleAuto.className = 'px-3 py-1 text-xs font-medium text-rose-600 border border-rose-200 rounded-md hover:bg-rose-50 transition-colors';
+      } else {
+        autoReplyView.innerHTML = '<p class="text-xs text-slate-400">未开启自动回复</p>';
+        btnToggleAuto.textContent = '开启自动';
+        btnToggleAuto.className = 'px-3 py-1 text-xs font-medium text-brand-600 border border-brand-200 rounded-md hover:bg-brand-50 transition-colors';
+      }
+    }
+    // 自动回复弹窗
+    const autoReplyModal = document.getElementById('autoReplyModal');
+    const autoReplyContent = document.getElementById('autoReplyContent');
+    const closeAutoReply = () => autoReplyModal.classList.add('hidden');
+    btnToggleAuto.addEventListener('click', () => {
+      const g = getGroup(currentGroupId);
+      if (g.autoReply.enabled) {
+        g.autoReply.enabled = false;
+        renderAutoReply(g);
+      } else {
+        autoReplyContent.value = g.autoReply.content;
+        document.getElementById('autoReplyCharCount').textContent = autoReplyContent.value.length + '/50';
+        autoReplyModal.classList.remove('hidden');
+      }
+    });
+    autoReplyContent.addEventListener('input', () => {
+      document.getElementById('autoReplyCharCount').textContent = autoReplyContent.value.length + '/50';
+    });
+    document.getElementById('btnAutoReplyClose').addEventListener('click', closeAutoReply);
+    document.getElementById('btnAutoReplyCancel').addEventListener('click', closeAutoReply);
+    autoReplyModal.addEventListener('click', e => { if (e.target === autoReplyModal) closeAutoReply(); });
+    document.getElementById('btnAutoReplySave').addEventListener('click', () => {
+      const g = getGroup(currentGroupId);
+      const content = autoReplyContent.value.trim();
+      if (!content) { alert('请输入自动回复内容'); return; }
+      if (content.length > 50) { alert('自动回复内容最多50个字'); return; }
+      g.autoReply.enabled = true;
+      g.autoReply.content = content;
+      renderAutoReply(g);
+      closeAutoReply();
+    });
+
+    // 右侧 - 群成员（基础信息下方）
+    const memberListView = document.getElementById('memberListView');
+    const memberDetailCount = document.getElementById('memberDetailCount');
+    function renderMemberList(g) {
+      const list = g.memberList || [];
+      const onlineCount = list.filter(m => m.online).length;
+      memberDetailCount.textContent = list.length + ' 人 · ' + onlineCount + ' 在线';
+      if (!list.length) {
+        memberListView.innerHTML = '<div class="text-xs text-slate-400 py-2 text-center">暂无群成员</div>';
+        return;
+      }
+      memberListView.innerHTML = list.map(m => {
+        const initial = m.name.charAt(0);
+        const isOnline = !!m.online;
+        const statusDot = `<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white ${isOnline ? 'bg-emerald-500' : 'bg-slate-300'}"></span>`;
+        const statusText = `<span class="text-[10px] ${isOnline ? 'text-emerald-600' : 'text-slate-400'}">${isOnline ? '在线' : '离线'}</span>`;
+        if (m.type === 'admin') {
+          return `<div class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-slate-50" title="${isOnline ? '在线' : '离线'}">
+            <div class="relative flex-shrink-0">
+              <span class="w-7 h-7 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-medium">${escapeHtml(initial)}</span>
+              ${statusDot}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm text-slate-700 truncate">${escapeHtml(m.name)}</span>
+                <span class="px-1.5 py-0.5 text-[10px] font-medium text-brand-600 bg-brand-50 border border-brand-100 rounded">管理员</span>
+                ${statusText}
+              </div>
+            </div>
+          </div>`;
+        }
+        return `<div class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-slate-50" title="${isOnline ? '在线' : '离线'}">
+          <div class="relative flex-shrink-0">
+            <span class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600">${escapeHtml(initial)}</span>
+            ${statusDot}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5">
+              <span class="text-sm text-slate-700 truncate">${escapeHtml(m.name)}</span>
+              ${statusText}
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-slate-400">
+              <span class="truncate flex-shrink-0">${escapeHtml(m.region || '')}</span>
+              <span class="text-slate-300">·</span>
+              <span class="flex-shrink-0">单位</span>
+              <span class="truncate text-slate-600">${escapeHtml(m.organization || '—')}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // 右侧 - 群文件
+    function getFileIconStyle(name) {
+      const ext = name.split('.').pop().toLowerCase();
+      if (['xlsx', 'xls', 'csv'].includes(ext)) return { bg: 'bg-emerald-100', text: 'text-emerald-600', label: 'XLS' };
+      if (['pdf'].includes(ext)) return { bg: 'bg-rose-100', text: 'text-rose-600', label: 'PDF' };
+      if (['doc', 'docx'].includes(ext)) return { bg: 'bg-blue-100', text: 'text-blue-600', label: 'DOC' };
+      if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) return { bg: 'bg-purple-100', text: 'text-purple-600', label: 'IMG' };
+      return { bg: 'bg-slate-100', text: 'text-slate-600', label: 'FILE' };
+    }
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + 'B';
+      if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + 'KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+    }
+    function downloadFile(name) {
+      const blob = new Blob([''], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    function deleteFile(index) {
+      if (!confirm('确认删除该文件？')) return;
+      const g = getGroup(currentGroupId);
+      g.files.splice(index, 1);
+      renderFiles(g);
+    }
+    function renderFiles(g) {
+      const list = document.getElementById('fileList');
+      document.getElementById('fileCount').textContent = g.files.length + ' 个';
+      list.innerHTML = g.files.length
+        ? g.files.map((f, i) => {
+            const style = getFileIconStyle(f.name);
+            return `
+            <div class="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-slate-50 group">
+              <div class="w-9 h-9 rounded-lg ${style.bg} ${style.text} flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                ${style.label}
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="text-xs text-slate-700 truncate font-medium">${escapeHtml(f.name)}</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(f.size)} · ${escapeHtml(f.uploader)}</div>
+              </div>
+              <div class="flex items-center gap-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button type="button" data-index="${i}" class="btn-download text-xs text-brand-600 hover:text-brand-700 font-medium">下载</button>
+                <button type="button" data-index="${i}" class="btn-delete text-xs text-rose-600 hover:text-rose-700 font-medium">删除</button>
+              </div>
+            </div>`;
+          }).join('')
+        : '<div class="text-xs text-slate-400 py-2 text-center">暂无群文件</div>';
+      list.querySelectorAll('.btn-download').forEach(btn => {
+        btn.addEventListener('click', () => downloadFile(g.files[+btn.dataset.index].name));
+      });
+      list.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteFile(+btn.dataset.index));
+      });
+    }
+    // 群文件上传权限（开关 + 当前身份）
+    function canUploadNow(g) {
+      return currentUserRole === 'admin' || g.allowMemberUpload;
+    }
+    function applyUploadPermission(g) {
+      const on = g.allowMemberUpload;
+      const sw = document.getElementById('btnToggleUpload');
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+      sw.classList.toggle('bg-brand-500', on);
+      sw.classList.toggle('bg-slate-300', !on);
+      const dot = sw.querySelector('.upload-dot');
+      dot.classList.toggle('translate-x-4', on);
+      dot.classList.toggle('translate-x-0.5', !on);
+      document.getElementById('uploadPermText').textContent = on ? '已允许成员上传群文件' : '已关闭用户文件上传';
+      updateUploadControl(g);
+    }
+    function updateUploadControl(g) {
+      const label = document.getElementById('uploadLabel');
+      const input = document.getElementById('fileInput');
+      const allowed = canUploadNow(g);
+      if (allowed) {
+        label.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none', 'text-slate-400', 'border-slate-200');
+        label.classList.add('text-brand-600', 'border-brand-200', 'hover:bg-brand-50', 'cursor-pointer');
+        input.disabled = false;
+        label.removeAttribute('title');
+      } else {
+        label.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none', 'text-slate-400', 'border-slate-200');
+        label.classList.remove('hover:bg-brand-50', 'text-brand-600', 'border-brand-200', 'cursor-pointer');
+        input.disabled = true;
+        label.setAttribute('title', '仅管理员可上传群文件');
+      }
+    }
+    document.getElementById('btnToggleUpload').addEventListener('click', () => {
+      const g = getGroup(currentGroupId);
+      g.allowMemberUpload = !g.allowMemberUpload;
+      applyUploadPermission(g);
+    });
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const g = getGroup(currentGroupId);
+      if (!canUploadNow(g)) { e.target.value = ''; return; }
+      const uploaderName = currentUserRole === 'admin' ? '系统管理员' : '普通成员';
+      const files = Array.from(e.target.files).map(f => ({ name: f.name, size: formatFileSize(f.size), uploader: uploaderName }));
+      if (files.length) { g.files.push(...files); renderFiles(g); }
+      e.target.value = '';
+    });
+
+    // 右侧 - 基础信息（弹窗编辑）
+    const btnEditInfo = document.getElementById('btnEditInfo');
+    const infoName = document.getElementById('infoName');
+    const infoRegion = document.getElementById('infoRegion');
+    const infoEditModal = document.getElementById('infoEditModal');
+    const infoEditName = document.getElementById('infoEditName');
+    const infoEditRegion = document.getElementById('infoEditRegion');
+    const openInfoEdit = () => {
+      const g = getGroup(currentGroupId);
+      infoEditName.value = g.name;
+      infoEditRegion.value = g.region;
+      infoEditModal.classList.remove('hidden');
+    };
+    const closeInfoEdit = () => infoEditModal.classList.add('hidden');
+    btnEditInfo.addEventListener('click', openInfoEdit);
+    document.getElementById('btnInfoEditClose').addEventListener('click', closeInfoEdit);
+    document.getElementById('btnInfoEditCancel').addEventListener('click', closeInfoEdit);
+    infoEditModal.addEventListener('click', e => { if (e.target === infoEditModal) closeInfoEdit(); });
+    document.getElementById('btnInfoEditSave').addEventListener('click', () => {
+      const g = getGroup(currentGroupId);
+      const name = infoEditName.value.trim();
+      const region = infoEditRegion.value;
+      if (!name) { alert('群昵称不能为空'); return; }
+      g.name = name; g.region = region;
+      infoName.textContent = name;
+      infoRegion.textContent = region;
+      document.getElementById('chatGroupName').textContent = name;
+      renderGroupList();
+      closeInfoEdit();
+    });
+
+    // 中间 - 添加成员弹窗
+    const addMemberModal = document.getElementById('addMemberModal');
+    const addMemberRegularList = document.getElementById('addMemberRegularList');
+    const addMemberAdminList = document.getElementById('addMemberAdminList');
+    const addMemberRegularRegion = document.getElementById('addMemberRegularRegion');
+    const selectAllAddRegular = document.getElementById('selectAllAddRegular');
+    const selectAllAddAdmin = document.getElementById('selectAllAddAdmin');
+    function addMemberRow(type, u) {
+      return `<label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer">
+        <input type="checkbox" class="add-member-checkbox w-4 h-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500/20" data-type="${type}" value="${escapeHtml(u.name)}">
+        <span class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-medium text-slate-600 flex-shrink-0">${escapeHtml(u.name.charAt(0))}</span>
+        <span class="text-sm text-slate-700">${escapeHtml(u.name)}</span>
+        <span class="text-xs text-slate-400 ml-1">${escapeHtml(u.phone)}</span>
+      </label>`;
+    }
+    function renderAddMemberRegularList() {
+      const region = addMemberRegularRegion.value;
+      const filtered = region ? userTable.regular.filter(u => u.region === region) : userTable.regular;
+      addMemberRegularList.innerHTML = filtered.length
+        ? filtered.map(u => addMemberRow('regular', u)).join('')
+        : '<div class="p-4 text-center text-xs text-slate-400">该区域暂无普通用户</div>';
+      selectAllAddRegular.checked = false;
+      updateAddMemberCount();
+      updateAddMemberSelectAllState();
+    }
+    function renderAddMemberAdminList() {
+      addMemberAdminList.innerHTML = userTable.admin.map(u => addMemberRow('admin', u)).join('');
+      selectAllAddAdmin.checked = false;
+      updateAddMemberCount();
+      updateAddMemberSelectAllState();
+    }
+    function updateAddMemberCount() {
+      document.getElementById('addMemberCount').textContent =
+        addMemberModal.querySelectorAll('.add-member-checkbox:checked').length;
+    }
+    function updateAddMemberSelectAllState() {
+      const regularBoxes = addMemberRegularList.querySelectorAll('.add-member-checkbox');
+      selectAllAddRegular.checked = regularBoxes.length > 0 && addMemberRegularList.querySelectorAll('.add-member-checkbox:not(:checked)').length === 0;
+      const adminBoxes = addMemberAdminList.querySelectorAll('.add-member-checkbox');
+      selectAllAddAdmin.checked = adminBoxes.length > 0 && addMemberAdminList.querySelectorAll('.add-member-checkbox:not(:checked)').length === 0;
+    }
+    addMemberModal.addEventListener('change', e => {
+      if (e.target.classList.contains('add-member-checkbox')) {
+        updateAddMemberCount();
+        updateAddMemberSelectAllState();
+      }
+    });
+    addMemberRegularRegion.addEventListener('change', () => {
+      selectAllAddRegular.checked = false;
+      renderAddMemberRegularList();
+    });
+    selectAllAddRegular.addEventListener('change', () => {
+      addMemberRegularList.querySelectorAll('.add-member-checkbox').forEach(c => c.checked = selectAllAddRegular.checked);
+      updateAddMemberCount();
+      updateAddMemberSelectAllState();
+    });
+    selectAllAddAdmin.addEventListener('change', () => {
+      addMemberAdminList.querySelectorAll('.add-member-checkbox').forEach(c => c.checked = selectAllAddAdmin.checked);
+      updateAddMemberCount();
+      updateAddMemberSelectAllState();
+    });
+    const openAddMember = () => {
+      addMemberRegularRegion.value = '';
+      renderAddMemberRegularList();
+      renderAddMemberAdminList();
+      addMemberModal.classList.remove('hidden');
+    };
+    const closeAddMember = () => {
+      addMemberModal.classList.add('hidden');
+      addMemberRegularRegion.value = '';
+      addMemberModal.querySelectorAll('.add-member-checkbox').forEach(c => c.checked = false);
+      selectAllAddRegular.checked = false;
+      selectAllAddAdmin.checked = false;
+      renderAddMemberRegularList();
+      renderAddMemberAdminList();
+      document.getElementById('addMemberCount').textContent = '0';
+    };
+    document.getElementById('btnAddMember').addEventListener('click', openAddMember);
+    document.getElementById('btnAddMemberCancel').addEventListener('click', closeAddMember);
+    document.getElementById('btnAddMemberClose').addEventListener('click', closeAddMember);
+    addMemberModal.addEventListener('click', e => { if (e.target === addMemberModal) closeAddMember(); });
+    document.getElementById('btnAddMemberConfirm').addEventListener('click', () => {
+      const g = getGroup(currentGroupId);
+      const checked = addMemberModal.querySelectorAll('.add-member-checkbox:checked');
+      const sel = checked.length;
+      if (!sel) { alert('请选择要添加的成员'); return; }
+      const existing = new Set((g.memberList || []).map(m => m.name));
+      checked.forEach(c => {
+        const type = c.dataset.type;
+        const name = c.value;
+        if (existing.has(name)) return;
+        if (type === 'admin') {
+          g.memberList = g.memberList || [];
+          g.memberList.push({ type: 'admin', name, online: true });
+        } else {
+          const u = userTable.regular.find(x => x.name === name);
+          g.memberList = g.memberList || [];
+          g.memberList.push({ type: 'regular', name, region: u ? u.region : '', organization: u ? u.organization : '', online: true });
+        }
+        existing.add(name);
+      });
+      g.members += sel;
+      document.getElementById('chatMemberBadge').textContent = g.members + ' 名成员';
+      renderMemberList(g);
+      renderGroupList();
+      closeAddMember();
+    });
+
+    // 创建群组弹窗 - 普通成员 / 管理人员
+    const createModal = document.getElementById('createModal');
+    const regularList = document.getElementById('regularList');
+    const adminList = document.getElementById('adminList');
+    const selectAllRegular = document.getElementById('selectAllRegular');
+    const selectAllAdmin = document.getElementById('selectAllAdmin');
+    function personRow(type, u) {
+      return `<label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer">
+        <input type="checkbox" class="create-checkbox w-4 h-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500/20" data-type="${type}" value="${escapeHtml(u.name)}">
+        <span class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-medium text-slate-600 flex-shrink-0">${escapeHtml(u.name.charAt(0))}</span>
+        <span class="text-sm text-slate-700">${escapeHtml(u.name)}</span>
+        <span class="text-xs text-slate-400 ml-1">${escapeHtml(u.phone)}</span>
+      </label>`;
+    }
+    const createRegularRegion = document.getElementById('createRegularRegion');
+    function renderRegularList() {
+      const region = createRegularRegion.value;
+      const filtered = region ? userTable.regular.filter(u => u.region === region) : userTable.regular;
+      regularList.innerHTML = filtered.length
+        ? filtered.map(u => personRow('regular', u)).join('')
+        : '<div class="p-4 text-center text-xs text-slate-400">该区域暂无普通用户</div>';
+      selectAllRegular.checked = false;
+      updateCreateMemberCount();
+      updateSelectAllState();
+    }
+    renderRegularList();
+    adminList.innerHTML = userTable.admin.map(u => personRow('admin', u)).join('');
+    createRegularRegion.addEventListener('change', renderRegularList);
+    function updateCreateMemberCount() {
+      document.getElementById('memberCount').textContent =
+        createModal.querySelectorAll('.create-checkbox:checked').length;
+    }
+    function updateSelectAllState() {
+      const regularBoxes = regularList.querySelectorAll('.create-checkbox');
+      selectAllRegular.checked = regularBoxes.length > 0 && regularList.querySelectorAll('.create-checkbox:not(:checked)').length === 0;
+      const adminBoxes = adminList.querySelectorAll('.create-checkbox');
+      selectAllAdmin.checked = adminBoxes.length > 0 && adminList.querySelectorAll('.create-checkbox:not(:checked)').length === 0;
+    }
+    createModal.addEventListener('change', e => {
+      if (e.target.classList.contains('create-checkbox')) {
+        updateCreateMemberCount();
+        updateSelectAllState();
+      }
+    });
+    selectAllRegular.addEventListener('change', () => {
+      regularList.querySelectorAll('.create-checkbox').forEach(c => c.checked = selectAllRegular.checked);
+      updateCreateMemberCount();
+      updateSelectAllState();
+    });
+    selectAllAdmin.addEventListener('change', () => {
+      adminList.querySelectorAll('.create-checkbox').forEach(c => c.checked = selectAllAdmin.checked);
+      updateCreateMemberCount();
+      updateSelectAllState();
+    });
+    const openCreate = () => {
+      createRegularRegion.value = '';
+      renderRegularList();
+      createModal.classList.remove('hidden');
+    };
+    const closeCreate = () => {
+      createModal.classList.add('hidden');
+      document.getElementById('groupForm').reset();
+      createModal.querySelectorAll('.create-checkbox').forEach(c => c.checked = false);
+      selectAllRegular.checked = false;
+      selectAllAdmin.checked = false;
+      createRegularRegion.value = '';
+      renderRegularList();
+      document.getElementById('memberCount').textContent = '0';
+    };
+    document.getElementById('btnCreateGroup').addEventListener('click', openCreate);
+    document.getElementById('btnCancel').addEventListener('click', closeCreate);
+    document.getElementById('btnCloseX').addEventListener('click', closeCreate);
+    createModal.addEventListener('click', e => { if (e.target === createModal) closeCreate(); });
+    document.getElementById('btnCreateConfirm').addEventListener('click', () => {
+      const name = document.getElementById('groupName').value.trim();
+      const region = document.getElementById('groupRegion').value;
+      const count = createModal.querySelectorAll('.create-checkbox:checked').length;
+      if (!name) { alert('请输入群昵称'); return; }
+      if (!region) { alert('请选择群所属区域'); return; }
+      const newId = groups.length ? Math.max(...groups.map(g => g.id)) + 1 : 1;
+      groups.unshift({ id: newId, name, region, members: count, muted: false, unread: 0, announcement: '', autoReply: { enabled: false, content: '' }, allowMemberUpload: true, files: [], memberList: [] });
+      currentGroupId = newId;
+      renderGroupList();
+      selectGroup(newId);
+      closeCreate();
+    });
+
+    // 初始化
+    renderGroupList();
+    selectGroup(currentGroupId);
+  </script>
+
+</body>
+</html>

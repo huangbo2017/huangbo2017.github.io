@@ -1,0 +1,2489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>在线咨询 - 三栏群组会话原型</title>
+  <style>
+    :root {
+      --bg-app: #eef1fb;
+      --bg-sidebar: linear-gradient(180deg, #f5f3fb 0%, #e6e8fa 100%);
+      --bg-chat: linear-gradient(180deg, #f7f8fd 0%, #eef2fb 100%);
+      --bg-selected: #e9f3ff;
+      --bg-hover: #f2f7ff;
+      --bg-user: #d8efff;
+      --bg-agent: #ffffff;
+      --text-strong: #213044;
+      --text-body: #43536a;
+      --text-muted: #8390a3;
+      --line-soft: #d8e4f4;
+      --line-strong: #b7d5f7;
+      --accent: #2f8de4;
+      --accent-strong: #1f75ca;
+      --accent-soft: #e5f3ff;
+      --success: #2fa66a;
+      --danger: #ef4f58;
+      --shadow-bubble: 0 3px 10px rgba(41, 58, 84, 0.10);
+      --radius-md: 10px;
+      --font-ui: "Microsoft YaHei", "PingFang SC", "Segoe UI", system-ui, sans-serif;
+      --sidebar-width: calc(100vw * 9 / 50);
+      --nav-height: 37px;
+      --side-panel-width: calc(100vw * 11 / 50);
+      --composer-height: 86px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-ui);
+      color: var(--text-body);
+      background: var(--bg-app);
+      overflow: hidden;
+    }
+
+    button, textarea, input { font: inherit; }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    button:focus-visible,
+    textarea:focus-visible,
+    input:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      height: 100dvh;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--bg-app);
+    }
+
+    .brand-rail {
+      background: var(--bg-sidebar);
+      border-right: 1px solid #cbdcf5;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .brand-head {
+      height: var(--nav-height);
+      flex: 0 0 var(--nav-height);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 8px;
+      color: var(--accent-strong);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.01em;
+      border-bottom: 1px solid rgba(194, 210, 236, 0.72);
+    }
+
+    .brand-mark {
+      width: 16px;
+      height: 16px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      transform: rotate(-10deg);
+      flex: 0 0 auto;
+    }
+
+    .brand-mark span {
+      display: block;
+      border-radius: 3px;
+      background: var(--accent);
+    }
+
+    .brand-mark span:nth-child(2) { opacity: 0.65; transform: translateY(4px); }
+    .brand-mark span:nth-child(3) { opacity: 0.75; }
+
+    .conversation-panel {
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-height: 0;
+    }
+
+    .section-label {
+      margin: 0 2px 4px;
+      font-size: 11px;
+      color: #617188;
+    }
+
+    .section-nav { display: none; }
+
+    .conversation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 1px;
+    }
+
+    .conversation-card {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: center;
+      padding: 7px 6px;
+      min-height: 42px;
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--text-body);
+      text-align: left;
+      transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .conversation-card:hover { background: var(--bg-hover); }
+
+    .conversation-card[aria-selected="true"] {
+      background: var(--bg-selected);
+      border-color: var(--line-strong);
+      box-shadow: 0 6px 14px rgba(47, 141, 228, 0.10);
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #57a8ec, #237ccf);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+      flex: 0 0 auto;
+    }
+
+    .avatar::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: currentColor;
+      position: absolute;
+      top: 7px;
+    }
+
+    .avatar::after {
+      content: "";
+      width: 18px;
+      height: 11px;
+      border-radius: 12px 12px 4px 4px;
+      background: currentColor;
+      position: absolute;
+      bottom: 6px;
+    }
+
+    .avatar.group { background: linear-gradient(135deg, #78b6f0, #2f8de4); }
+
+    .avatar.group .mini-person {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffffff;
+      top: 7px;
+      left: 8px;
+      box-shadow: 8px 2px 0 rgba(255,255,255,0.86);
+    }
+
+    .avatar.group .mini-body {
+      position: absolute;
+      width: 20px;
+      height: 11px;
+      border-radius: 12px 12px 4px 4px;
+      background: #ffffff;
+      bottom: 7px;
+      left: 6px;
+    }
+
+    .avatar.group::before,
+    .avatar.group::after { content: none; }
+
+    .conversation-main { min-width: 0; }
+
+    .conversation-title-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .conversation-title {
+      color: var(--text-strong);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .conversation-kind {
+      font-size: 9px;
+      color: var(--accent-strong);
+      background: #dceeff;
+      border-radius: 99px;
+      padding: 1px 4px;
+      white-space: nowrap;
+    }
+
+    .conversation-preview {
+      margin-top: 3px;
+      display: block;
+      font-size: 10px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .conversation-meta {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-start;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .conversation-meta .unread-badge {
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--danger);
+      color: #fff;
+      font-size: 10px;
+      line-height: 1;
+      border-radius: 999px;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(239, 79, 88, 0.4);
+    }
+
+    .conversation-meta .unread-badge[hidden] { display: none; }
+
+    .main {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--side-panel-width);
+      grid-template-rows: var(--nav-height) minmax(0, 1fr);
+      background: var(--bg-chat);
+      overflow: hidden;
+    }
+
+    .top-nav {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid #bfd7f6;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.85) inset;
+      min-width: 0;
+      position: relative;
+    }
+
+    .nav-tabs {
+      height: var(--nav-height);
+      display: flex;
+      align-items: stretch;
+      min-width: 0;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      position: relative;
+      min-width: 86px;
+      padding: 0 16px;
+      color: #6d7482;
+      font-size: 13px;
+      transition: color 180ms ease, background 180ms ease;
+      white-space: nowrap;
+    }
+
+    .nav-tab:hover { color: var(--accent-strong); background: rgba(47, 141, 228, 0.05); }
+    .nav-tab.active { color: var(--accent-strong); font-weight: 700; }
+
+    .nav-tab.active::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 0;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--accent);
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-right: 12px;
+      color: #68788f;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .user-icon {
+      width: 13px;
+      height: 13px;
+      border: 1.5px solid var(--accent);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .user-icon::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 4px;
+      border: 1.5px solid var(--accent);
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      left: 1.5px;
+      bottom: -4px;
+    }
+
+    .nav-bell {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      margin-right: 8px;
+      padding: 0;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #5b6b84;
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease;
+    }
+
+    .nav-bell:hover { background: rgba(47, 141, 228, 0.1); color: var(--accent-strong); }
+    .nav-bell:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .nav-bell svg { width: 18px; height: 18px; }
+
+    .nav-bell.active { color: var(--accent-strong); }
+
+    .bell-badge {
+      position: absolute;
+      top: 1px;
+      right: 1px;
+      min-width: 15px;
+      height: 15px;
+      padding: 0 4px;
+      border-radius: 8px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 10px;
+      line-height: 15px;
+      text-align: center;
+      box-shadow: 0 0 0 1.5px #fff;
+    }
+
+    .bell-badge[hidden] { display: none; }
+
+    .notify-panel {
+      position: absolute;
+      top: calc(100% - 2px);
+      right: 12px;
+      width: min(340px, 86vw);
+      background: #fff;
+      border: 1px solid #dce6f4;
+      border-radius: 12px;
+      box-shadow: 0 18px 48px rgba(33, 48, 68, 0.18);
+      z-index: 50;
+      overflow: hidden;
+      transform-origin: top right;
+      max-height: 0;
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+      transition: max-height 280ms ease, opacity 220ms ease, transform 280ms ease;
+    }
+
+    .notify-panel.open {
+      max-height: 460px;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .notify-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      border-bottom: 1px solid #eef2f8;
+    }
+
+    .notify-title { font-size: 14px; font-weight: 700; color: #213044; }
+
+    .notify-clear {
+      border: none;
+      background: transparent;
+      color: var(--accent-strong);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 6px;
+    }
+
+    .notify-clear:hover { background: rgba(47, 141, 228, 0.08); }
+
+    .notify-list {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 6px;
+    }
+
+    .notify-item {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 9px;
+      padding: 10px 8px;
+      border-radius: 9px;
+      transition: background 150ms ease;
+    }
+
+    .notify-item:hover { background: #f5f9ff; }
+
+    .notify-dot {
+      width: 8px;
+      height: 8px;
+      margin: 6px auto 0;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .notify-item.read .notify-dot { background: transparent; }
+
+    .notify-item--join .notify-dot { background: #2f8de4; }
+    .notify-item--dissolve .notify-dot { background: #f0a020; }
+    .notify-item--join { border-left: 3px solid rgba(47, 141, 228, 0.35); }
+    .notify-item--dissolve { border-left: 3px solid rgba(240, 160, 32, 0.4); }
+
+    .notify-main { min-width: 0; }
+
+    .notify-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2a3a4f;
+      margin-bottom: 2px;
+    }
+
+    .notify-item-text {
+      font-size: 12px;
+      color: #5f6f84;
+      line-height: 1.5;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .notify-item-time {
+      margin-top: 3px;
+      font-size: 10px;
+      color: #97a3b6;
+    }
+
+    .notify-empty {
+      padding: 28px 12px;
+      text-align: center;
+      color: #97a3b6;
+      font-size: 13px;
+    }
+
+    .chat-layout {
+      grid-column: 1;
+      grid-row: 2;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 1fr;
+      position: relative;
+      overflow: hidden;
+      border-right: 1px solid #c8dbf3;
+    }
+
+    .chat-header { display: none; }
+
+    .message-scroll {
+      min-height: 0;
+      overflow-y: auto;
+      padding: 8px 28px calc(var(--composer-height) + 18px);
+      scroll-behavior: smooth;
+    }
+
+    .date-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 6px 0 12px;
+      color: #7f8998;
+      font-size: 11px;
+    }
+
+    .date-divider::before,
+    .date-divider::after {
+      content: "";
+      width: 64px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #d2dcec);
+    }
+
+    .date-divider::after { background: linear-gradient(90deg, #d2dcec, transparent); }
+
+    .message-row {
+      display: flex;
+      gap: 9px;
+      margin: 10px auto;
+      max-width: 720px;
+    }
+
+    .message-row.user { justify-content: flex-end; }
+    .message-row.user .message-stack { align-items: flex-end; }
+
+    .message-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      min-width: 0;
+      max-width: min(520px, 72%);
+    }
+
+    .sender-name {
+      color: #6b7687;
+      font-size: 11px;
+      padding: 0 3px;
+    }
+
+    .mention {
+      color: var(--accent-strong);
+      font-weight: 600;
+      background: #e7f2ff;
+      border-radius: 4px;
+      padding: 0 2px;
+    }
+
+    .message-row { position: relative; }
+
+    .bubble {
+      min-height: 33px;
+      display: flex;
+      align-items: center;
+      border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md);
+      background: var(--bg-agent);
+      color: #37475c;
+      padding: 5px 12px;
+      box-shadow: var(--shadow-bubble);
+      font-size: 13px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .user .bubble {
+      border-radius: var(--radius-md) 0 var(--radius-md) var(--radius-md);
+      background: var(--bg-user);
+    }
+
+    .message-avatar {
+      width: 25px;
+      height: 25px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, #54a4eb, #2381da);
+      flex: 0 0 auto;
+      margin-top: 18px;
+      position: relative;
+      color: #fff;
+    }
+
+    .message-avatar::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      position: absolute;
+      left: 9px;
+      top: 6px;
+    }
+
+    .message-avatar::after {
+      content: "";
+      width: 14px;
+      height: 9px;
+      border-radius: 12px 12px 4px 4px;
+      background: currentColor;
+      position: absolute;
+      left: 5.5px;
+      bottom: 5px;
+    }
+
+    .attachment-card {
+      width: 154px;
+      padding: 7px;
+      background: #d9efff;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-bubble);
+    }
+
+    .fake-thumb {
+      height: 58px;
+      border-radius: 5px;
+      background:
+        linear-gradient(90deg, rgba(47,141,228,.18) 1px, transparent 1px),
+        linear-gradient(rgba(47,141,228,.12) 1px, transparent 1px),
+        #f8fbff;
+      background-size: 10px 10px;
+      border: 1px solid #b9d9f5;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .fake-thumb::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 10px;
+      height: 6px;
+      background: #3b9ae8;
+      border-radius: 99px;
+      box-shadow: 0 12px 0 #edf4fb, 34px 12px 0 #c4dcf2, 0 24px 0 #edf4fb, 48px 24px 0 #c4dcf2;
+    }
+
+    .fake-thumb::after {
+      content: "";
+      position: absolute;
+      width: 44px;
+      height: 30px;
+      right: 11px;
+      bottom: 8px;
+      border-bottom: 2px solid #7c8ca0;
+      border-left: 2px solid #7c8ca0;
+      transform: skewX(-18deg);
+      background: linear-gradient(135deg, transparent 46%, #8a98aa 47%, #8a98aa 51%, transparent 52%);
+    }
+
+    .attachment-title {
+      margin-top: 6px;
+      color: #36516c;
+      font-size: 11px;
+    }
+
+    .file-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 280px;
+    }
+
+    .file-card {
+      min-height: 33px;
+      display: grid;
+      grid-template-columns: 24px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px 4px 5px;
+      border-radius: 9px;
+      background: #ffffff;
+      box-shadow: var(--shadow-bubble);
+      border: 1px solid rgba(204, 219, 238, 0.68);
+      color: #37475c;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .file-icon {
+      width: 23px;
+      height: 23px;
+      border-radius: 5px;
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 9px;
+    }
+
+    .file-icon.doc { background: #4f8ff0; }
+    .file-icon.xls { background: #24a458; }
+    .file-icon.pdf { background: #fb5a57; }
+    .file-icon.zip { background: #8b6cf0; }
+    .file-icon.img { background: #2f9a8f; }
+
+    .file-name {
+      color: #37475c;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .download-link {
+      color: #4477ff;
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .download-link:hover { text-decoration: underline; }
+
+    .rating-bubble {
+      min-height: 33px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 5px 11px;
+      border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md);
+      background: #ffffff;
+      box-shadow: var(--shadow-bubble);
+      color: #37475c;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .rating-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .rating-button {
+      min-width: 64px;
+      height: 24px;
+      padding: 0 12px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1px solid #c8d2df;
+      color: #4d5d72;
+      font-size: 12px;
+      line-height: 22px;
+      transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .rating-button:hover,
+    .rating-button[aria-pressed="true"] {
+      background: #2f8de4;
+      border-color: #2f8de4;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .rating-button:active { transform: scale(0.98); }
+
+    .rating-result-row {
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .rating-result-row .message-stack {
+      max-width: min(520px, 72%);
+      align-items: center;
+    }
+
+    .rating-result {
+      min-height: 33px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 16px;
+      border-radius: 5px;
+      background: #dfe9ff;
+      color: #7387aa;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .composer {
+      position: fixed;
+      left: calc(var(--sidebar-width) + 28px);
+      right: calc(var(--side-panel-width) + 28px);
+      bottom: 7px;
+      z-index: 30;
+      min-height: var(--composer-height);
+      background: #ffffff;
+      border: 1px solid #b9d4f4;
+      border-radius: 3px;
+      box-shadow: 0 10px 22px rgba(35, 77, 125, 0.12);
+      overflow: hidden;
+    }
+
+    .composer-body {
+      position: relative;
+      padding: 7px 10px 6px;
+    }
+
+    .composer-main {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .pending-attachment {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      width: fit-content;
+      max-width: 100%;
+      min-height: 25px;
+      padding: 3px 9px 3px 5px;
+      border-radius: 7px;
+      background: #eef6ff;
+      border: 1px solid #cadcf0;
+      color: #42607f;
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .pending-attachment[hidden],
+    .risk-tip.hidden { display: none; }
+
+    .pending-icon {
+      width: 19px;
+      height: 19px;
+      border-radius: 5px;
+      background: #dbeafe;
+      color: #2f8de4;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+
+    .pending-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mention-pop {
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + 6px);
+      z-index: 40;
+      width: 220px;
+      max-height: 200px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #cfe0f4;
+      border-radius: 10px;
+      box-shadow: 0 12px 28px rgba(35, 77, 125, 0.18);
+      padding: 4px;
+    }
+
+    .mention-pop[hidden] { display: none; }
+
+    .mention-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      width: 100%;
+      padding: 5px 8px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      font-size: 12px;
+      color: #33465e;
+    }
+
+    .mention-item:hover,
+    .mention-item.active { background: #eef6ff; }
+
+    .mention-item .mini-ava {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: #e5f1ff;
+      color: var(--accent-strong);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+
+    .mention-item .mini-tag {
+      margin-left: auto;
+      font-size: 10px;
+      color: var(--accent-strong);
+      background: #e7f2ff;
+      border-radius: 4px;
+      padding: 0 5px;
+    }
+
+    .mention-empty {
+      padding: 8px;
+      font-size: 11px;
+      color: #97a3b6;
+      text-align: center;
+    }
+
+    .pending-remove {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: #e8f0fa;
+      color: #7a899d;
+      font-size: 12px;
+      flex: 0 0 auto;
+    }
+
+    .pending-remove:hover { background: #dce9f7; color: #3b556f; }
+
+    .composer textarea {
+      width: 100%;
+      min-height: 44px;
+      max-height: 120px;
+      resize: vertical;
+      border: 0;
+      background: transparent;
+      padding: 4px 86px 18px 2px;
+      color: #324257;
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    .composer textarea::placeholder { color: #a7b2c2; }
+
+    .composer.is-muted {
+      border-color: #d7e0ec;
+      background: #f7f9fc;
+      box-shadow: 0 8px 18px rgba(94, 112, 135, 0.10);
+    }
+
+    .composer.is-muted .composer-body {
+      background: linear-gradient(180deg, #f8fbff 0%, #f2f6fb 100%);
+    }
+
+    .composer.is-muted textarea {
+      color: #8a96a8;
+      cursor: not-allowed;
+      resize: none;
+    }
+
+    .composer.is-muted textarea::placeholder { color: #9aa7b8; }
+
+    .composer.is-muted .icon-btn,
+    .composer.is-muted .pending-remove {
+      color: #aab5c4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .composer.is-muted .icon-btn:hover,
+    .composer.is-muted .pending-remove:hover { background: transparent; }
+
+    .mute-banner {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      width: fit-content;
+      max-width: calc(100% - 92px);
+      min-height: 24px;
+      margin-bottom: 5px;
+      padding: 3px 9px;
+      border: 1px solid #dbe5f1;
+      border-radius: 7px;
+      background: #eef3f8;
+      color: #738195;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .mute-banner::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #a4afbd;
+      box-shadow: 0 0 0 3px rgba(164, 175, 189, 0.18);
+      flex: 0 0 auto;
+    }
+
+    .composer.is-muted .mute-banner { display: inline-flex; }
+
+    .voice-status {
+      color: #a7b2c2;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .voice-status.active { color: #2f8de4; }
+
+    .send-area {
+      position: absolute;
+      right: 10px;
+      bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: auto;
+      z-index: 2;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 150ms ease, transform 120ms ease;
+      flex-shrink: 0;
+      color: #5d6d7e;
+    }
+
+    .icon-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .icon-btn:hover {
+      background: #eef2f7;
+      color: #2f8de4;
+    }
+
+    .icon-btn:active { transform: scale(0.92); }
+
+    .voice-btn[aria-pressed="true"] { color: var(--accent-strong); }
+
+    .send-btn:hover { color: var(--accent-strong); }
+
+    .risk-tip {
+      padding: 0 10px 6px;
+      color: var(--danger);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .detail-panel {
+      grid-column: 2;
+      grid-row: 2;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 4px 14px 12px;
+      background: #f7f9fe;
+      overflow-y: auto;
+    }
+
+    .detail-section {
+      padding: 12px 2px;
+      flex: 0 0 auto;
+    }
+
+    .detail-section + .detail-section {
+      border-top: 1px solid #e2e9f3;
+    }
+
+    .detail-content {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .detail-section.members,
+    .detail-section.files {
+      display: flex;
+      min-height: 0;
+    }
+
+    .detail-section.members .detail-content,
+    .detail-section.files .detail-content {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .detail-section.members {
+      height: calc(100dvh * 2 / 5);
+    }
+
+    .detail-section.files {
+      height: 300px;
+    }
+
+    .detail-title-bar {
+      height: 30px;
+      flex: 0 0 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 10px;
+      border-bottom: 1px solid #edf2f8;
+      color: #43536a;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .title-bar-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .history-link {
+      padding: 0;
+      border: none;
+      background: none;
+      color: var(--accent-strong);
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .history-link:hover { text-decoration: underline; }
+    .history-link:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
+    .hist-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(33, 48, 68, 0.42);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 60;
+    }
+
+    .hist-overlay[hidden] { display: none; }
+
+    .hist-card {
+      width: 50vw;
+      max-width: 100%;
+      max-height: 78vh;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 22px 56px rgba(33, 48, 68, 0.3);
+      overflow: hidden;
+      animation: hist-pop 180ms ease;
+    }
+
+    @keyframes hist-pop {
+      from { transform: translateY(8px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .hist-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid #eef2f8;
+      font-weight: 700;
+      font-size: 15px;
+      color: #213044;
+    }
+
+    .hist-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 20px;
+      line-height: 1;
+      color: #97a3b6;
+      cursor: pointer;
+    }
+
+    .hist-close:hover { background: #f3f6fb; color: #213044; }
+
+    .hist-body {
+      padding: 14px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hist-empty {
+      padding: 18px 0;
+      text-align: center;
+      font-size: 12px;
+      color: #8b97a8;
+    }
+
+    .hist-item {
+      border: 1px solid #e6edf6;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fbfdff;
+    }
+
+    .hist-item.current {
+      border-color: #cfe0f4;
+      background: #f2f8ff;
+    }
+
+    .hist-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .hist-date {
+      font-size: 11px;
+      color: #617796;
+      font-weight: 600;
+    }
+
+    .hist-tag {
+      margin-left: auto;
+      padding: 0 6px;
+      border-radius: 99px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+
+    .hist-text {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.7;
+      color: #43536a;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .hist-foot {
+      display: flex;
+      justify-content: flex-end;
+      padding: 12px 16px;
+      border-top: 1px solid #eef2f8;
+    }
+
+    .hist-ok {
+      min-height: 32px;
+      padding: 0 18px;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .hist-ok:hover { background: var(--accent-strong); }
+
+    .detail-badge {
+      min-height: 18px;
+      padding: 0 6px;
+      border-radius: 99px;
+      background: #edf5ff;
+      color: #617796;
+      font-size: 10px;
+      font-weight: 400;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .notice-body {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #52627a;
+    }
+
+    .notice-list {
+      margin: 0;
+      padding-left: 15px;
+    }
+
+    .notice-list li + li { margin-top: 3px; }
+
+    .notice-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .notice-text {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #52627a;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .member-list {
+      padding: 7px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .member-item {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      align-items: center;
+      gap: 7px;
+      padding: 5px;
+      border-radius: 8px;
+      background: rgba(243, 248, 255, 0.86);
+      border: 1px solid transparent;
+    }
+
+    .member-item:hover { background: #f3f8ff; border-color: #d7e4f2; }
+
+    .member-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #e5f1ff;
+      color: var(--accent-strong);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .member-info {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .member-name {
+      display: block;
+      color: #33465e;
+      font-weight: 400;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .member-tag {
+      flex: 0 0 auto;
+      padding: 0 6px;
+      border-radius: 4px;
+      background: #e5f1ff;
+      color: var(--accent-strong);
+      font-size: 10px;
+      line-height: 15px;
+      white-space: nowrap;
+    }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      font-size: 12px;
+      color: #37475c;
+      transition: background 150ms ease;
+    }
+
+    .file-row:hover { background: #eef5ff; }
+
+    .file-type-icon {
+      font-size: 16px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .file-row-main { min-width: 0; }
+
+    .file-row-name {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--accent-strong);
+      font-weight: 500;
+    }
+
+    .file-row-meta {
+      margin-top: 1px;
+      display: block;
+      font-size: 10px;
+      color: #7e8b9d;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-row-action {
+      font-size: 12px;
+      color: var(--accent-strong);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .file-row-action:hover { text-decoration: underline; }
+
+    .file-row-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+    }
+
+    .file-row-delete {
+      font-size: 12px;
+      color: #9aa7b8;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      white-space: nowrap;
+      font-family: inherit;
+      transition: color 150ms ease;
+    }
+
+    .file-row-delete:hover { color: var(--danger); }
+    .file-row-delete:focus-visible { color: var(--danger); text-decoration: underline; }
+
+    @media (max-width: 960px) {
+      .nav-tab { min-width: 78px; padding: 0 10px; }
+      .message-scroll { padding-left: 16px; padding-right: 16px; }
+      .composer { left: calc(var(--sidebar-width) + 16px); right: calc(var(--side-panel-width) + 16px); }
+      .send-area { min-width: auto; }
+      .voice-status { font-size: 10px; }
+    }
+
+    @media (max-width: 760px) {
+      body { overflow: hidden; }
+
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .brand-rail {
+        border-right: 0;
+        border-bottom: 1px solid #cbdcf5;
+      }
+
+      .conversation-panel { padding: 8px; }
+
+      .conversation-list {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 3px;
+      }
+
+      .conversation-card {
+        width: 205px;
+        flex: 0 0 205px;
+      }
+
+      .main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .detail-panel { display: none; }
+      .nav-tabs { padding-left: 0; }
+      .message-scroll { padding: 12px 12px calc(var(--composer-height) + 18px); }
+      .message-stack { max-width: 82%; }
+      .file-stack { min-width: min(300px, calc(100vw - 82px)); }
+
+      .composer {
+        left: 10px;
+        right: 10px;
+        bottom: 8px;
+      }
+
+      .send-area { min-width: auto; gap: 6px; bottom: 9px; }
+      .icon-btn { width: 26px; height: 26px; }
+      .icon-btn svg { width: 16px; height: 16px; }
+      .voice-status { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="brand-rail" aria-label="咨询会话列表">
+      <div class="brand-head">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span>智能操作助手</span>
+      </div>
+
+      <div class="conversation-panel">
+        <p class="section-label">在线咨询</p>
+        <div class="section-nav" role="navigation" aria-label="在线咨询菜单">
+          <button class="section-nav-item" type="button" data-section="service">在线咨询</button>
+          <button class="section-nav-item active" type="button" data-section="group">群组会话</button>
+        </div>
+        <div class="conversation-list" role="tablist" aria-label="在线客服与群聊切换">
+          <button class="conversation-card" role="tab" aria-selected="false" aria-controls="chat-area" data-chat="service">
+            <span class="avatar" aria-hidden="true"></span>
+            <span class="conversation-main">
+              <span class="conversation-title-row">
+                <span class="conversation-title">在线客服</span>
+                <span class="conversation-kind">人工</span>
+              </span>
+              <span class="conversation-preview">人工客服向钱进正在为您服务</span>
+            </span>
+            <span class="conversation-meta"><span class="unread-badge" hidden></span><span>15:22</span></span>
+          </button>
+
+          <button class="conversation-card" role="tab" aria-selected="false" aria-controls="chat-area" data-chat="group">
+            <span class="avatar group" aria-hidden="true"><span class="mini-person"></span><span class="mini-body"></span></span>
+            <span class="conversation-main">
+              <span class="conversation-title-row">
+                <span class="conversation-title">薪资录入答疑群</span>
+                <span class="conversation-kind">群聊</span>
+              </span>
+              <span class="conversation-preview">钱多多：起薪时间15日以前...</span>
+            </span>
+            <span class="conversation-meta"><span class="unread-badge" hidden></span><span>15:26</span></span>
+          </button>
+
+          <button class="conversation-card" role="tab" aria-selected="false" aria-controls="chat-area" data-chat="purchase">
+            <span class="avatar group" aria-hidden="true"><span class="mini-person"></span><span class="mini-body"></span></span>
+            <span class="conversation-main">
+              <span class="conversation-title-row">
+                <span class="conversation-title">采购业务交流群</span>
+                <span class="conversation-kind">群聊</span>
+              </span>
+              <span class="conversation-preview">向钱进：多单位切换可在登录...</span>
+            </span>
+            <span class="conversation-meta"><span class="unread-badge" hidden></span><span>13:22</span></span>
+          </button>
+
+          <button class="conversation-card" role="tab" aria-selected="false" aria-controls="chat-area" data-chat="implementation">
+            <span class="avatar group" aria-hidden="true"><span class="mini-person"></span><span class="mini-body"></span></span>
+            <span class="conversation-main">
+              <span class="conversation-title-row">
+                <span class="conversation-title">实施上线支持群</span>
+                <span class="conversation-kind">群聊</span>
+              </span>
+              <span class="conversation-preview">系统顾问：已同步最新模板...</span>
+            </span>
+            <span class="conversation-meta"><span class="unread-badge" hidden></span><span>昨天</span></span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <nav class="top-nav" aria-label="顶部功能导航">
+        <div class="nav-tabs">
+          <button class="nav-tab">AI工作窗口</button>
+          <button class="nav-tab active" aria-current="page">在线咨询</button>
+          <button class="nav-tab">文件下载</button>
+          <button class="nav-tab">政策文件检索</button>
+          <button class="nav-tab">问题反馈</button>
+        </div>
+        <div class="user-area">
+          <button class="nav-bell" type="button" id="navBell" aria-haspopup="true" aria-expanded="false" aria-label="通知">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="bell-badge" id="bellBadge">3</span>
+          </button>
+          <span class="user-icon" aria-hidden="true"></span>
+          <span>UYA1244</span>
+        </div>
+        <div class="notify-panel" id="notifyPanel" role="dialog" aria-label="通知消息">
+          <div class="notify-head">
+            <span class="notify-title">通知</span>
+            <button class="notify-clear" type="button" id="notifyClear">全部已读</button>
+          </div>
+          <div class="notify-list" id="notifyList"></div>
+        </div>
+      </nav>
+
+      <section class="chat-layout" id="chat-area" aria-live="polite">
+        <header class="chat-header">
+          <div class="chat-title-wrap">
+            <span class="avatar" id="headerAvatar" aria-hidden="true"></span>
+            <div>
+              <h1 class="chat-title" id="chatTitle">在线客服</h1>
+              <div class="chat-subtitle" id="chatSubtitle">人工客服向钱进正在为您服务</div>
+            </div>
+          </div>
+          <div class="header-actions" id="headerActions"></div>
+        </header>
+
+        <div class="message-scroll" id="messageList"></div>
+
+        <form class="composer" id="composerForm">
+          <div class="composer-body">
+            <div class="composer-main">
+              <div class="pending-attachment" id="pendingAttachment" hidden>
+                <span class="pending-icon" id="pendingAttachmentIcon" aria-hidden="true">图</span>
+                <span class="pending-name" id="pendingAttachmentName">已粘贴图片</span>
+                <button class="pending-remove" type="button" id="pendingAttachmentRemove" aria-label="移除附件">×</button>
+              </div>
+              <div class="mute-banner" id="muteBanner">当前会话已禁言，暂不能发送消息</div>
+              <textarea id="messageInput" placeholder="请输入你的问题" aria-label="请输入你的问题"></textarea>
+            </div>
+            <div class="send-area">
+              <span class="voice-status" id="voiceStatus">Shift+Enter 换行　　Enter直接发送</span>
+              <button class="icon-btn voice-btn" type="button" id="voiceButton" aria-pressed="false" aria-label="语音发送">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </button>
+              <button class="icon-btn send-btn" type="submit" aria-label="发送消息">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="mention-pop" id="mentionPop" hidden></div>
+          <div class="risk-tip hidden" id="riskTip">注：图片不能包含身份证号、姓名等相关涉密的敏感信息，否则有泄露风险</div>
+        </form>
+      </section>
+
+      <aside class="detail-panel" id="detailPanel" aria-label="群公告、群成员和群文件"></aside>
+    </main>
+  </div>
+
+  <div class="hist-overlay" id="historyModal" hidden>
+    <div class="hist-card" role="dialog" aria-modal="true" aria-labelledby="histModalTitle">
+      <div class="hist-head">
+        <span id="histModalTitle">历史公告</span>
+        <button class="hist-close" type="button" id="histModalClose" aria-label="关闭">×</button>
+      </div>
+      <div class="hist-body" id="histModalBody"></div>
+      <div class="hist-foot">
+        <button class="hist-ok" type="button" id="histModalOk">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const notifications = [
+      { id: 1, type: "join", title: "进群通知", text: "2026-8-12 14:22:25 你被管理员拉去群聊“工资业务咨询群”", time: "08-12", read: false },
+      { id: 2, type: "join", title: "进群通知", text: "2026-8-20 09:15:03 你被管理员拉去群聊“采购业务交流群”", time: "08-20", read: false },
+      { id: 3, type: "dissolve", title: "群解散通知", text: "2026-9-1 15:21:37 群“工资业务咨询群”已被解散", time: "09-01", read: false }
+    ];
+
+    const chats = {
+      service: {
+        title: "在线客服",
+        subtitle: "人工客服向钱进正在为您服务",
+        avatar: "single",
+        actions: [],
+        composer: "请输入你的问题",
+        panelMode: "service",
+        unread: 0,
+        announcement: {
+          title: "咨询提示",
+          tips: [
+            "您新发起的对话，系统会自动为您分配服务人员",
+            "服务人员发来的消息请及时回复，如果静默等待时间过长，对话会自动结束",
+            "发送的图片中不能包含涉密/敏感信息，请脱敏处理后再发送"
+          ]
+        },
+        members: [
+          { name: "向钱进", role: "人工客服", state: "服务中" },
+          { name: "钱多多", role: "候补客服", state: "可接入" }
+        ],
+        files: [
+          { name: "聊天页面对接指南.docx", type: "doc", size: "1.2MB", uploader: "人工客服", time: "2026-08-18 09:12" },
+          { name: "聊天页面对接指南.pdf", type: "pdf", size: "860KB", uploader: "人工客服", time: "2026-08-18 09:12" }
+        ],
+        messages: [
+          { type: "divider", text: "2026年4月2日　13:22:26" },
+          { side: "user", name: "我", text: "如何进行多单位询问切换？" },
+          { side: "agent", name: "人工：向钱进", text: "如同一经办人管理多个单位，可多次单位注册后，在登录界面下拉选择进行单位切换。" },
+          { side: "agent", name: "人工：向钱进", text: "请问还有什么可以帮您？" },
+          { type: "divider", text: "2026年5月30日　15:22:26" },
+          { side: "user", name: "我", attachment: true, text: "录入人员如何半月起薪？" },
+          { side: "agent", name: "人工：钱多多", text: "起薪时间15日以前为整月，起薪时间16日起，则为半月起薪，系统会自动扣除半月增资额。" },
+          { side: "agent", name: "人工：钱多多", text: "还有什么可以帮您？" },
+          { side: "agent", name: "人工：kj8898", files: [
+            { name: "聊天页面对接指南.docx", type: "doc" },
+            { name: "聊天页面对接指南.xlsx", type: "xls" },
+            { name: "聊天页面对接指南.pdf", type: "pdf" }
+          ] },
+          { side: "agent", name: "人工：向钱进", rating: ["非常满意", "满意", "一般", "不满意"], text: "请您对本次服务进行评价" }
+        ]
+      },
+      group: {
+        title: "薪资录入答疑群",
+        subtitle: "群聊 · 8名成员 · 支持咨询、文件与截图协作",
+        avatar: "group",
+        actions: [],
+        composer: "请输入你的问题",
+        panelMode: "group",
+        unread: 3,
+        announcement: {
+          title: "群公告",
+          date: "2026-08-10 09:00",
+          body: "本群用于薪资录入、起薪月份、工资项校验等问题答疑。上传截图或文件前请先脱敏，避免泄露证件号、姓名等敏感信息。",
+          history: [
+            { date: "2026-07-15 10:12", publisher: "钱多多", body: "本群用于薪资录入、起薪月份相关问题答疑。请在工作日 9:00-18:00 提问，非工作时间留言将于次日回复。" },
+            { date: "2026-05-20 09:30", publisher: "向钱进", body: "本群仅用于薪资录入类问题答疑，其他业务请咨询在线客服。提问时请附上单位名称与具体人员信息。" }
+          ]
+        },
+        members: [
+          { name: "钱多多", role: "人工客服", state: "在线", admin: true },
+          { name: "向钱进", role: "人工客服", state: "在线", admin: true },
+          { name: "群助手", role: "系统助手", state: "在线" },
+          { name: "王会计", role: "经办人", state: "在线" },
+          { name: "李老师", role: "复核人", state: "离线" },
+          { name: "薪资专员", role: "业务成员", state: "在线" },
+          { name: "人事A组", role: "业务成员", state: "离线" },
+          { name: "财务B组", role: "业务成员", state: "离线" }
+        ],
+        files: [
+          { name: "薪资录入模板.xlsx", type: "xls", size: "248KB", uploader: "群助手", time: "2026-08-15 10:24" },
+          { name: "半月起薪计算说明.pdf", type: "pdf", size: "920KB", uploader: "钱多多", time: "2026-08-16 14:08" },
+          { name: "工资项校验清单.docx", type: "doc", size: "512KB", uploader: "向钱进", time: "2026-08-19 16:35" },
+          { name: "导入失败截图示例.png", type: "img", size: "340KB", uploader: "王会计", time: "2026-08-20 11:02" }
+        ],
+        messages: [
+          { type: "divider", text: "2026年4月2日　13:22:26" },
+          { side: "user", name: "我", text: "如何进行多单位询问切换？" },
+          { side: "agent", name: "人工：向钱进", text: "如同一经办人管理多个单位，可多次单位注册后，在登录界面下拉选择进行单位切换。" },
+          { side: "agent", name: "人工：向钱进", text: "请问还有什么可以帮您？" },
+          { type: "divider", text: "2026年5月30日　15:22:26" },
+          { side: "user", name: "我", attachment: true, text: "录入人员如何半月起薪？" },
+          { side: "agent", name: "人工：钱多多", text: "起薪时间15日以前为整月，起薪时间16日起，则为半月起薪，系统会自动扣除半月增资额。" },
+          { side: "agent", name: "人工：钱多多", text: "还有什么可以帮您？" },
+          { side: "member", name: "王会计", files: [
+            { name: "薪资录入模板.xlsx", type: "xls" },
+            { name: "半月起薪计算说明.pdf", type: "pdf" }
+          ] },
+          { side: "agent", name: "群助手", text: "群文件已同步到右侧文件区，成员可直接下载，也可以继续上传补充材料。" }
+        ]
+      },
+      purchase: {
+        title: "采购业务交流群",
+        subtitle: "群聊 · 12名成员 · 多单位切换与采购流程答疑",
+        avatar: "group",
+        actions: [],
+        composer: "请输入你的问题",
+        panelMode: "group",
+        unread: 5,
+        announcement: {
+          title: "群公告",
+          date: "2026-08-05 15:30",
+          body: "采购相关问题请补充单位名称、采购类型、流程节点。合同与报价附件可上传到群文件，便于客服统一查看。",
+          history: [
+            { date: "2026-07-08 14:20", publisher: "采购一组", body: "采购问题请补充单位名称与采购类型，便于客服快速定位对应的流程环节。" },
+            { date: "2026-06-12 11:05", publisher: "单位管理员", body: "本群用于采购流程答疑，紧急事项请直接 @ 管理员，一般问题按排队顺序处理。" }
+          ]
+        },
+        members: [
+          { name: "向钱进", role: "人工客服", state: "在线", admin: true },
+          { name: "钱多多", role: "人工客服", state: "在线" },
+          { name: "采购一组", role: "业务成员", state: "在线" },
+          { name: "采购二组", role: "业务成员", state: "离线" },
+          { name: "单位管理员", role: "管理员", state: "在线", admin: true },
+          { name: "合同专员", role: "业务成员", state: "离线" },
+          { name: "财务复核", role: "复核人", state: "离线" },
+          { name: "仓储协同", role: "业务成员", state: "在线" }
+        ],
+        files: [
+          { name: "采购流程操作手册.pdf", type: "pdf", size: "1.6MB", uploader: "向钱进", time: "2026-08-14 09:40" },
+          { name: "供应商信息导入模板.xlsx", type: "xls", size: "310KB", uploader: "单位管理员", time: "2026-08-17 15:22" },
+          { name: "合同审核材料清单.docx", type: "doc", size: "488KB", uploader: "合同专员", time: "2026-08-21 10:05" }
+        ],
+        messages: [
+          { type: "divider", text: "2026年4月2日　13:22:26" },
+          { side: "user", name: "我", text: "如何进行多单位询问切换？" },
+          { side: "agent", name: "人工：向钱进", text: "如同一经办人管理多个单位，可多次单位注册后，在登录界面下拉选择进行单位切换。" },
+          { side: "member", name: "采购一组", text: "切换单位后，历史咨询记录还会保留吗？" },
+          { side: "agent", name: "人工：向钱进", text: "会保留。左侧列表会按“在线客服”和各群聊分别展示，点击不同会话即可切换查看。" }
+        ]
+      },
+      implementation: {
+        title: "实施上线支持群",
+        subtitle: "群聊 · 16名成员 · 上线准备、模板配置、数据核验",
+        avatar: "group",
+        actions: [],
+        composer: "请输入你的问题",
+        muted: true,
+        muteText: "当前会话已禁言，暂不能发送消息",
+        panelMode: "group",
+        unread: 2,
+        announcement: {
+          title: "群公告",
+          date: "2026-08-12 10:00",
+          body: "上线前请按数据核验清单逐项确认，导入文件统一上传至群文件区。遇到阻塞问题请说明菜单路径、操作账号和错误提示截图，便于快速定位。每周五 18:00 同步本周遗留问题至项目管理员，未闭环事项需在群内同步进展与预计完成时间。",
+          history: [
+            { date: "2026-07-22 16:40", publisher: "项目管理员", body: "上线前请按数据核验清单逐项确认，导入文件统一上传至群文件区。每周五 18:00 同步本周遗留问题。" },
+            { date: "2026-06-05 09:15", publisher: "项目管理员", body: "遇到阻塞问题请说明菜单路径、操作账号和错误提示截图，便于快速定位。实施排期以项目管理组通知为准。" }
+          ]
+        },
+        members: [
+          { name: "周顾问", role: "人工客服", state: "在线", admin: true },
+          { name: "系统顾问", role: "系统助手", state: "在线" },
+          { name: "钱多多", role: "人工客服", state: "在线" },
+          { name: "向钱进", role: "人工客服", state: "在线" },
+          { name: "实施A组", role: "实施人员", state: "在线" },
+          { name: "实施B组", role: "实施人员", state: "离线" },
+          { name: "数据核验", role: "复核人", state: "在线" },
+          { name: "项目管理员", role: "管理员", state: "离线", admin: true }
+        ],
+        files: [
+          { name: "上线数据核验清单.xlsx", type: "xls", size: "760KB", uploader: "系统顾问", time: "2026-08-22 13:18" },
+          { name: "初始化配置指南.pdf", type: "pdf", size: "2.1MB", uploader: "周顾问", time: "2026-08-23 17:46" },
+          { name: "问题排查记录表.docx", type: "doc", size: "436KB", uploader: "实施A组", time: "2026-08-25 09:30" }
+        ],
+        messages: [
+          { type: "divider", text: "昨天　17:42:10" },
+          { side: "agent", name: "系统顾问", text: "已同步最新导入模板，群文件中可下载“上线数据核验清单”。" },
+          { side: "member", name: "实施A组", text: "人员基础信息导入后，哪些字段建议优先复核？" },
+          { side: "agent", name: "人工：周顾问", text: "建议优先复核单位、部门、岗位、证件号、起薪日期和工资项。证件号仅在本地核验，不建议在群内明文发送。" },
+          { side: "user", name: "我", text: "收到，我先按清单过一遍。" }
+        ]
+      }
+    };
+
+    const messageList = document.getElementById("messageList");
+    const detailPanel = document.getElementById("detailPanel");
+    const chatTitle = document.getElementById("chatTitle");
+    const chatSubtitle = document.getElementById("chatSubtitle");
+    const headerActions = document.getElementById("headerActions");
+    const headerAvatar = document.getElementById("headerAvatar");
+    const messageInput = document.getElementById("messageInput");
+    const composerForm = document.getElementById("composerForm");
+    const muteBanner = document.getElementById("muteBanner");
+    const voiceButton = document.getElementById("voiceButton");
+    const voiceStatus = document.getElementById("voiceStatus");
+    const pendingAttachment = document.getElementById("pendingAttachment");
+    const pendingAttachmentIcon = document.getElementById("pendingAttachmentIcon");
+    const pendingAttachmentName = document.getElementById("pendingAttachmentName");
+    const pendingAttachmentRemove = document.getElementById("pendingAttachmentRemove");
+    const riskTip = document.getElementById("riskTip");
+    let activeChatKey = "group";
+    let voiceActive = false;
+    let attachmentDraft = null;
+
+    function avatarMarkup(side) {
+      return side === "user" ? "" : '<span class="message-avatar" aria-hidden="true"></span>';
+    }
+
+    function fileMarkup(files) {
+      return `<div class="file-stack">${files.map((file) => `
+        <div class="file-card">
+          <span class="file-icon ${file.type}">${file.type.toUpperCase()}</span>
+          <span class="file-name">${escapeHtml(file.name)}</span>
+          <a class="download-link" href="javascript:void(0)" aria-label="下载${escapeHtml(file.name)}">下载</a>
+        </div>
+      `).join("")}</div>`;
+    }
+
+    function ratingMarkup(message) {
+      return `
+        <div class="rating-bubble">
+          <span>${escapeHtml(message.text)}</span>
+          <span class="rating-actions">
+            ${message.rating.map((label) => `<button class="rating-button" type="button" aria-pressed="${message.selectedRating === label ? "true" : "false"}" data-rating="${label}">${label}</button>`).join("")}
+          </span>
+        </div>
+      `;
+    }
+
+    function ratingResultMarkup(message) {
+      if (!message.selectedRating) return "";
+      return `
+        <div class="message-row rating-result-row" aria-live="polite">
+          <div class="message-stack">
+            <div class="rating-result">您对本次服务评价“${message.selectedRating}”</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    function renderText(text, chat) {
+      let html = escapeHtml(text || "");
+      const names = (chat && chat.members ? chat.members : []).map((m) => m.name).filter(Boolean);
+      if (names.length) {
+        const pattern = names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+        html = html.replace(new RegExp("@(" + pattern + ")", "g"), '<span class="mention">@$1</span>');
+      }
+      return html;
+    }
+
+    function attachmentMarkup(message, chat) {
+      if (message.files) return fileMarkup(message.files);
+      if (message.rating) return ratingMarkup(message);
+      if (!message.attachment) return `<div class="bubble">${renderText(message.text, chat)}</div>`;
+      return `
+        <div class="attachment-card">
+          <div class="fake-thumb" aria-label="截图缩略图"></div>
+          <div class="attachment-title">${renderText(message.text, chat)}</div>
+        </div>
+      `;
+    }
+
+    function renderMessages(chat) {
+      messageList.innerHTML = chat.messages.map((message, index) => {
+        if (message.type === "divider") {
+          return `<div class="date-divider">${escapeHtml(message.text)}</div>`;
+        }
+        const sideClass = message.side === "user" ? "user" : "agent";
+        const avatar = avatarMarkup(message.side);
+        const content = `
+          <div class="message-stack">
+            <div class="sender-name">${escapeHtml(message.name)}</div>
+            ${attachmentMarkup(message, chat)}
+          </div>`;
+        const messageRow = `<div class="message-row ${sideClass}" data-message-index="${index}">${message.side === "user" ? content + avatar : avatar + content}</div>`;
+        return message.rating ? messageRow + ratingResultMarkup(message) : messageRow;
+      }).join("");
+      messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    function renderMembers(members) {
+      return members.map((member) => {
+        const isAdmin = member.admin === true;
+        return `
+        <div class="member-item" data-member="${escapeHtml(member.name)}" title="点击 @ 该成员">
+          <span class="member-avatar">${escapeHtml(member.name.slice(0, 1))}</span>
+          <span class="member-info">
+            <span class="member-name">${escapeHtml(member.name)}</span>
+            ${isAdmin ? `<span class="member-tag">管理员</span>` : ""}
+          </span>
+        </div>
+      `;
+      }).join("");
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + "B";
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + "KB";
+      return (bytes / 1048576).toFixed(1) + "MB";
+    }
+
+    function fileTypeIcon(type) {
+      const map = {
+        xls: "📊", xlsx: "📊", csv: "📊",
+        doc: "📄", docx: "📄", txt: "📄",
+        pdf: "📕",
+        img: "🖼️", png: "🖼️", jpg: "🖼️", jpeg: "🖼️", gif: "🖼️", svg: "🖼️",
+        zip: "📦", rar: "📦", "7z": "📦"
+      };
+      return map[type] || "📎";
+    }
+
+    function renderPanelFiles(files) {
+      return files.map((file, index) => {
+        const isMine = file.uploader === "我";
+        const deleteBtn = isMine
+          ? `<button class="file-row-delete" type="button" data-file-index="${index}" aria-label="删除${escapeHtml(file.name)}">删除</button>`
+          : "";
+        return `
+        <div class="file-row">
+          <span class="file-type-icon">${fileTypeIcon(file.type)}</span>
+          <span class="file-row-main">
+            <span class="file-row-name">${escapeHtml(file.name)}</span>
+            <span class="file-row-meta">${escapeHtml(file.size)} · ${escapeHtml(file.uploader)} · ${escapeHtml(file.time || "—")}</span>
+          </span>
+          <span class="file-row-actions">
+            <a class="file-row-action" href="javascript:void(0)" aria-label="下载${escapeHtml(file.name)}">下载</a>
+            ${deleteBtn}
+          </span>
+        </div>
+      `;
+      }).join("");
+    }
+
+    function renderDetailPanel(chat) {
+      const memberTitle = chat.panelMode === "group" ? "群成员" : "服务人员";
+      const fileTitle = chat.panelMode === "group" ? "群文件" : "咨询文件";
+      const showGroupAreas = chat.panelMode === "group";
+      const isService = chat.panelMode === "service";
+      const ann = chat.announcement;
+      const annHtml = isService
+        ? `<ol class="notice-list">${ann.tips.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ol>`
+        : `<div class="notice-row"><p class="notice-text">${escapeHtml(ann.body)}</p></div>`;
+
+      detailPanel.innerHTML = `
+        <section class="detail-section announcement" aria-label="${ann.title}">
+          <div class="detail-content">
+            <div class="detail-title-bar">
+              <span>${ann.title}</span>
+              <span class="title-bar-right">
+                ${showGroupAreas ? `<button class="history-link" type="button" id="historyAnnBtn">历史公告</button>` : ""}
+              </span>
+            </div>
+            <div class="notice-body">${annHtml}</div>
+          </div>
+        </section>
+
+        ${showGroupAreas ? `
+        <section class="detail-section members" aria-label="${memberTitle}">
+          <div class="detail-content">
+            <div class="detail-title-bar">
+              <span>${memberTitle}</span>
+              <span class="detail-badge">${chat.members.length}人</span>
+            </div>
+            <div class="member-list">${renderMembers(chat.members)}</div>
+          </div>
+        </section>
+
+        <section class="detail-section files" aria-label="${fileTitle}">
+          <div class="detail-content">
+            <div class="detail-title-bar">
+              <span>${fileTitle}</span>
+              <span class="detail-badge">${chat.files.length}个</span>
+            </div>
+            <div class="file-list">${renderPanelFiles(chat.files)}</div>
+          </div>
+        </section>
+        ` : ``}
+      `;
+
+      const historyBtn = document.getElementById("historyAnnBtn");
+      if (historyBtn) historyBtn.addEventListener("click", () => openHistoryModal(chat));
+
+      if (showGroupAreas) {
+        detailPanel.querySelectorAll(".file-row-delete").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.fileIndex);
+            const chat = chats[activeChatKey];
+            if (idx >= 0 && idx < chat.files.length) {
+              chat.files.splice(idx, 1);
+              renderDetailPanel(chat);
+            }
+          });
+        });
+      }
+    }
+
+    function openHistoryModal(chat) {
+      const body = document.getElementById("histModalBody");
+      const current = chat.announcement.body || "";
+      const history = Array.isArray(chat.announcement.history) ? chat.announcement.history : [];
+
+      const currentHtml = current
+        ? `<div class="hist-item current">
+             <div class="hist-meta">
+               <span class="hist-date">${escapeHtml(chat.announcement.date || "—")}</span>
+               <span class="hist-tag">当前公告</span>
+             </div>
+             <p class="hist-text">${escapeHtml(current)}</p>
+           </div>`
+        : "";
+
+      if (!current && history.length === 0) {
+        body.innerHTML = `<div class="hist-empty">暂无历史公告</div>`;
+      } else {
+        const historyHtml = history.map((item) => `
+          <div class="hist-item">
+            <div class="hist-meta">
+              <span class="hist-date">${escapeHtml(item.date)}</span>
+            </div>
+            <p class="hist-text">${escapeHtml(item.body)}</p>
+          </div>
+        `).join("");
+        body.innerHTML = currentHtml + historyHtml;
+      }
+
+      const overlay = document.getElementById("historyModal");
+      overlay.hidden = false;
+      document.getElementById("histModalClose").focus();
+    }
+
+    function closeHistoryModal() {
+      document.getElementById("historyModal").hidden = true;
+    }
+
+    function renderHeader(chat) {
+      const isMuted = chat.muted === true;
+      chatTitle.textContent = chat.title;
+      chatSubtitle.textContent = chat.subtitle;
+      messageInput.placeholder = isMuted ? "禁言中，暂不能输入消息" : chat.composer;
+      messageInput.value = isMuted ? "" : messageInput.value;
+      messageInput.disabled = isMuted;
+      messageInput.setAttribute("aria-disabled", String(isMuted));
+      composerForm.classList.toggle("is-muted", isMuted);
+      muteBanner.textContent = chat.muteText || "当前会话已禁言，暂不能发送消息";
+      headerAvatar.className = chat.avatar === "group" ? "avatar group" : "avatar";
+      headerAvatar.innerHTML = chat.avatar === "group" ? '<span class="mini-person"></span><span class="mini-body"></span>' : "";
+      headerActions.innerHTML = chat.actions.map((item) => `<span class="pill">${item}</span>`).join("");
+    }
+
+    function updateAttachmentTipVisibility() {
+      pendingAttachment.hidden = !attachmentDraft;
+      riskTip.classList.toggle("hidden", !(attachmentDraft && attachmentDraft.source === "paste"));
+      if (attachmentDraft) {
+        pendingAttachmentIcon.textContent = "图";
+        pendingAttachmentName.textContent = attachmentDraft.name;
+      }
+    }
+
+    function setAttachmentDraft(nextDraft) {
+      attachmentDraft = nextDraft;
+      updateAttachmentTipVisibility();
+    }
+
+    function toggleVoice() {
+      if (chats[activeChatKey]?.muted === true) return;
+      voiceActive = !voiceActive;
+      voiceButton.setAttribute("aria-pressed", String(voiceActive));
+      voiceStatus.textContent = voiceActive ? "正在录音…松开发送" : "Shift+Enter 换行　　Enter直接发送";
+      voiceStatus.classList.toggle("active", voiceActive);
+    }
+
+    function addPanelFile(type) {
+      const chat = chats[activeChatKey];
+      const newFile = type === "img"
+        ? { name: "问题截图.png", type: "img", size: "326KB", uploader: "我", time: "刚刚" }
+        : { name: "补充材料.docx", type: "doc", size: "458KB", uploader: "我", time: "刚刚" };
+      chat.files.unshift(newFile);
+      chat.messages.push({ side: "user", name: "我", files: [{ name: newFile.name, type: newFile.type }] });
+      renderMessages(chat);
+      renderDetailPanel(chat);
+    }
+
+    let mentionState = null;
+    let mentionActive = -1;
+
+    const mentionPop = document.getElementById("mentionPop");
+
+    function renderSidebarBadges() {
+      document.querySelectorAll(".conversation-card").forEach((button) => {
+        const chat = chats[button.dataset.chat];
+        const badge = button.querySelector(".unread-badge");
+        if (!badge || !chat) return;
+        const count = chat.unread || 0;
+        badge.textContent = count > 99 ? "99+" : String(count);
+        badge.hidden = count <= 0;
+      });
+    }
+
+    function insertMention(name) {
+      if (chats[activeChatKey]?.muted === true) return;
+      const el = messageInput;
+      const start = el.selectionStart ?? el.value.length;
+      const end = el.selectionEnd ?? el.value.length;
+      const before = el.value.slice(0, start);
+      const after = el.value.slice(end);
+      const prefix = before === "" || /\s$/.test(before) ? "" : " ";
+      const insert = prefix + "@" + name + " ";
+      el.value = before + insert + after;
+      const pos = (before + insert).length;
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    }
+
+    function hideMentionPop() {
+      mentionPop.hidden = true;
+      mentionPop.innerHTML = "";
+      mentionActive = -1;
+    }
+
+    function updateMentionActive(items) {
+      items.forEach((it, i) => it.classList.toggle("active", i === mentionActive));
+    }
+
+    function showMentionPop(query) {
+      const chat = chats[activeChatKey];
+      if (!chat || chat.panelMode !== "group") { hideMentionPop(); return; }
+      const q = (query || "").toLowerCase();
+      const list = chat.members.filter((m) => m.name.toLowerCase().includes(q));
+      if (!list.length) {
+        mentionPop.innerHTML = '<div class="mention-empty">无匹配成员</div>';
+        mentionPop.hidden = false;
+        mentionActive = -1;
+        return;
+      }
+      mentionPop.innerHTML = list.map((m, i) => `
+        <button class="mention-item${i === 0 ? " active" : ""}" type="button" data-name="${escapeHtml(m.name)}">
+          <span class="mini-ava">${escapeHtml(m.name.slice(0, 1))}</span>
+          <span>${escapeHtml(m.name)}</span>
+          ${m.admin ? '<span class="mini-tag">管理员</span>' : ""}
+        </button>
+      `).join("");
+      mentionPop.hidden = false;
+      mentionActive = 0;
+      mentionPop.querySelectorAll(".mention-item").forEach((item) => {
+        item.addEventListener("click", () => selectMention(item.dataset.name));
+      });
+    }
+
+    function selectMention(name) {
+      if (mentionState == null || chats[activeChatKey]?.muted === true) return;
+      const el = messageInput;
+      const pos = el.selectionStart ?? el.value.length;
+      const before = el.value.slice(0, mentionState.start);
+      const after = el.value.slice(pos);
+      el.value = before + "@" + name + " " + after;
+      const newPos = (before + "@" + name + " ").length;
+      el.focus();
+      el.setSelectionRange(newPos, newPos);
+      hideMentionPop();
+      mentionState = null;
+    }
+
+    function setActiveChat(key) {
+      activeChatKey = key;
+      closeHistoryModal();
+      document.querySelectorAll(".conversation-card").forEach((button) => {
+        const selected = button.dataset.chat === key;
+        button.setAttribute("aria-selected", String(selected));
+      });
+      chats[key].unread = 0;
+      hideMentionPop();
+      mentionState = null;
+      renderHeader(chats[key]);
+      renderMessages(chats[key]);
+      renderDetailPanel(chats[key]);
+      renderSidebarBadges();
+    }
+
+    document.querySelectorAll(".conversation-card").forEach((button) => {
+      button.addEventListener("click", () => setActiveChat(button.dataset.chat));
+    });
+
+    pendingAttachmentRemove.addEventListener("click", () => {
+      if (chats[activeChatKey]?.muted === true) return;
+      setAttachmentDraft(null);
+      voiceStatus.textContent = voiceActive ? "正在录音…松开发送" : "Shift+Enter 换行　　Enter直接发送";
+      voiceStatus.classList.toggle("active", voiceActive);
+    });
+
+    voiceButton.addEventListener("click", toggleVoice);
+
+    messageList.addEventListener("click", (event) => {
+      if (!event.target.classList.contains("rating-button")) return;
+      const messageRow = event.target.closest(".message-row");
+      const messageIndex = Number(messageRow.dataset.messageIndex);
+      const message = chats[activeChatKey].messages[messageIndex];
+      if (!message || !message.rating) return;
+      message.selectedRating = event.target.dataset.rating;
+      renderMessages(chats[activeChatKey]);
+    });
+
+    composerForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (chats[activeChatKey]?.muted === true) return;
+      const value = messageInput.value.trim();
+      if (!value && !attachmentDraft && !voiceActive) return;
+      const chat = chats[activeChatKey];
+      if (attachmentDraft) {
+        chat.messages.push({ side: "user", name: "我", attachment: true, text: "图片消息" });
+        chat.files.unshift({ name: "用户上传截图.png", type: "img", size: "326KB", uploader: "我" });
+      }
+      if (voiceActive) {
+        chat.messages.push({ side: "user", name: "我", text: "语音消息" });
+        voiceActive = false;
+        voiceButton.setAttribute("aria-pressed", "false");
+      }
+      if (value) {
+        chat.messages.push({ side: "user", name: "我", text: value });
+      }
+      messageInput.value = "";
+      setAttachmentDraft(null);
+      voiceStatus.textContent = "Shift+Enter 换行　　Enter直接发送";
+      voiceStatus.classList.remove("active");
+      renderMessages(chat);
+      renderDetailPanel(chat);
+    });
+
+    messageInput.addEventListener("keydown", (event) => {
+      if (chats[activeChatKey]?.muted === true) {
+        event.preventDefault();
+        return;
+      }
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        composerForm.requestSubmit();
+      }
+    });
+
+    messageInput.addEventListener("paste", (event) => {
+      if (chats[activeChatKey]?.muted === true) {
+        event.preventDefault();
+        return;
+      }
+      const items = Array.from(event.clipboardData?.items || []);
+      const pastedImage = items.find((item) => item.type.startsWith("image/"));
+      if (!pastedImage) return;
+      setAttachmentDraft({ name: "已粘贴图片", source: "paste", kind: "image" });
+      voiceStatus.textContent = "检测到图片粘贴";
+      voiceStatus.classList.add("active");
+    });
+
+    setActiveChat(activeChatKey);
+    updateAttachmentTipVisibility();
+
+    // ===== 通知中心 =====
+    const navBell = document.getElementById("navBell");
+    const notifyPanel = document.getElementById("notifyPanel");
+    const notifyList = document.getElementById("notifyList");
+    const bellBadge = document.getElementById("bellBadge");
+    const notifyClear = document.getElementById("notifyClear");
+
+    function unreadNotifyCount() {
+      return notifications.filter((n) => !n.read).length;
+    }
+
+    function updateBellBadge() {
+      const count = unreadNotifyCount();
+      if (count > 0) {
+        bellBadge.textContent = String(count);
+        bellBadge.hidden = false;
+      } else {
+        bellBadge.hidden = true;
+      }
+    }
+
+    function renderNotifications() {
+      if (!notifications.length) {
+        notifyList.innerHTML = `<div class="notify-empty">暂无通知</div>`;
+      } else {
+        notifyList.innerHTML = notifications.map((n) => `
+          <div class="notify-item ${n.read ? "read" : ""} notify-item--${n.type}" data-id="${n.id}">
+            <span class="notify-dot"></span>
+            <div class="notify-main">
+              <div class="notify-item-title">${escapeHtml(n.title)}</div>
+              <div class="notify-item-text">${escapeHtml(n.text)}</div>
+              <div class="notify-item-time">${escapeHtml(n.time)}</div>
+            </div>
+          </div>
+        `).join("");
+      }
+      updateBellBadge();
+    }
+
+    function openNotify() {
+      notifyPanel.classList.add("open");
+      navBell.classList.add("active");
+      navBell.setAttribute("aria-expanded", "true");
+    }
+
+    function closeNotify() {
+      notifyPanel.classList.remove("open");
+      navBell.classList.remove("active");
+      navBell.setAttribute("aria-expanded", "false");
+    }
+
+    navBell.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (notifyPanel.classList.contains("open")) closeNotify();
+      else openNotify();
+    });
+
+    notifyPanel.addEventListener("click", (event) => { event.stopPropagation(); });
+
+    document.addEventListener("click", (event) => {
+      if (notifyPanel.classList.contains("open") && !navBell.contains(event.target) && !notifyPanel.contains(event.target)) {
+        closeNotify();
+      }
+    });
+
+    notifyClear.addEventListener("click", () => {
+      notifications.forEach((n) => { n.read = true; });
+      renderNotifications();
+    });
+
+    notifyList.addEventListener("click", (event) => {
+      const item = event.target.closest(".notify-item");
+      if (!item) return;
+      const id = Number(item.dataset.id);
+      const target = notifications.find((n) => n.id === id);
+      if (target && !target.read) {
+        target.read = true;
+        renderNotifications();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && notifyPanel.classList.contains("open")) closeNotify();
+    });
+
+    renderNotifications();
+
+    const historyModal = document.getElementById("historyModal");
+    document.getElementById("histModalClose").addEventListener("click", closeHistoryModal);
+    document.getElementById("histModalOk").addEventListener("click", closeHistoryModal);
+    historyModal.addEventListener("click", (event) => {
+      if (event.target === historyModal) closeHistoryModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !historyModal.hidden) closeHistoryModal();
+    });
+  </script>
+</body>
+</html>

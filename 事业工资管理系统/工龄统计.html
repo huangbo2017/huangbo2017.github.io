@@ -1,0 +1,2535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>按年龄结构统计</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1a73e8;
+            --primary-hover: #1557b0;
+            --primary-light: #e8f0fe;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #1f1f1f;
+            --text-secondary: #5f6368;
+            --border: #dadce0;
+            --border-light: #e8eaed;
+            --success: #1e8e3e;
+            --warning: #f9ab00;
+            --danger: #d93025;
+            --shadow: 0 1px 3px rgba(60,64,67,0.12), 0 1px 2px rgba(60,64,67,0.08);
+            --shadow-lg: 0 2px 8px rgba(60,64,67,0.15), 0 1px 4px rgba(60,64,67,0.1);
+            --radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ===== Sticky Top (固定顶部) ===== */
+        .sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+
+        /* ===== Header ===== */
+        .header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+            color: white;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .header-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .header-title .icon { font-size: 22px; }
+        .header-meta { font-size: 12px; opacity: 0.8; }
+
+        /* ===== Tabs ===== */
+        .tab-bar {
+            display: flex;
+            background: var(--card-bg);
+            border-bottom: 2px solid var(--border-light);
+            padding: 0 32px;
+            box-shadow: var(--shadow);
+        }
+        .tab {
+            padding: 14px 28px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+        .tab:hover { color: var(--primary); background: var(--primary-light); }
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }
+        .tab .tab-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: var(--border);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .tab.active .tab-num { background: var(--primary); }
+
+        /* ===== Main Content ===== */
+        .main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== Card ===== */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fafbfc;
+        }
+        .card-header .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-size: 13px;
+        }
+        .card-body { padding: 24px; }
+
+        /* ===== Form Elements ===== */
+        .form-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+        .form-label {
+            min-width: 140px;
+            font-weight: 500;
+            color: var(--text);
+            padding-top: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .form-label .required { color: var(--danger); }
+        .form-control { flex: 1; }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        select:focus, input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.12);
+        }
+        select { cursor: pointer; }
+
+        .hint-text { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+        /* ===== Radio Group (单选) ===== */
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .radio-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 14px;
+            background: white;
+            gap: 6px;
+        }
+        .radio-item:hover { border-color: var(--primary); background: var(--primary-light); }
+        .radio-item input { display: none; }
+        .radio-item .radio-dot {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .radio-item.checked {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 500;
+        }
+        .radio-item.checked .radio-dot {
+            border-color: var(--primary);
+        }
+        .radio-item.checked .radio-dot::after {
+            content: '';
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        /* ===== Checkbox Group (多选) ===== */
+        .check-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .check-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 14px;
+            background: white;
+            gap: 6px;
+            user-select: none;
+        }
+        .check-item:hover { border-color: var(--primary); background: var(--primary-light); }
+        .check-item input { display: none; }
+        .check-item .check-box {
+            width: 16px; height: 16px;
+            border: 2px solid var(--border);
+            border-radius: 3px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .check-item.checked {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 500;
+        }
+        .check-item.checked .check-box {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+        .check-item.checked .check-box::after {
+            content: '\2713';
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .check-item.select-all {
+            border-style: dashed;
+            border-color: var(--primary);
+            background: #fffbe6;
+        }
+        .check-item.select-all.checked {
+            background: var(--primary);
+            color: white;
+            border-style: solid;
+        }
+        .check-item.select-all.checked .check-box {
+            background: white;
+            border-color: white;
+        }
+        .check-item.select-all.checked .check-box::after {
+            color: var(--primary);
+        }
+
+        /* ===== Unit Selector Display ===== */
+        .unit-selector {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .unit-display {
+            flex: 1;
+            min-height: 38px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #f8f9fa;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        .unit-display .unit-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 500;
+            gap: 4px;
+        }
+        .unit-display .unit-tag .remove-tag {
+            cursor: pointer;
+            opacity: 0.5;
+            font-size: 14px;
+            line-height: 1;
+        }
+        .unit-display .unit-tag .remove-tag:hover { opacity: 1; }
+        .unit-display .placeholder { color: var(--text-secondary); font-size: 13px; }
+
+        /* ===== Transfer Box (穿梭框) ===== */
+        .transfer-box {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+            min-height: 380px;
+        }
+        .transfer-panel {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            overflow: hidden;
+        }
+        .transfer-panel-header {
+            padding: 10px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--border-light);
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .transfer-panel-header .panel-count {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .transfer-panel-header .panel-select-all {
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--primary);
+            font-weight: 400;
+        }
+        .transfer-panel-header .panel-select-all:hover { text-decoration: underline; }
+        .transfer-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .transfer-group-title {
+            padding: 5px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: #f0f2f5;
+            border-top: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .transfer-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            cursor: pointer;
+            gap: 6px;
+            transition: background 0.15s;
+            font-size: 13px;
+        }
+        .transfer-item:hover { background: var(--primary-light); }
+        .transfer-item input[type="checkbox"] {
+            width: 15px; height: 15px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+        .transfer-btn-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 4px;
+        }
+        .transfer-btn {
+            width: 38px; height: 38px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+        .transfer-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+        .transfer-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        /* ===== Unit Transfer List ===== */
+        .transfer-list-header,
+        .transfer-item {
+            display: grid;
+            grid-template-columns: 32px minmax(220px, 1.2fr) minmax(170px, 1fr);
+            align-items: center;
+        }
+        .transfer-list-header {
+            padding: 8px 10px;
+            background: linear-gradient(180deg, #f0f2f5, #e8eaed);
+            border-bottom: 1px solid var(--border-light);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+        .transfer-list-body {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        /* ===== 选择单位弹窗：固定布局（查询条件/表头固定，左右列表内部滚动） ===== */
+        #unitModal .modal {
+            height: 82vh;           /* 弹窗整体固定高度，内容不再撑开 */
+        }
+        #unitModal .modal-body {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;       /* 弹窗本体不滚动，滚动只发生在左右列表 */
+        }
+        #unitModal .unit-search-bar {
+            flex-shrink: 0;         /* 查询条件栏固定 */
+        }
+        #unitModal .transfer-box {
+            flex: 1;
+            min-height: 0;          /* 穿梭框占满剩余空间，面板高度受约束 */
+        }
+        #unitModal .transfer-list-header {
+            flex-shrink: 0;         /* 列表表头固定 */
+        }
+        .transfer-cell {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0 6px;
+            min-width: 0;
+        }
+        .transfer-empty {
+            text-align: center;
+            padding: 36px 12px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* ===== 单位查询栏（按单位名称 + 主管单位） ===== */
+        .unit-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+        }
+        .unit-search-field {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .unit-search-field label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            font-weight: 600;
+        }
+        .unit-search-field input {
+            width: 200px;
+            padding: 5px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+            color: var(--text-primary);
+            transition: border-color 0.2s;
+        }
+        .unit-search-field input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.12);
+        }
+        .unit-search-reset {
+            margin-left: auto;
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 12px;
+            cursor: pointer;
+        }
+        .unit-search-reset:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* ===== Age Interval Builder ===== */
+        .age-builder {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .age-builder-header {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .age-builder-header > div { padding: 6px 12px; }
+        .age-builder-body { max-height: 320px; overflow-y: auto; }
+        .age-row {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.15s;
+        }
+        .age-row:hover { background: #f8f9fa; }
+        .age-row > div { padding: 4px 12px; }
+        .age-seq {
+            width: 50px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 12px;
+        }
+        .age-input-group {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .age-input-group .age-val {
+            width: 60px;
+            text-align: center;
+            padding: 4px 8px;
+            font-size: 13px;
+        }
+        .age-input-group .sep { color: var(--text-secondary); font-size: 12px; }
+        .age-interval-size {
+            width: 100px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .age-interval-size input { width: 50px; text-align: center; padding: 4px 6px; font-size: 12px; }
+        .age-actions { width: 60px; text-align: center; }
+        .age-preview {
+            width: 120px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        .age-preview .badge {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px; height: 26px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.15s;
+            background: transparent;
+        }
+        .btn-icon:hover { background: var(--border-light); }
+        .btn-icon.add { color: var(--success); }
+        .btn-icon.del { color: var(--danger); }
+
+        /* ===== Buttons ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            outline: none;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--primary-hover); box-shadow: 0 2px 8px rgba(26,115,232,0.3); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #176530; }
+        .btn-outline {
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+        .btn-lg { padding: 12px 32px; font-size: 15px; }
+
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+            gap: 12px;
+        }
+
+        /* ===== Results Toolbar ===== */
+        .results-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-light);
+            background: #fafbfc;
+        }
+        .results-info { display: flex; gap: 24px; font-size: 13px; color: var(--text-secondary); flex-wrap: wrap; }
+        .results-info span strong { color: var(--text); }
+        .results-actions { display: flex; gap: 10px; }
+
+        /* ===== Pivot Table ===== */
+        .table-wrapper { overflow-x: auto; }
+        table.pivot-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        table.pivot-table th, table.pivot-table td {
+            padding: 10px 14px;
+            text-align: center;
+            border: 1px solid var(--border-light);
+        }
+        table.pivot-table thead th {
+            background: linear-gradient(180deg, #f8f9fa, #eef0f3);
+            font-weight: 600;
+            color: var(--text);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        table.pivot-table thead th:first-child {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: white;
+        }
+        table.pivot-table tbody tr:hover { background: var(--primary-light); }
+        table.pivot-table tbody td:first-child {
+            font-weight: 500;
+            text-align: left;
+            background: #f8f9fa;
+            white-space: nowrap;
+        }
+        .pivot-cell {
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--primary);
+            text-decoration: underline;
+            text-decoration-color: transparent;
+            text-underline-offset: 2px;
+            transition: text-decoration-color 0.15s;
+        }
+        .pivot-cell:hover { text-decoration-color: var(--primary); }
+        .pivot-cell.zero { color: var(--text-secondary); cursor: default; text-decoration: none; }
+        .pivot-cell.zero:hover { text-decoration: none; }
+
+        .total-row { background: #e8f0fe !important; font-weight: 600; }
+        .total-row td:first-child { background: #d4e4fc !important; }
+        .total-col { background: #e8f0fe !important; font-weight: 600; }
+        .grand-total { background: #1a237e !important; color: white !important; font-size: 15px; }
+        .grand-total:first-child { background: #0d1561 !important; }
+
+        /* ===== Bar Chart ===== */
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .chart-card-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fafbfc;
+        }
+        .chart-card-body { padding: 20px 24px 40px; }
+        .bar-chart-wrap {
+            display: flex;
+            gap: 0;
+            position: relative;
+        }
+        .bar-chart-y-axis {
+            width: 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 0 0;
+            flex-shrink: 0;
+            height: 320px;
+            box-sizing: border-box;
+        }
+        .y-axis-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: right;
+            padding-right: 8px;
+            line-height: 1;
+        }
+        .bar-chart-area {
+            flex: 1;
+            position: relative;
+        }
+        .bar-chart-grid {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .grid-line {
+            border-top: 1px dashed #e0e0e0;
+            height: 0;
+        }
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 320px;
+            padding: 20px 4px 0;
+            position: relative;
+            z-index: 1;
+        }
+        .bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+            position: relative;
+            min-width: 0;
+        }
+        .bar-stack {
+            display: flex;
+            flex-direction: column-reverse;
+            width: 75%;
+            max-width: 48px;
+            border-radius: 4px 4px 0 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .bar-segment {
+            width: 100%;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        .bar-segment:hover { opacity: 0.8; }
+        .bar-segment .seg-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(33,33,33,0.92);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            z-index: 20;
+            pointer-events: none;
+            margin-bottom: 4px;
+        }
+        .bar-segment:hover .seg-tooltip { display: block; }
+        .bar-total-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            margin-bottom: 3px;
+            line-height: 1;
+        }
+        .bar-x-label {
+            position: absolute;
+            bottom: -28px;
+            left: 0;
+            right: 0;
+            font-size: 10px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            text-align: center;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+            padding: 12px 24px 16px;
+            border-top: 1px solid var(--border-light);
+            background: #fafbfc;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text);
+            cursor: pointer;       /* 可点击切换显示/隐藏 */
+            user-select: none;
+            transition: opacity 0.15s;
+        }
+        .legend-item:hover { opacity: 0.75; }
+        .legend-item.legend-item-off {
+            color: var(--text-secondary);
+            text-decoration: line-through;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+        .chart-axis-title {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 4px 0 12px;
+            font-weight: 500;
+        }
+
+        /* ===== Modal ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            animation: overlayIn 0.2s;
+        }
+        @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 1100px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            animation: modalIn 0.25s;
+        }
+        .modal.modal-sm { max-width: 860px; }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            border-bottom: 2px solid var(--border-light);
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            border-radius: 10px 10px 0 0;
+            color: white;
+            flex-shrink: 0;
+        }
+        .modal-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .modal-close {
+            width: 32px; height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.15s;
+        }
+        .modal-close:hover { background: rgba(255,255,255,0.3); }
+        .modal-filters {
+            padding: 14px 24px;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 13px;
+        }
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 14px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 500;
+        }
+        .modal-body { flex: 1; overflow-y: auto; padding: 0; }
+        .modal-footer {
+            padding: 14px 24px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafbfc;
+            border-radius: 0 0 10px 10px;
+            flex-shrink: 0;
+        }
+        .modal-count { font-size: 13px; color: var(--text-secondary); }
+        .modal-count strong { color: var(--primary); font-size: 16px; }
+
+        /* ===== Detail Table ===== */
+        table.detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        table.detail-table thead th {
+            background: linear-gradient(180deg, #f0f2f5, #e4e7ea);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            white-space: nowrap;
+        }
+        table.detail-table thead th.col-money { text-align: right; }
+        table.detail-table tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-light);
+            white-space: nowrap;
+        }
+        table.detail-table tbody td.col-money { text-align: right; font-family: 'Consolas', monospace; }
+        table.detail-table tbody tr:hover { background: var(--primary-light); }
+        table.detail-table .col-num { text-align: center; color: var(--text-secondary); font-size: 12px; width: 50px; }
+        table.detail-table .col-name { font-weight: 500; }
+        table.detail-table .col-id { font-family: 'Consolas', monospace; font-size: 12px; color: var(--text-secondary); }
+        .allowance-group { display: flex; flex-direction: column; gap: 1px; }
+        .allowance-line { font-size: 11px; color: var(--text-secondary); display: flex; justify-content: space-between; gap: 8px; }
+        .allowance-line .allow-name { color: var(--text-secondary); }
+        .allowance-line .allow-amt { font-family: 'Consolas', monospace; color: var(--text); font-weight: 500; }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .tag-male { background: #e3f2fd; color: #1565c0; }
+        .tag-female { background: #fce4ec; color: #c62828; }
+
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 32px;
+            background: #1e8e3e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+        }
+        .toast.show { transform: translateX(0); }
+
+        /* ===== 左侧功能菜单（Sidebar） ===== */
+        body { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #0d1561 0%, #1a237e 45%, #283593 100%);
+            color: #fff;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.18);
+        }
+        .sidebar-header {
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.14);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+        .sidebar-header .icon { font-size: 20px; }
+        .sidebar-menu { padding: 10px 0; flex: 1; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-item-lv1 {
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #e8eaf6;
+            user-select: none;
+            transition: background 0.15s;
+        }
+        .menu-item-lv1:hover { background: rgba(255,255,255,0.08); }
+        .menu-item-lv1 .menu-arrow {
+            margin-left: auto;
+            font-size: 10px;
+            color: rgba(255,255,255,0.55);
+            transition: transform 0.2s;
+        }
+        .menu-group.open .menu-item-lv1 .menu-arrow { transform: rotate(180deg); }
+        .menu-sub { display: none; }
+        .menu-group.open .menu-sub { display: block; }
+        .menu-item-lv2 {
+            padding: 10px 16px 10px 44px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.72);
+            cursor: pointer;
+            position: relative;
+            border-left: 3px solid transparent;
+            transition: background 0.15s, color 0.15s;
+            user-select: none;
+        }
+        .menu-item-lv2:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .menu-item-lv2.active {
+            background: rgba(255,255,255,0.16);
+            color: #fff;
+            font-weight: 600;
+            border-left-color: #ffd54f;
+        }
+        .sidebar-footer {
+            padding: 14px 20px;
+            border-top: 1px solid rgba(255,255,255,0.12);
+            font-size: 11px;
+            color: rgba(255,255,255,0.45);
+        }
+        .app-body { flex: 1; min-width: 0; }
+        @media print {
+            .sidebar { display: none; }
+            body { display: block; }
+        }
+
+        /* ===== 统计列表：维度列选中（联动柱形图） ===== */
+        table.pivot-table tbody td.dim-label {
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            position: relative;
+        }
+        table.pivot-table tbody td.dim-label:hover { background: #e3ebfd; }
+        .dim-color-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            margin-right: 7px;
+            vertical-align: -1px;
+            flex-shrink: 0;
+        }
+        td.dim-label.selected {
+            background: var(--primary) !important;
+            color: #fff !important;
+            font-weight: 600;
+            box-shadow: inset 3px 0 0 #ffd54f;
+        }
+        tr.total-row td.dim-label.selected { background: #0d1561 !important; }
+
+        /* ===== Empty State ===== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state .empty-icon { font-size: 64px; opacity: 0.3; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+        .empty-state p { font-size: 14px; }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c4c4c4; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+    </style>
+</head>
+<body>
+
+<!-- ===== 左侧功能菜单 ===== -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <span class="icon">🗂</span>
+        <span>功能菜单</span>
+    </div>
+    <nav class="sidebar-menu">
+        <div class="menu-group open" id="menuReport">
+            <div class="menu-item-lv1" onclick="toggleMenuGroup('menuReport')">
+                <span>📊 统计报表</span>
+                <span class="menu-arrow">▼</span>
+            </div>
+            <div class="menu-sub">
+                <div class="menu-item-lv2 active">按年龄结构统计分析</div>
+            </div>
+        </div>
+    </nav>
+    <div class="sidebar-footer">人力资源信息系统<br>统计分析模块</div>
+</aside>
+
+<!-- 主内容区 -->
+<div class="app-body">
+
+<!-- ===== Sticky Top (固定header + tab) ===== -->
+<div class="sticky-top">
+
+<!-- ===== Header ===== -->
+<div class="header">
+    <div class="header-title">
+        <span class="icon">📊</span>
+        <span>机关事业单位人员年龄结构统计分析</span>
+    </div>
+    <div class="header-meta">人力资源信息系统 · 统计分析模块</div>
+</div>
+
+<!-- ===== Tabs ===== -->
+<div class="tab-bar">
+    <div class="tab active" id="tab1" onclick="switchTab('tab1', 'content1')">
+        <span class="tab-num">1</span>
+        <span>设置条件</span>
+    </div>
+    <div class="tab" id="tab2" onclick="switchTab('tab2', 'content2')">
+        <span class="tab-num">2</span>
+        <span>统计结果</span>
+    </div>
+</div>
+
+</div><!-- /.sticky-top -->
+
+<!-- ===== Main ===== -->
+<div class="main">
+
+    <!-- ===== Tab 1: 条件设置 ===== -->
+    <div class="tab-content active" id="content1">
+
+        <!-- 条件1: 选择单位 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="step-badge">1</span>
+                <span>选择统计单位</span>
+            </div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-label"><span class="required">*</span> 选择单位</div>
+                    <div class="form-control">
+                        <div class="unit-selector">
+                            <div class="unit-display" id="unitDisplay">
+                                <span class="placeholder">— 全部单位 —</span>
+                            </div>
+                            <button class="btn btn-outline" onclick="openUnitModal()" style="white-space:nowrap;">
+                                🏢 选择单位
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 条件2: 人员身份 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="step-badge">2</span>
+                <span>选择机关事业人员身份</span>
+            </div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-label"><span class="required">*</span> 人员身份</div>
+                    <div class="form-control">
+                        <div class="check-group" id="identityGroup">
+                            <div class="check-item select-all checked" data-value="all" onclick="toggleIdentityAll(this)">
+                                <input type="checkbox" value="all" checked>
+                                <span class="check-box"></span>全选
+                            </div>
+                            <div class="check-item checked" data-value="manage" onclick="toggleIdentityItem(this)">
+                                <input type="checkbox" value="manage" checked>
+                                <span class="check-box"></span>管理人员
+                            </div>
+                            <div class="check-item checked" data-value="professional" onclick="toggleIdentityItem(this)">
+                                <input type="checkbox" value="professional" checked>
+                                <span class="check-box"></span>专业技术人员
+                            </div>
+                            <div class="check-item checked" data-value="inst_tech" onclick="toggleIdentityItem(this)">
+                                <input type="checkbox" value="inst_tech" checked>
+                                <span class="check-box"></span>事业技术工人
+                            </div>
+                            <div class="check-item checked" data-value="inst_general" onclick="toggleIdentityItem(this)">
+                                <input type="checkbox" value="inst_general" checked>
+                                <span class="check-box"></span>事业普通工人
+                            </div>
+                            <div class="check-item checked" data-value="athlete" onclick="toggleIdentityItem(this)">
+                                <input type="checkbox" value="athlete" checked>
+                                <span class="check-box"></span>运动员
+                            </div>
+                            <div class="check-item checked" data-value="canjun" onclick="toggleIdentityItem(this)">
+                                <input type="checkbox" value="canjun" checked>
+                                <span class="check-box"></span>参公人员
+                            </div>
+                            <div class="check-item checked" data-value="gov_tech" onclick="toggleIdentityItem(this)">
+                                <input type="checkbox" value="gov_tech" checked>
+                                <span class="check-box"></span>机关技术工人
+                            </div>
+                            <div class="check-item checked" data-value="gov_general" onclick="toggleIdentityItem(this)">
+                                <input type="checkbox" value="gov_general" checked>
+                                <span class="check-box"></span>机关普通工人
+                            </div>
+                            <div class="check-item checked" data-value="retiree" onclick="toggleIdentityItem(this)">
+                                <input type="checkbox" value="retiree" checked>
+                                <span class="check-box"></span>离休人员
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 条件3: 横轴-年龄结构设置 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="step-badge">3</span>
+                <span>横轴设置 — 自定义年龄结构区间</span>
+            </div>
+            <div class="card-body">
+                <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+                    <div class="hint-text" style="margin:0;">设置年龄分段节点，每个区间可自定义大小。统计时将按此区间对人员进行分组。</div>
+                    <button class="btn btn-outline" onclick="addAgeRow()" style="padding:6px 14px;font-size:13px;">+ 添加区间</button>
+                </div>
+                <div class="age-builder">
+                    <div class="age-builder-header">
+                        <div class="age-seq">序号</div>
+                        <div class="age-input-group">年龄范围</div>
+                        <div class="age-interval-size">区间大小</div>
+                        <div class="age-preview">预览</div>
+                        <div class="age-actions">操作</div>
+                    </div>
+                    <div class="age-builder-body" id="ageBuilderBody">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+                <div class="hint-text" style="margin-top:8px;">
+                    <span style="color:var(--warning);">⚠</span> 最后一个区间默认为开放式（如"60岁及以上"），无需设置上限。
+                </div>
+            </div>
+        </div>
+
+        <!-- 条件4: 纵轴-维度设置 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="step-badge">4</span>
+                <span>纵轴设置 — 选择统计维度（单选）</span>
+            </div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-label"><span class="required">*</span> 统计维度</div>
+                    <div class="form-control">
+                        <div class="radio-group" id="dimensionGroup">
+                            <label class="radio-item checked" data-value="gender">
+                                <input type="radio" name="dimension" value="gender" checked>
+                                <span class="radio-dot"></span>性别
+                            </label>
+                            <label class="radio-item" data-value="ethnicity">
+                                <input type="radio" name="dimension" value="ethnicity">
+                                <span class="radio-dot"></span>民族
+                            </label>
+                            <label class="radio-item" data-value="source">
+                                <input type="radio" name="dimension" value="source">
+                                <span class="radio-dot"></span>人员来源
+                            </label>
+                            <label class="radio-item" data-value="political">
+                                <input type="radio" name="dimension" value="political">
+                                <span class="radio-dot"></span>政治面貌
+                            </label>
+                            <label class="radio-item" data-value="education">
+                                <input type="radio" name="dimension" value="education">
+                                <span class="radio-dot"></span>学历
+                            </label>
+                            <label class="radio-item" data-value="identity">
+                                <input type="radio" name="dimension" value="identity">
+                                <span class="radio-dot"></span>人员身份
+                            </label>
+                            <label class="radio-item" data-value="post">
+                                <input type="radio" name="dimension" value="post">
+                                <span class="radio-dot"></span>基本工资对应岗位
+                            </label>
+                        </div>
+                        <div class="hint-text">选择纵轴维度后，统计结果将以此维度作为行，年龄区间作为列，生成交叉统计表；选择"基本工资对应岗位"时，岗位行将根据已勾选的人员身份动态生成（如：管理人员-一级岗位）。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成按钮 -->
+        <div class="card">
+            <div class="action-bar">
+                <button class="btn btn-outline btn-lg" onclick="resetConditions()">重置条件</button>
+                <button class="btn btn-primary btn-lg" onclick="generateResults()">
+                    <span>📊</span> 生成统计结果
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Tab 2: 统计结果 ===== -->
+    <div class="tab-content" id="content2">
+        <div id="resultsContainer">
+            <!-- 空状态 -->
+            <div class="card">
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h3>暂无统计结果</h3>
+                    <p>请先在"设置条件"页面配置统计条件，然后点击"生成统计结果"</p>
+                    <button class="btn btn-primary" style="margin-top:20px;" onclick="switchTab('tab1','content1')">前往设置条件</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /.main -->
+</div><!-- /.app-body -->
+
+<!-- ===== 单位选择弹窗（穿梭框） ===== -->
+<div class="modal-overlay" id="unitModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span>🏢</span>
+                <span>选择统计单位</span>
+            </div>
+            <button class="modal-close" onclick="closeUnitModal()">✕</button>
+        </div>
+        <div class="modal-body" style="padding:12px 24px;">
+            <!-- 单位查询：按 单位名称 + 主管单位 实时筛选左侧可选单位 -->
+            <div class="unit-search-bar" id="unitSearchBar">
+                <div class="unit-search-field">
+                    <label>单位名称</label>
+                    <input type="text" id="unitNameKeyword" placeholder="输入单位名称关键字，如：人社 / 医院"
+                           oninput="filterUnitsByKeyword()" autocomplete="off">
+                </div>
+                <div class="unit-search-field">
+                    <label>主管单位</label>
+                    <input type="text" id="unitSupervisorKeyword" placeholder="输入主管单位关键字，如：市人民政府 / 市教育局"
+                           oninput="filterUnitsByKeyword()" autocomplete="off">
+                </div>
+                <button type="button" class="unit-search-reset" onclick="resetUnitKeyword()">✕ 清除</button>
+            </div>
+            <div class="transfer-box">
+                <!-- 左侧：可选单位 -->
+                <div class="transfer-panel">
+                    <div class="transfer-panel-header">
+                        <span>可选单位 <span class="panel-count" id="leftCount">0</span></span>
+                        <span class="panel-select-all" onclick="selectAllLeft()">全选</span>
+                    </div>
+                    <div class="transfer-list-header">
+                        <div></div>
+                        <div class="transfer-cell">单位名称</div>
+                        <div class="transfer-cell">主管单位</div>
+                    </div>
+                    <div class="transfer-list-body" id="leftPanel"><!-- 动态生成 --></div>
+                </div>
+                <!-- 中间：穿梭按钮 -->
+                <div class="transfer-btn-group">
+                    <button class="transfer-btn" id="btnToRight" onclick="moveToRight()" title="移至右侧">▶</button>
+                    <button class="transfer-btn" id="btnToLeft" onclick="moveToLeft()" title="移至左侧">◀</button>
+                </div>
+                <!-- 右侧：已选单位 -->
+                <div class="transfer-panel">
+                    <div class="transfer-panel-header">
+                        <span>已选单位 <span class="panel-count" id="rightCount">0</span></span>
+                        <span class="panel-select-all" onclick="selectAllRight()">全选</span>
+                    </div>
+                    <div class="transfer-list-header">
+                        <div></div>
+                        <div class="transfer-cell">单位名称</div>
+                        <div class="transfer-cell">主管单位</div>
+                    </div>
+                    <div class="transfer-list-body" id="rightPanel"><!-- 动态生成 --></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div style="font-size:13px;color:var(--text-secondary);">
+                未选任何单位时，默认统计<strong style="color:var(--primary);">全部单位</strong>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-outline" onclick="closeUnitModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmUnitSelection()">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 反查弹窗 ===== -->
+<div class="modal-overlay" id="drillModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span>🔍</span>
+                <span>人员明细反查</span>
+            </div>
+            <button class="modal-close" onclick="closeDrill()">✕</button>
+        </div>
+        <div class="modal-filters" id="drillFilters">
+            <!-- 动态填充筛选条件 -->
+        </div>
+        <div class="modal-body">
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th class="col-num">序号</th>
+                        <th class="col-name">姓名</th>
+                        <th class="col-id">身份证号</th>
+                        <th>性别</th>
+                        <th>民族</th>
+                        <th>档案出生日期</th>
+                        <th>人员身份</th>
+                        <th>基本工资<br>对应岗位</th>
+                        <th class="col-money">岗位工资</th>
+                        <th class="col-money">薪级工资</th>
+                        <th class="col-money">中小学教师或护士<br>提高10%</th>
+                        <th class="col-money">艰苦边远地区<br>津贴</th>
+                        <th class="col-money">特殊岗位<br>津贴</th>
+                        <th class="col-money">乡镇工作<br>补贴</th>
+                        <th class="col-money">住房<br>补贴</th>
+                        <th class="col-money">津补贴小计</th>
+                        <th class="col-money">工资合计</th>
+                    </tr>
+                </thead>
+                <tbody id="drillTableBody">
+                    <!-- 动态填充 -->
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <div class="modal-count">共 <strong id="drillCount">0</strong> 人</div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-outline" onclick="exportDrillData()">📥 导出明细</button>
+                <button class="btn btn-primary" onclick="closeDrill()">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast"><span id="toastText"></span></div>
+
+<script>
+// ===== 全局状态 =====
+var ageIntervals = [];
+var currentDimension = 'gender';
+var currentResults = null;
+
+// 维度选项映射（基本工资对应岗位为动态维度，options 在生成统计时按身份计算）
+var dimensionLabels = {
+    gender: { label: '性别', options: ['男', '女'] },
+    ethnicity: { label: '民族', options: ['汉', '回', '满', '彝', '藏', '苗', '壮', '傣', '黎', '侗', '瑶', '羌', '白', '水', '佤', '畲', '土', '怒', '京', '蒙古', '朝鲜', '土家', '高山', '布依', '哈尼', '拉祜', '东乡', '纳西', '景颇', '仫佬', '布朗', '撒拉', '毛南', '仡佬', '锡伯', '阿昌', '普米', '德昂', '傈僳', '保安', '裕固', '独龙', '赫哲', '门巴', '珞巴', '基诺', '维吾尔', '俄罗斯', '哈萨克', '达斡尔', '塔吉克', '塔塔尔', '鄂温克', '鄂伦春', '乌孜别克', '柯尔克孜'] },
+    source: { label: '人员来源', options: ['公招(高等院校毕业生)', '公招(中等学校毕业生)', '公招(技校毕业生)', '公招(考核招聘)', '公招(其他学历)', '社招', '调入', '军转干部', '复退军人', '其他'] },
+    political: { label: '政治面貌', options: ['中共党员', '民主党派', '共青团员', '群众', '预备党员', '无党派民主人士'] },
+    education: { label: '学历', options: ['博士学位研究生', '未获博士学位研究生', '硕士学位研究生', '未获硕士学位研究生', '研究生班毕业', '双学士学位本科毕业', '六年及以上学制本科毕业', '研究生班结业', '六年及以上学制本科结业', '大学本科毕业', '双大专毕业', '大学本科结业', '大学专科毕业', '大学普通班毕业', '大学专科结业', '中专毕业', '技校毕业(高中毕业或高级技校)', '技校毕业', '职高毕业', '高中毕业', '初中毕业', '小学', '无'] },
+    identity: { label: '人员身份', options: ['管理人员', '专业技术人员', '事业技术工人', '事业普通工人', '运动员', '参公人员', '机关技术工人', '机关普通工人', '离休人员'] },
+    post: { label: '基本工资对应岗位', options: [] }
+};
+
+// ===== 基本工资对应岗位：按人员身份映射 =====
+// 顺序与人员身份勾选框一致；参公人员暂沿用公务员职务序列（待确认后调整）
+var salaryPostMap = {
+    manage: ['一级岗位', '二级岗位', '三级岗位', '四级岗位', '五级岗位', '六级岗位', '七级岗位', '八级岗位', '九级岗位', '十级岗位', '事业管理人员试用期', '五级职员', '六级职员', '七级职员', '八级职员', '九级职员', '十级职员'],
+    professional: ['一级专业技术岗位', '二级专业技术岗位', '三级专业技术岗位', '四级专业技术岗位', '五级专业技术岗位', '六级专业技术岗位', '七级专业技术岗位', '八级专业技术岗位', '九级专业技术岗位', '十级专业技术岗位', '十一级专业技术岗位', '十二级专业技术岗位', '十三级专业技术岗位', '事业专业技术人员试用期'],
+    inst_tech: ['技术工一级', '技术工二级', '技术工三级', '技术工四级', '技术工五级', '事业技术工人熟练期', '事业技术工人学徒期'],
+    inst_general: ['普通工', '事业普通工人熟练期', '事业普通工人学徒期'],
+    athlete: ['1档', '2档', '3档', '4档', '5档', '6档', '7档', '8档', '9档', '10档', '11档', '12档', '13档', '14档', '15档', '16档', '17档', '18档', '19档', '20档', '21档', '22档', '23档', '24档', '运动员实训期'],
+    canjun: ['省部级正职', '省部级副职', '厅局级正职', '厅局级副职', '县处级正职', '县处级副职', '乡科级正职', '乡科级副职', '科员', '办事员'],
+    gov_tech: ['高级技师', '技师', '高级工', '中级工', '初级工', '机关技术工人熟练期', '机关技术工人学徒期'],
+    gov_general: ['普通工', '机关普通工人熟练期', '机关普通工人学徒期'],
+    retiree: ['省部级正职', '省部级副职', '厅局级正职', '厅局级副职', '县处级正职', '县处级副职', '乡科级正职', '乡科级副职', '科员', '办事员', '高级技师', '技师', '高级工', '中级工', '初级工', '普通工', '三级职员', '四级职员', '五级职员', '六级职员', '教授', '副教授', '讲师', '助教', '助教以下', '无职务']
+};
+
+// 人员身份完整顺序（与勾选框一致），用于岗位维度的分组排列
+var identityOrder = ['manage', 'professional', 'inst_tech', 'inst_general', 'athlete', 'canjun', 'gov_tech', 'gov_general', 'retiree'];
+
+// 计算基本工资对应岗位维度的行选项：按已选身份分组，行标签为"身份-岗位"
+// 未勾选任何身份（默认全部身份）时，按全部身份生成
+function getPostDimensionRows() {
+    var ids = getSelectedIdentities();
+    if (ids.length === 0) ids = identityOrder.slice();
+    // 按勾选框顺序排列所选身份
+    ids = identityOrder.filter(function(id) { return ids.indexOf(id) >= 0; });
+    var rows = [];
+    ids.forEach(function(id) {
+        var label = identityLabels[id];
+        var posts = salaryPostMap[id] || [];
+        posts.forEach(function(p) {
+            rows.push(label + '-' + p);
+        });
+    });
+    return rows;
+}
+
+// 柱形图配色
+var chartColors = ['#1a73e8', '#e8710a', '#1e8e3e', '#d93025', '#9334c4', '#0097a7', '#795548', '#ff5722', '#8bc34a', '#7c4dff', '#f9ab00', '#00bcd4'];
+
+// 柱形图：被隐藏的统计维度行（存行索引），图例点击切换，图表动态调整
+var chartHiddenRows = [];
+
+// 柱形图：统计列表当前选中的维度行（null=全部维度/合计态；数字=仅展示该维度）
+var chartSelectedRow = null;
+
+// ===== 左侧功能菜单：一级菜单展开/收起 =====
+function toggleMenuGroup(groupId) {
+    var g = document.getElementById(groupId);
+    if (g) g.classList.toggle('open');
+}
+
+// ===== 单位数据 =====
+var units = [
+    { id: 'bureau', code: '113700000000000001', name: '市人力资源和社会保障局', supervisorName: '市人民政府' },
+    { id: 'education', code: '113700000000000002', name: '市教育局', supervisorName: '市人民政府' },
+    { id: 'finance', code: '113700000000000003', name: '市财政局', supervisorName: '市人民政府' },
+    { id: 'health', code: '113700000000000004', name: '市卫生健康委员会', supervisorName: '市人民政府' },
+    { id: 'civil', code: '113700000000000005', name: '市民政局', supervisorName: '市人民政府' },
+    { id: 'justice', code: '113700000000000006', name: '市司法局', supervisorName: '市人民政府' },
+    { id: 'housing', code: '113700000000000007', name: '市住房和城乡建设局', supervisorName: '市人民政府' },
+    { id: 'transport', code: '113700000000000008', name: '市交通运输局', supervisorName: '市人民政府' },
+    { id: 'agriculture', code: '113700000000000009', name: '市农业农村局', supervisorName: '市人民政府' },
+    { id: 'culture', code: '113700000000000010', name: '市文化和旅游局', supervisorName: '市人民政府' },
+    { id: 'rs_center', code: '123700000000000011', name: '市社会保险事业中心', supervisorName: '市人力资源和社会保障局' },
+    { id: 'rs_archive', code: '123700000000000012', name: '市人才档案管理中心', supervisorName: '市人力资源和社会保障局' },
+    { id: 'edu_exam', code: '123700000000000013', name: '市教育考试院', supervisorName: '市教育局' },
+    { id: 'edu_research', code: '123700000000000014', name: '市教育科学研究院', supervisorName: '市教育局' },
+    { id: 'fin_center', code: '123700000000000015', name: '市财政预算评审中心', supervisorName: '市财政局' },
+    { id: 'fin_invest', code: '123700000000000016', name: '市政府投资评审中心', supervisorName: '市财政局' },
+    { id: 'health_center', code: '123700000000000017', name: '市疾病预防控制中心', supervisorName: '市卫生健康委员会' },
+    { id: 'health_hospital', code: '123700000000000018', name: '市人民医院', supervisorName: '市卫生健康委员会' },
+    { id: 'civil_rescue', code: '123700000000000019', name: '市救助管理站', supervisorName: '市民政局' },
+    { id: 'civil_welfare', code: '123700000000000020', name: '市社会福利院', supervisorName: '市民政局' },
+    { id: 'justice_aid', code: '123700000000000021', name: '市法律援助中心', supervisorName: '市司法局' },
+    { id: 'housing_fund', code: '123700000000000022', name: '市住房公积金管理中心', supervisorName: '市住房和城乡建设局' },
+    { id: 'transport_manage', code: '123700000000000023', name: '市公路管理局', supervisorName: '市交通运输局' },
+    { id: 'agri_promote', code: '123700000000000024', name: '市农业技术推广站', supervisorName: '市农业农村局' },
+    { id: 'culture_museum', code: '123700000000000025', name: '市博物馆', supervisorName: '市文化和旅游局' }
+];
+
+var unitLabelMap = {};
+units.forEach(function(u) {
+    unitLabelMap[u.id] = u.name;
+});
+
+var identityLabels = {
+    all: '全部身份', manage: '管理人员', professional: '专业技术人员', inst_tech: '事业技术工人', inst_general: '事业普通工人', athlete: '运动员', canjun: '参公人员', gov_tech: '机关技术工人', gov_general: '机关普通工人', retiree: '离休人员'
+};
+
+// ===== 已选单位（空数组=全部单位）=====
+var selectedUnitIds = [];
+
+// ===== Tab切换 =====
+function switchTab(tabId, contentId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.getElementById(contentId).classList.add('active');
+}
+
+// ===== Radio交互（单选维度）=====
+document.querySelectorAll('#dimensionGroup .radio-item').forEach(item => {
+    item.addEventListener('click', function() {
+        var group = this.closest('.radio-group');
+        group.querySelectorAll('.radio-item').forEach(i => i.classList.remove('checked'));
+        this.classList.add('checked');
+        this.querySelector('input').checked = true;
+    });
+});
+
+// ===== 人员身份多选 =====
+function toggleIdentityAll(el) {
+    var isChecked = el.classList.contains('checked');
+    var group = document.getElementById('identityGroup');
+    if (isChecked) {
+        // 取消全选 -> 全部取消
+        group.querySelectorAll('.check-item').forEach(function(i) { i.classList.remove('checked'); i.querySelector('input').checked = false; });
+    } else {
+        // 全选
+        group.querySelectorAll('.check-item').forEach(function(i) { i.classList.add('checked'); i.querySelector('input').checked = true; });
+    }
+    updateIdentityAllState();
+}
+
+function toggleIdentityItem(el) {
+    el.classList.toggle('checked');
+    el.querySelector('input').checked = el.classList.contains('checked');
+    updateIdentityAllState();
+}
+
+function updateIdentityAllState() {
+    var group = document.getElementById('identityGroup');
+    var items = group.querySelectorAll('.check-item:not(.select-all)');
+    var allChecked = true;
+    items.forEach(function(i) { if (!i.classList.contains('checked')) allChecked = false; });
+    var allItem = group.querySelector('.check-item.select-all');
+    if (allChecked) {
+        allItem.classList.add('checked');
+        allItem.querySelector('input').checked = true;
+    } else {
+        allItem.classList.remove('checked');
+        allItem.querySelector('input').checked = false;
+    }
+}
+
+function getSelectedIdentities() {
+    var selected = [];
+    document.querySelectorAll('#identityGroup .check-item:not(.select-all).checked').forEach(function(el) {
+        selected.push(el.getAttribute('data-value'));
+    });
+    return selected;
+}
+
+function getSelectedIdentityLabel() {
+    var ids = getSelectedIdentities();
+    var allIds = ['manage', 'professional', 'inst_tech', 'inst_general', 'athlete', 'canjun', 'gov_tech', 'gov_general', 'retiree'];
+    if (ids.length === 0 || ids.length === allIds.length) return '全部身份';
+    return ids.map(function(id) { return identityLabels[id]; }).join('、');
+}
+
+// ===== 年龄区间管理 =====
+function initAgeIntervals() {
+    ageIntervals = [
+        { start: 18, end: 25 },
+        { start: 26, end: 30 },
+        { start: 31, end: 35 },
+        { start: 36, end: 40 },
+        { start: 41, end: 45 },
+        { start: 46, end: 50 },
+        { start: 51, end: 55 },
+        { start: 56, end: 60 },
+        { start: 61, end: null }  // 最后一个开放式
+    ];
+    renderAgeRows();
+}
+
+function renderAgeRows() {
+    var body = document.getElementById('ageBuilderBody');
+    body.innerHTML = '';
+    ageIntervals.forEach(function(interval, idx) {
+        var isLast = idx === ageIntervals.length - 1;
+        var size = isLast ? '—' : (interval.end - interval.start + 1);
+        var preview = isLast ? interval.start + '岁及以上' : interval.start + '-' + interval.end + '岁';
+        var row = document.createElement('div');
+        row.className = 'age-row';
+        row.innerHTML =
+            '<div class="age-seq">' + (idx + 1) + '</div>' +
+            '<div class="age-input-group">' +
+                '<input type="number" class="age-val" value="' + interval.start + '" min="0" max="100" onchange="updateAgeStart(' + idx + ', this.value)">' +
+                '<span class="sep">—</span>' +
+                (isLast
+                    ? '<span style="color:var(--text-secondary);font-size:12px;">及以上</span>'
+                    : '<input type="number" class="age-val" value="' + interval.end + '" min="0" max="100" onchange="updateAgeEnd(' + idx + ', this.value)">') +
+            '</div>' +
+            '<div class="age-interval-size">' +
+                (isLast ? '<span style="color:var(--text-secondary);font-size:12px;">开放式</span>' : '<input type="number" value="' + size + '" readonly style="background:#f5f5f5;color:var(--text-secondary);">') +
+            '</div>' +
+            '<div class="age-preview"><span class="badge">' + preview + '</span></div>' +
+            '<div class="age-actions">' +
+                '<button class="btn-icon del" onclick="removeAgeRow(' + idx + ')" title="删除">✕</button>' +
+            '</div>';
+        body.appendChild(row);
+    });
+    // 如果只有1行，不允许删除
+    if (ageIntervals.length <= 1) {
+        var btn = body.querySelector('.btn-icon.del');
+        if (btn) btn.style.opacity = '0.3';
+    }
+}
+
+function updateAgeStart(idx, val) {
+    ageIntervals[idx].start = parseInt(val) || 0;
+    renderAgeRows();
+}
+
+function updateAgeEnd(idx, val) {
+    ageIntervals[idx].end = parseInt(val) || 0;
+    renderAgeRows();
+}
+
+function addAgeRow() {
+    var last = ageIntervals[ageIntervals.length - 1];
+    var newStart = (last.end || 60) + 1;
+    var newEnd = newStart + 4;
+    // 将之前的最后行改为有上限
+    if (last.end === null) {
+        last.end = newStart - 1;
+    }
+    ageIntervals.push({ start: newStart, end: null });
+    renderAgeRows();
+    showToast('已添加新区间');
+}
+
+function removeAgeRow(idx) {
+    if (ageIntervals.length <= 1) return;
+    var wasLast = idx === ageIntervals.length - 1;
+    ageIntervals.splice(idx, 1);
+    // 如果删除的是最后一行，新的最后一行设为开放式
+    if (wasLast && ageIntervals.length > 0) {
+        ageIntervals[ageIntervals.length - 1].end = null;
+    }
+    renderAgeRows();
+    showToast('已删除区间');
+}
+
+// ===== 获取选中维度 =====
+function getSelectedDimension() {
+    var checked = document.querySelector('input[name="dimension"]:checked');
+    return checked ? checked.value : 'gender';
+}
+
+// ===== 单位选择穿梭框 =====
+// 查询关键字（单位名称 / 主管单位），空 = 不过滤
+var unitNameKeyword = '';
+var unitSupervisorKeyword = '';
+
+function openUnitModal() {
+    // 每次打开弹窗时清空查询，保证初始展示全部可选单位
+    resetUnitKeyword();
+    renderTransferPanels();
+    document.getElementById('unitModal').classList.add('show');
+}
+
+function closeUnitModal() {
+    document.getElementById('unitModal').classList.remove('show');
+}
+
+// 按 单位名称 + 主管单位 关键字联合过滤（输入实时触发）
+function filterUnitsByKeyword() {
+    var inputName = document.getElementById('unitNameKeyword');
+    var inputSup = document.getElementById('unitSupervisorKeyword');
+    unitNameKeyword = inputName ? (inputName.value || '').trim() : '';
+    unitSupervisorKeyword = inputSup ? (inputSup.value || '').trim() : '';
+    renderLeftPanel();
+}
+
+function resetUnitKeyword() {
+    var inputName = document.getElementById('unitNameKeyword');
+    var inputSup = document.getElementById('unitSupervisorKeyword');
+    if (inputName) inputName.value = '';
+    if (inputSup) inputSup.value = '';
+    unitNameKeyword = '';
+    unitSupervisorKeyword = '';
+    renderLeftPanel();
+}
+
+// 左侧“可选单位”数据源 = 未选中 + 单位名称、主管单位均含关键字（大小写不敏感）
+function getFilteredUnits() {
+    var kwName = unitNameKeyword.toLowerCase();
+    var kwSup = unitSupervisorKeyword.toLowerCase();
+    var list = [];
+    units.forEach(function(u) {
+        if (selectedUnitIds.indexOf(u.id) >= 0) return;                       // 已选单位只出现在右侧
+        if (kwName && (u.name || '').toLowerCase().indexOf(kwName) < 0) return;      // 单位名称不匹配
+        if (kwSup && (u.supervisorName || '').toLowerCase().indexOf(kwSup) < 0) return; // 主管单位不匹配
+        list.push(u);
+    });
+    return list;
+}
+
+function renderTransferPanels() {
+    renderLeftPanel();
+    renderRightPanel();
+}
+
+function createUnitRow(u) {
+    var div = document.createElement('div');
+    div.className = 'transfer-item';
+    div.innerHTML =
+        '<div><input type="checkbox" data-id="' + u.id + '" data-name="' + u.name + '"></div>' +
+        '<div class="transfer-cell" title="' + u.name + '">' + u.name + '</div>' +
+        '<div class="transfer-cell" title="' + u.supervisorName + '">' + u.supervisorName + '</div>';
+    div.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'INPUT') {
+            var cb = div.querySelector('input[type="checkbox"]');
+            cb.checked = !cb.checked;
+            updateTransferButtons();
+        }
+    });
+    return div;
+}
+
+function renderLeftPanel() {
+    var leftPanel = document.getElementById('leftPanel');
+    var isFiltering = !!(unitNameKeyword || unitSupervisorKeyword);
+    leftPanel.innerHTML = '';
+    var list = getFilteredUnits();
+    list.forEach(function(u) {
+        leftPanel.appendChild(createUnitRow(u));
+    });
+    if (list.length === 0) {
+        leftPanel.innerHTML = '<div class="transfer-empty">' + (isFiltering ? '未找到匹配单位' : '无可选单位') + '</div>';
+    }
+    document.getElementById('leftCount').textContent = list.length;
+    updateTransferButtons();
+}
+
+function renderRightPanel() {
+    var rightPanel = document.getElementById('rightPanel');
+    rightPanel.innerHTML = '';
+    var rightCount = 0;
+    units.forEach(function(u) {
+        if (selectedUnitIds.indexOf(u.id) < 0) return;
+        rightPanel.appendChild(createUnitRow(u));
+        rightCount++;
+    });
+    if (rightCount === 0) rightPanel.innerHTML = '<div class="transfer-empty">未选择单位</div>';
+    document.getElementById('rightCount').textContent = rightCount;
+    updateTransferButtons();
+}
+
+function updateTransferButtons() {
+    var leftChecked = document.querySelectorAll('#leftPanel input[type="checkbox"]:checked');
+    var rightChecked = document.querySelectorAll('#rightPanel input[type="checkbox"]:checked');
+    document.getElementById('btnToRight').disabled = leftChecked.length === 0;
+    document.getElementById('btnToLeft').disabled = rightChecked.length === 0;
+}
+
+// 监听checkbox变化
+document.addEventListener('change', function(e) {
+    if (e.target.closest('.transfer-list-body')) {
+        updateTransferButtons();
+    }
+});
+
+function moveToRight() {
+    var checked = document.querySelectorAll('#leftPanel input[type="checkbox"]:checked');
+    checked.forEach(function(cb) {
+        var id = cb.getAttribute('data-id');
+        if (selectedUnitIds.indexOf(id) < 0) {
+            selectedUnitIds.push(id);
+        }
+    });
+    renderTransferPanels();
+}
+
+function moveToLeft() {
+    var checked = document.querySelectorAll('#rightPanel input[type="checkbox"]:checked');
+    checked.forEach(function(cb) {
+        var id = cb.getAttribute('data-id');
+        var idx = selectedUnitIds.indexOf(id);
+        if (idx >= 0) {
+            selectedUnitIds.splice(idx, 1);
+        }
+    });
+    renderTransferPanels();
+}
+
+function selectAllLeft() {
+    document.querySelectorAll('#leftPanel input[type="checkbox"]').forEach(function(cb) { cb.checked = true; });
+    updateTransferButtons();
+}
+
+function selectAllRight() {
+    var all = document.querySelectorAll('#rightPanel input[type="checkbox"]');
+    var allChecked = true;
+    all.forEach(function(cb) { if (!cb.checked) allChecked = false; });
+    all.forEach(function(cb) { cb.checked = !allChecked; });
+    updateTransferButtons();
+}
+
+function confirmUnitSelection() {
+    renderUnitDisplay();
+    closeUnitModal();
+}
+
+function renderUnitDisplay() {
+    var display = document.getElementById('unitDisplay');
+    if (selectedUnitIds.length === 0) {
+        display.innerHTML = '<span class="placeholder">— 全部单位 —</span>';
+        return;
+    }
+    // 仅显示已选择单位数量，不展示明细
+    display.innerHTML = '<span class="placeholder">已选择 <strong style="color:var(--primary);font-size:14px;">' + selectedUnitIds.length + '</strong> 个单位</span>';
+}
+
+// 点击遮罩关闭单位弹窗
+document.getElementById('unitModal').addEventListener('click', function(e) {
+    if (e.target === this) closeUnitModal();
+});
+
+// ===== 生成统计结果 =====
+function generateResults() {
+    var dimension = getSelectedDimension();
+    currentDimension = dimension;
+    var dimInfo = dimensionLabels[dimension];
+    var identityIds = getSelectedIdentities();
+    var identityLabel = getSelectedIdentityLabel();
+
+    // 行选项：基本工资对应岗位维度按已选人员身份动态生成，其余维度取静态选项
+    var rowOptions = (dimension === 'post') ? getPostDimensionRows() : dimInfo.options;
+
+    // 生成列标题
+    var colHeaders = ageIntervals.map(function(i) {
+        return i.end === null ? i.start + '岁及以上' : i.start + '-' + i.end + '岁';
+    });
+
+    // 生成模拟统计数据
+    var data = [];
+    var colTotals = new Array(colHeaders.length).fill(0);
+    var grandTotal = 0;
+
+    rowOptions.forEach(function(opt) {
+        var row = { label: opt, values: [] };
+        var rowTotal = 0;
+        colHeaders.forEach(function(h, ci) {
+            // 模拟数据
+            var base = Math.floor(Math.random() * 50) + 5;
+            // 调整：中间年龄段人数多
+            if (ci >= 2 && ci <= 5) base = Math.floor(base * 1.5);
+            row.values.push(base);
+            rowTotal += base;
+            colTotals[ci] += base;
+        });
+        row.total = rowTotal;
+        grandTotal += rowTotal;
+        data.push(row);
+    });
+
+    var unitLabel = selectedUnitIds.length === 0 ? '全部单位' :
+        '已选择 ' + selectedUnitIds.length + ' 个单位';
+
+    currentResults = { colHeaders: colHeaders, data: data, colTotals: colTotals, grandTotal: grandTotal, dimension: dimension, unitLabel: unitLabel, identityLabel: identityLabel, identityIds: identityIds };
+
+    // 新统计结果生成时，重置柱形图的维度隐藏与列表选中状态
+    chartHiddenRows = [];
+    chartSelectedRow = null;
+
+    renderResults(currentResults);
+    switchTab('tab2', 'content2');
+    showToast('统计结果已生成，共 ' + grandTotal + ' 人');
+}
+
+// ===== 渲染统计结果 =====
+function renderResults(results) {
+    var container = document.getElementById('resultsContainer');
+    var dimLabel = dimensionLabels[results.dimension].label;
+
+    var html = '<div class="card">' +
+        '<div class="results-toolbar">' +
+            '<div class="results-info">' +
+                '<span>统计单位：<strong>' + results.unitLabel + '</strong></span>' +
+                '<span>人员身份：<strong>' + results.identityLabel + '</strong></span>' +
+                '<span>统计维度：<strong>' + dimLabel + '</strong></span>' +
+                '<span>总人数：<strong style="color:var(--primary);font-size:16px;">' + results.grandTotal + '</strong></span>' +
+            '</div>' +
+            '<div class="results-actions">' +
+                '<button class="btn btn-outline" onclick="switchTab(\'tab1\',\'content1\')">⚙ 修改条件</button>' +
+                '<button class="btn btn-outline" onclick="exportResults()">📥 导出Excel</button>' +
+                '<button class="btn btn-success" onclick="printResults()">🖨 打印</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="table-wrapper">' +
+            '<table class="pivot-table">' +
+                '<thead><tr>' +
+                    '<th>' + dimLabel + ' \\ 年龄区间</th>';
+
+    results.colHeaders.forEach(function(h) {
+        html += '<th>' + h + '</th>';
+    });
+    html += '<th>合计</th></tr></thead><tbody>';
+
+    results.data.forEach(function(row, ri) {
+        html += '<tr>';
+        // 维度列：可点击选中，与柱形图联动（选中该行 -> 柱形图仅展示该维度）
+        html += '<td class="dim-label" data-ri="' + ri + '" onclick="selectChartRow(' + ri + ')" title="点击联动柱形图：仅展示该维度">' +
+            '<span class="dim-color-dot" style="background:' + chartColors[ri % chartColors.length] + ';"></span>' + row.label + '</td>';
+        row.values.forEach(function(v, ci) {
+            if (v > 0) {
+                html += '<td><span class="pivot-cell" onclick="drillDown(' + ri + ',' + ci + ')">' + v + '</span></td>';
+            } else {
+                html += '<td><span class="pivot-cell zero">0</span></td>';
+            }
+        });
+        // 行合计也可反查
+        if (row.total > 0) {
+            html += '<td class="total-col"><span class="pivot-cell" onclick="drillDownRowTotal(' + ri + ')">' + row.total + '</span></td>';
+        } else {
+            html += '<td class="total-col">0</td>';
+        }
+        html += '</tr>';
+    });
+
+    // 合计行 - 各列也可反查；维度列可点击取消选中（柱形图恢复全部维度）
+    html += '<tr class="total-row">';
+    html += '<td class="dim-label dim-label-total" data-ri="total" onclick="selectChartRow(null)" title="点击联动柱形图：展示全部维度">合计</td>';
+    results.colTotals.forEach(function(t, ci) {
+        if (t > 0) {
+            html += '<td><span class="pivot-cell" onclick="drillDownTotal(' + ci + ')">' + t + '</span></td>';
+        } else {
+            html += '<td>0</td>';
+        }
+    });
+    // 总计也可反查
+    html += '<td class="grand-total"><span class="pivot-cell" style="color:#fff !important;" onclick="drillDownAll()">' + results.grandTotal + '</span></td>';
+    html += '</tr>';
+
+    html += '</tbody></table></div></div>';
+
+    // ===== 柱形统计图 =====
+    html += '<div class="chart-card">' +
+        '<div class="chart-card-header">' +
+            '<span>📈</span>' +
+            '<span>按年龄区间分布柱形图</span>' +
+            '<span style="font-size:12px;font-weight:400;color:var(--text-secondary);margin-left:8px;" id="chartModeTag">（按' + dimLabel + '分段堆叠 · 点击列表维度或图例可单选维度）</span>' +
+        '</div>' +
+        '<div class="chart-card-body">' +
+            '<div class="bar-chart-wrap">' +
+                '<div class="bar-chart-y-axis" id="barYAxis"></div>' +
+                '<div class="bar-chart-area">' +
+                    '<div class="bar-chart-grid" id="barGrid"></div>' +
+                    '<div class="bar-chart" id="barChart"></div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="chart-axis-title">年龄区间</div>' +
+        '</div>' +
+        '<div class="chart-legend" id="chartLegend"></div>' +
+    '</div>';
+
+    container.innerHTML = html;
+    updateDimLabelSelection();
+    renderBarChart(results);
+}
+
+// ===== 渲染柱形统计图 =====
+function renderBarChart(results) {
+    var yAxisEl = document.getElementById('barYAxis');
+    var gridEl = document.getElementById('barGrid');
+    var chartEl = document.getElementById('barChart');
+    var legendEl = document.getElementById('chartLegend');
+    if (!chartEl) return;
+
+    var chartPxHeight = 300; // 可用绘图高度（320px总高 - 20px顶部padding）
+
+    // 单维度模式：统计列表选中某维度行时，仅展示该维度
+    var solo = chartSelectedRow !== null && chartSelectedRow >= 0 && chartSelectedRow < results.data.length;
+
+    // 可见行（单维度模式=仅选中行；否则=未被图例隐藏的统计维度）
+    var visibleRows = results.data.map(function(row, ri) {
+        if (solo) return ri === chartSelectedRow ? row : null;
+        return chartHiddenRows.indexOf(ri) >= 0 ? null : row;
+    });
+
+    // 动态计算各年龄区间的可见合计（隐藏维度不计入柱高与柱顶合计）
+    var visibleTotals = results.colHeaders.map(function(h, ci) {
+        var sum = 0;
+        visibleRows.forEach(function(row) {
+            if (row) sum += row.values[ci];
+        });
+        return sum;
+    });
+
+    // 计算 yMax（向上取整到50的倍数，按可见数据动态调整）
+    var maxVal = Math.max.apply(null, visibleTotals.concat([0]));
+    var yMax = Math.ceil(maxVal / 50) * 50;
+    if (yMax === 0) yMax = 50;
+
+    // Y轴刻度标签
+    var steps = 5;
+    var yAxisHtml = '';
+    for (var s = steps; s >= 0; s--) {
+        var yVal = Math.round(yMax * s / steps);
+        yAxisHtml += '<div class="y-axis-label">' + yVal + '</div>';
+    }
+    yAxisEl.innerHTML = yAxisHtml;
+
+    // 网格线
+    var gridHtml = '';
+    for (var g = 0; g <= steps; g++) {
+        gridHtml += '<div class="grid-line"></div>';
+    }
+    gridEl.innerHTML = gridHtml;
+
+    // 柱形条（按年龄区间，堆叠按维度分段；仅绘制可见维度）
+    var chartHtml = '';
+    results.colHeaders.forEach(function(h, ci) {
+        var total = visibleTotals[ci];
+        chartHtml += '<div class="bar-group">';
+        // 总数标签（柱顶上方）
+        if (total > 0) {
+            chartHtml += '<div class="bar-total-label">' + total + '</div>';
+        }
+        // 堆叠柱
+        chartHtml += '<div class="bar-stack">';
+        results.data.forEach(function(row, ri) {
+            if (solo) {
+                if (ri !== chartSelectedRow) return; // 单维度模式：只绘制选中维度
+            } else if (chartHiddenRows.indexOf(ri) >= 0) return; // 隐藏维度不绘制
+            var val = row.values[ci];
+            if (val > 0) {
+                var pxHeight = (val / yMax * chartPxHeight).toFixed(1);
+                var color = chartColors[ri % chartColors.length];
+                chartHtml += '<div class="bar-segment" style="height:' + pxHeight + 'px;background:' + color + ';">' +
+                    '<div class="seg-tooltip">' + h + ' · ' + row.label + '：' + val + '人</div>' +
+                '</div>';
+            }
+        });
+        chartHtml += '</div>';
+        // X轴标签
+        var shortLabel = h.replace('岁及以上', '+').replace('岁', '');
+        chartHtml += '<div class="bar-x-label">' + shortLabel + '</div>';
+        chartHtml += '</div>';
+    });
+    chartEl.innerHTML = chartHtml;
+
+    // 图例（可点击：合计态=显示/隐藏该维度；单维度态=切换选中维度）
+    var legendHtml = '';
+    results.data.forEach(function(row, ri) {
+        var color = chartColors[ri % chartColors.length];
+        var off = solo ? (ri !== chartSelectedRow) : (chartHiddenRows.indexOf(ri) >= 0);
+        var legendTitle = solo ? '点击切换为仅展示该维度' : '点击显示/隐藏该维度';
+        legendHtml += '<div class="legend-item' + (off ? ' legend-item-off' : '') + '" onclick="toggleChartRow(' + ri + ')" title="' + legendTitle + '">' +
+            '<span class="legend-color" style="background:' + (off ? '#c4c4c4' : color) + ';"></span>' +
+            row.label +
+        '</div>';
+    });
+    legendEl.innerHTML = legendHtml;
+
+    // 图表标题模式标签：单维度态显示当前选中维度
+    var modeTagEl = document.getElementById('chartModeTag');
+    if (modeTagEl) {
+        if (solo) {
+            modeTagEl.textContent = '（仅展示：' + results.data[chartSelectedRow].label + ' · 点击列表"合计"或图例可恢复全部维度）';
+        } else {
+            modeTagEl.textContent = '（按' + dimensionLabels[results.dimension].label + '分段堆叠 · 点击列表维度或图例可单选维度）';
+        }
+    }
+}
+
+// ===== 统计列表维度选中：与柱形图联动 =====
+function selectChartRow(rowIndex) {
+    if (!currentResults) return;
+    if (rowIndex !== null && (rowIndex < 0 || rowIndex >= currentResults.data.length)) return;
+    chartSelectedRow = rowIndex;
+    updateDimLabelSelection(); // 更新列表选中态
+    renderBarChart(currentResults); // 柱形图动态调整
+}
+
+// ===== 更新统计列表维度列的选中样式 =====
+function updateDimLabelSelection() {
+    document.querySelectorAll('#resultsContainer td.dim-label').forEach(function(td) {
+        var ri = td.getAttribute('data-ri');
+        var isSelected = (ri === 'total') ? (chartSelectedRow === null) : (parseInt(ri, 10) === chartSelectedRow);
+        if (isSelected) {
+            td.classList.add('selected');
+        } else {
+            td.classList.remove('selected');
+        }
+    });
+}
+
+// ===== 柱形图：切换统计维度显示/隐藏（单维度态=切换选中维度） =====
+function toggleChartRow(rowIndex) {
+    if (!currentResults) return;
+    // 单维度态：点击图例=切换为仅展示该维度；点击当前选中图例=恢复全部维度
+    if (chartSelectedRow !== null) {
+        selectChartRow(chartSelectedRow === rowIndex ? null : rowIndex);
+        return;
+    }
+    var idx = chartHiddenRows.indexOf(rowIndex);
+    if (idx >= 0) {
+        chartHiddenRows.splice(idx, 1); // 恢复显示
+    } else {
+        // 至少保留一个可见维度
+        if (currentResults.data.length - chartHiddenRows.length <= 1) {
+            showToast('至少保留一个统计维度');
+            return;
+        }
+        chartHiddenRows.push(rowIndex); // 隐藏
+    }
+    renderBarChart(currentResults); // 柱形图动态调整
+}
+
+// ===== 反查：单元格 =====
+function drillDown(rowIndex, colIndex) {
+    var results = currentResults;
+    if (!results) return;
+
+    var rowLabel = results.data[rowIndex].label;
+    var colLabel = results.colHeaders[colIndex];
+    var count = results.data[rowIndex].values[colIndex];
+    var dimLabel = dimensionLabels[results.dimension].label;
+
+    showDrillModal([
+        { label: dimLabel, value: rowLabel },
+        { label: '年龄区间', value: colLabel },
+        { label: '单位', value: results.unitLabel },
+        { label: '身份', value: results.identityLabel }
+    ], count, { type: 'cell', rowIndex: rowIndex, colIndex: colIndex, dimension: results.dimension });
+}
+
+// ===== 反查：合计行某列 =====
+function drillDownTotal(colIndex) {
+    var results = currentResults;
+    if (!results) return;
+
+    var colLabel = results.colHeaders[colIndex];
+    var count = results.colTotals[colIndex];
+    var dimLabel = dimensionLabels[results.dimension].label;
+
+    showDrillModal([
+        { label: '年龄区间', value: colLabel },
+        { label: dimLabel + '维度', value: '全部' },
+        { label: '单位', value: results.unitLabel },
+        { label: '身份', value: results.identityLabel }
+    ], count, { type: 'colTotal', colIndex: colIndex, dimension: results.dimension });
+}
+
+// ===== 反查：行合计 =====
+function drillDownRowTotal(rowIndex) {
+    var results = currentResults;
+    if (!results) return;
+
+    var rowLabel = results.data[rowIndex].label;
+    var count = results.data[rowIndex].total;
+    var dimLabel = dimensionLabels[results.dimension].label;
+
+    showDrillModal([
+        { label: dimLabel, value: rowLabel },
+        { label: '年龄区间', value: '全部' },
+        { label: '单位', value: results.unitLabel },
+        { label: '身份', value: results.identityLabel }
+    ], count, { type: 'rowTotal', rowIndex: rowIndex, dimension: results.dimension });
+}
+
+// ===== 反查：总计 =====
+function drillDownAll() {
+    var results = currentResults;
+    if (!results) return;
+
+    var dimLabel = dimensionLabels[results.dimension].label;
+
+    showDrillModal([
+        { label: dimLabel + '维度', value: '全部' },
+        { label: '年龄区间', value: '全部' },
+        { label: '单位', value: results.unitLabel },
+        { label: '身份', value: results.identityLabel }
+    ], results.grandTotal, { type: 'grand', dimension: results.dimension });
+}
+
+// ===== 显示反查弹窗 =====
+function showDrillModal(filters, count, drillInfo) {
+    var filtersHtml = '';
+    filters.forEach(function(f) {
+        filtersHtml += '<div class="filter-tag">' + f.label + '：' + f.value + '</div>';
+    });
+    document.getElementById('drillFilters').innerHTML = filtersHtml;
+    document.getElementById('drillCount').textContent = count;
+
+    // 生成模拟人员明细
+    var persons = generateMockPersons(drillInfo, count, currentResults);
+
+    var tbody = document.getElementById('drillTableBody');
+    tbody.innerHTML = '';
+    persons.forEach(function(p, idx) {
+        var tr = document.createElement('tr');
+        var genderTag = p.gender === '男' ? 'tag-male' : 'tag-female';
+        var allowSubTotal = p.hardshipAllowance + p.specialAllowance + p.townshipAllowance + p.housingAllowance;
+        var grandTotalVal = p.positionSalary + p.levelSalary + p.teacherNurse10 + allowSubTotal;
+        tr.innerHTML =
+            '<td class="col-num">' + (idx + 1) + '</td>' +
+            '<td class="col-name">' + p.name + '</td>' +
+            '<td class="col-id">' + p.idNum + '</td>' +
+            '<td><span class="tag ' + genderTag + '">' + p.gender + '</span></td>' +
+            '<td>' + p.ethnicity + '</td>' +
+            '<td>' + p.birthDate + '</td>' +
+            '<td>' + p.identity + '</td>' +
+            '<td>' + p.post + '</td>' +
+            '<td class="col-money">' + p.positionSalary.toLocaleString() + '</td>' +
+            '<td class="col-money">' + p.levelSalary.toLocaleString() + '</td>' +
+            '<td class="col-money">' + (p.teacherNurse10 > 0 ? p.teacherNurse10.toLocaleString() : '-') + '</td>' +
+            '<td class="col-money">' + p.hardshipAllowance.toLocaleString() + '</td>' +
+            '<td class="col-money">' + p.specialAllowance.toLocaleString() + '</td>' +
+            '<td class="col-money">' + p.townshipAllowance.toLocaleString() + '</td>' +
+            '<td class="col-money">' + p.housingAllowance.toLocaleString() + '</td>' +
+            '<td class="col-money" style="font-weight:600;">' + allowSubTotal.toLocaleString() + '</td>' +
+            '<td class="col-money" style="font-weight:600;color:var(--primary);">' + grandTotalVal.toLocaleString() + '</td>';
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('drillModal').classList.add('show');
+}
+
+// ===== 生成模拟人员数据 =====
+var surnames = ['张','王','李','赵','刘','陈','杨','黄','周','吴','徐','孙','马','朱','胡','郭','何','高','林','罗','郑','梁','谢','宋','唐','许','韩','冯','邓','曹','彭','曾','肖','田','董','袁','潘','于','蒋','蔡'];
+var givenNames = ['伟','芳','娜','敏','静','丽','强','磊','军','洋','勇','艳','杰','娟','涛','明','超','秀','霞','平','刚','桂','英','华','斌','鹏','颖','飞','玲','凯','晨','薇','宇','婷','豪','欣','怡','宁','波','琳'];
+
+function generateMockPersons(drillInfo, count, results) {
+    var persons = [];
+    var dimInfo = dimensionLabels[drillInfo.dimension];
+
+    // 根据反查类型确定年龄范围
+    var ageStart = 18, ageEnd = 80;
+    if (drillInfo.type === 'cell' || drillInfo.type === 'colTotal') {
+        var colLabel = results.colHeaders[drillInfo.colIndex];
+        var colParts = colLabel.match(/(\d+)/g);
+        ageStart = parseInt(colParts[0]);
+        ageEnd = colParts.length > 1 ? parseInt(colParts[1]) : 80;
+    }
+
+    var ethnicities = ['汉', '回', '满', '蒙古', '藏', '壮', '土家', '苗'];
+
+    // 确定维度值约束（单元格/行合计时限定为该行维度值）
+    var constraintValue = null;
+    if (drillInfo.type === 'cell' || drillInfo.type === 'rowTotal') {
+        constraintValue = results.data[drillInfo.rowIndex].label;
+    }
+
+    // 人员身份范围：统计时勾选的身份；未勾选时默认全部
+    var identityPool = getSelectedIdentities();
+    if (identityPool.length === 0) identityPool = identityOrder.slice();
+
+    for (var i = 0; i < count; i++) {
+        var name = surnames[Math.floor(Math.random() * surnames.length)] + givenNames[Math.floor(Math.random() * givenNames.length)];
+        var gender = (drillInfo.dimension === 'gender' && constraintValue) ? constraintValue : (Math.random() > 0.45 ? '男' : '女');
+        var age = ageStart + Math.floor(Math.random() * (ageEnd - ageStart + 1));
+        var birthYear = 2026 - age;
+        var birthMonth = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+        var birthDay = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+        var idNum = generateMockIdNum(birthYear, birthMonth);
+
+        // 民族（民族维度反查时与行值一致）
+        var ethnicity;
+        if (drillInfo.dimension === 'ethnicity' && constraintValue) {
+            ethnicity = constraintValue;
+        } else {
+            ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
+        }
+
+        // 人员身份 + 基本工资对应岗位（按身份岗位映射生成）
+        var identityId = identityPool[Math.floor(Math.random() * identityPool.length)];
+        var post = '';
+        if (drillInfo.dimension === 'identity' && constraintValue) {
+            // 人员身份维度反查：身份与行值一致，岗位从该身份岗位清单中取
+            identityId = identityOrder.filter(function(id) { return identityLabels[id] === constraintValue; })[0] || identityId;
+        }
+        if (drillInfo.dimension === 'post' && constraintValue) {
+            // 基本工资对应岗位维度反查：行标签为"身份-岗位"
+            var sepIdx = constraintValue.indexOf('-');
+            var idLabel = sepIdx >= 0 ? constraintValue.substring(0, sepIdx) : '';
+            post = sepIdx >= 0 ? constraintValue.substring(sepIdx + 1) : constraintValue;
+            var matchedId = identityOrder.filter(function(id) { return identityLabels[id] === idLabel; })[0];
+            if (matchedId) identityId = matchedId;
+        } else if (!post) {
+            var postList = salaryPostMap[identityId] || [];
+            post = postList.length > 0 ? postList[Math.floor(Math.random() * postList.length)] : '';
+        }
+
+        // 岗位工资、薪级工资
+        var posSalary = 800 + Math.floor(Math.random() * 2000);
+        var lvlSalary = 1000 + Math.floor(Math.random() * 3000);
+
+        // 中小学教师或护士提高10%（仅部分人员享受）
+        var teacherNurse10 = 0;
+        if (Math.random() < 0.15) {
+            teacherNurse10 = Math.round((posSalary + lvlSalary) * 0.1);
+        }
+
+        // 四项津补贴
+        var hardshipAllowance = 100 + Math.floor(Math.random() * 500);  // 艰苦边远地区津贴
+        var specialAllowance = 80 + Math.floor(Math.random() * 400);     // 特殊岗位津贴
+        var townshipAllowance = 60 + Math.floor(Math.random() * 350);    // 乡镇工作补贴
+        var housingAllowance = 150 + Math.floor(Math.random() * 600);    // 住房补贴
+
+        persons.push({
+            name: name,
+            idNum: idNum,
+            gender: gender,
+            ethnicity: ethnicity,
+            birthDate: birthYear + '-' + birthMonth + '-' + birthDay,
+            identity: identityLabels[identityId] || '',
+            post: post,
+            positionSalary: posSalary,
+            levelSalary: lvlSalary,
+            teacherNurse10: teacherNurse10,
+            hardshipAllowance: hardshipAllowance,
+            specialAllowance: specialAllowance,
+            townshipAllowance: townshipAllowance,
+            housingAllowance: housingAllowance
+        });
+    }
+    return persons;
+}
+
+function generateMockIdNum(year, month) {
+    var region = ['110101','310101','440103','510104','330102','420106','320105','610104'];
+    var r = region[Math.floor(Math.random() * region.length)];
+    var day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+    var seq = String(Math.floor(Math.random() * 999)).padStart(3, '0');
+    var check = String(Math.floor(Math.random() * 10));
+    var full = r + year + month + day + seq + check;
+    return full.substring(0, 6) + year + month + day + seq + '****';
+}
+
+function closeDrill() {
+    document.getElementById('drillModal').classList.remove('show');
+}
+
+// 点击遮罩关闭
+document.getElementById('drillModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDrill();
+});
+
+// ===== 导出 =====
+function exportResults() {
+    showToast('统计结果导出中... 请稍候');
+    setTimeout(function() {
+        showToast('✓ 统计结果已导出为 Excel 文件');
+    }, 1500);
+}
+
+function exportDrillData() {
+    showToast('明细数据导出中... 请稍候');
+    setTimeout(function() {
+        showToast('✓ 人员明细已导出为 Excel 文件');
+    }, 1500);
+}
+
+function printResults() {
+    showToast('正在准备打印...');
+    setTimeout(function() {
+        window.print();
+    }, 500);
+}
+
+// ===== 重置 =====
+function resetConditions() {
+    // 重置单位
+    selectedUnitIds = [];
+    renderUnitDisplay();
+    // 重置身份 -> 全选
+    document.querySelectorAll('#identityGroup .check-item').forEach(function(i) { i.classList.add('checked'); i.querySelector('input').checked = true; });
+    // 重置维度
+    document.querySelectorAll('#dimensionGroup .radio-item').forEach(function(i) { i.classList.remove('checked'); });
+    document.querySelector('#dimensionGroup .radio-item[data-value="gender"]').classList.add('checked');
+    document.querySelector('input[name="dimension"][value="gender"]').checked = true;
+    // 重置年龄区间
+    initAgeIntervals();
+    showToast('条件已重置为默认值');
+}
+
+// ===== Toast =====
+var toastTimer;
+function showToast(msg) {
+    var toast = document.getElementById('toast');
+    document.getElementById('toastText').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// ===== 初始化 =====
+initAgeIntervals();
+renderUnitDisplay();
+</script>
+
+</body>
+</html>

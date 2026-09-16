@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="gE5DLKFAVRdLyWYf4fw99a">
+<head data-page-node-id="IB9vZsQG9G0z9Nsgr9668O">
+<meta charset="UTF-8" data-page-node-id="JpwZ5GfDjcwrMAC44qBUPB">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="VGXI6FCm6nRy9GMO2en0H9">
+<title>智能维护管理 - 知识萃取入库</title>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --sidebar-bg: #1a2f4d;
+  --sidebar-hover: #243d5e;
+  --sidebar-active: #2563eb;
+  --sidebar-text: #c5d4e8;
+  --sidebar-text-active: #ffffff;
+  --sidebar-width: 212px;
+  --topbar-height: 56px;
+  --bg-main: #f0f2f5;
+  --bg-white: #ffffff;
+  --border-color: #e8ecf1;
+  --border-strong: #c3cedb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-500: #f97316;
+  --yellow-50: #fefce8;
+  --yellow-100: #fef9c3;
+  --yellow-500: #eab308;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+/* ========== Reset & Base ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-main);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ========== Scrollbar ========== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c5d4e8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #a0b4cc; }
+
+/* ========== Left Sidebar ========== */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-logo {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.sidebar-logo .logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #fff;
+  flex-shrink: 0;
+}
+.sidebar-logo .logo-text h1 {
+  font-size: 14px; font-weight: 600; color: #fff; line-height: 1.3;
+}
+.sidebar-logo .logo-text span {
+  font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1;
+}
+
+/* Menu Groups */
+.menu-group { margin-top: 4px; }
+.menu-group-title {
+  padding: 10px 20px 6px;
+  font-size: 12px;
+  color: rgba(197,212,232,0.45);
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+.menu-group-title:hover { color: rgba(197,212,232,0.75); }
+.menu-group-title .arrow {
+  font-size: 10px; transition: color 0.2s;
+}
+
+.menu-item {
+  padding: 9px 20px 9px 28px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--sidebar-text);
+  display: flex; align-items: center; gap: 8px;
+  transition: all 0.15s;
+  position: relative;
+  user-select: none;
+}
+.menu-item:hover { background: var(--sidebar-hover); color: #e2eafc; }
+.menu-item.active {
+  background: var(--sidebar-active);
+  color: var(--sidebar-text-active);
+  font-weight: 500;
+}
+.menu-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 3px;
+  background: #60a5fa;
+  border-radius: 0 2px 2px 0;
+}
+.menu-item .mi { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+
+.submenu { overflow: hidden; transition: max-height 0.25s ease; }
+.submenu.collapsed { max-height: 0 !important; }
+.submenu .menu-item { padding-left: 40px; font-size: 12.5px; }
+
+/* ========== Main Content ========== */
+.main-content {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* 固定为视口高度：内容再高也不会撑开页面，只有内部区域滚动 */
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Top Bar */
+.topbar {
+  height: var(--topbar-height);
+  background: var(--bg-white);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  flex-shrink: 0;
+}
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--text-secondary);
+}
+.breadcrumb .sep { color: var(--text-muted); }
+.breadcrumb .current { color: var(--text-primary); font-weight: 500; }
+.topbar-right {
+  display: flex; align-items: center; gap: 12px;
+}
+.user-avatar {
+  width: 32px; height: 32px;
+  background: var(--blue-500);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px; font-weight: 600;
+  cursor: pointer;
+}
+
+/* Page Body */
+.page-body {
+  padding: 12px 16px;   /* 紧凑留白：上下 12、左右 16 */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Tab Navigation — underline style */
+.tab-nav {
+  display: flex; align-items: center; gap: 32px;
+  background: var(--bg-white);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.tab-item {
+  padding: 14px 2px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  user-select: none;
+  position: relative;
+}
+.tab-item:hover { color: var(--blue-600); }
+.tab-item.active {
+  color: var(--blue-600);
+  font-weight: 600;
+  border-bottom-color: var(--blue-600);
+}
+.tab-item .count {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.tab-item.active .count { color: var(--blue-500); }
+
+/* Action Buttons */
+.btn-action {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-white);
+  color: var(--text-secondary);
+  display: flex; align-items: center; gap: 5px;
+  transition: all 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.btn-action:hover { border-color: var(--blue-200); color: var(--blue-600); background: var(--blue-50); }
+.btn-action.danger { color: var(--red-500); }
+.btn-action.danger:hover { border-color: var(--red-200); color: var(--red-600); background: var(--red-50); }
+
+/* Filter Bar（无前置标签，单行紧凑布局，所有操作按钮排在筛选条件之后） */
+.filter-bar {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-white);
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.filter-bar .filter-spacer { flex: 1 1 auto; }
+.btn-group { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.filter-input {
+  height: 30px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+  background: var(--bg-white);
+  min-width: 104px;
+}
+.filter-input:focus { border-color: var(--blue-400); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.filter-input::placeholder { color: var(--text-muted); }
+select.filter-input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239ca3af'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 28px; color: var(--text-primary); }
+select.filter-input.has-placeholder { color: var(--text-primary); }
+
+.search-input-wrapper {
+  position: relative; flex: 0 1 190px; min-width: 160px;
+}
+.search-input-wrapper .search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); font-size: 13px;
+  pointer-events: none;
+}
+.search-input-wrapper input { padding-left: 32px; width: 100%; }
+
+/* 日期范围（参考图样式：开始日期 → 结束日期 📅） */
+.date-range-box {
+  height: 30px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 0 12px;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-white);
+  cursor: pointer;
+  transition: border-color 0.15s;
+  min-width: 200px;
+}
+.date-range-box:focus-within { border-color: var(--blue-400); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.date-range-box .date-input {
+  border: none; outline: none; width: 70px;
+  font-size: 13px; color: var(--text-primary);
+  background: transparent;
+}
+.date-range-box .date-input::placeholder { color: var(--text-muted); }
+.date-range-box .date-arrow { color: var(--text-muted); font-size: 12px; }
+.date-range-box .date-icon { margin-left: auto; font-size: 13px; opacity: 0.7; }
+
+/* 区域下拉（带定位图标） */
+.multi-select-wrapper { position: relative; }
+.multi-select-display {
+  height: 30px;
+  min-width: 120px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  cursor: pointer;
+  display: flex; align-items: center;
+  background: var(--bg-white);
+  transition: border-color 0.15s;
+  color: var(--text-primary);
+}
+.multi-select-display:hover { border-color: var(--gray-300); }
+.multi-select-display .lead-icon { font-size: 13px; margin-right: 8px; opacity: 0.7; }
+
+.btn-primary {
+  height: 30px;
+  padding: 0 16px;
+  background: var(--blue-500);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 12.5px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  transition: all 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.btn-primary:hover { background: var(--blue-600); }
+.btn-default {
+  height: 30px;
+  padding: 0 16px;
+  background: var(--bg-white);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  font-size: 12.5px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  transition: all 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.btn-default:hover { border-color: var(--gray-300); color: var(--text-primary); }
+
+/* Data Table */
+.table-container {
+  background: var(--bg-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  /* 占满页面剩余高度：底部元素无需滚动即可见 */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table thead th {
+  background: var(--gray-50);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+  font-size: 12.5px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.data-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.1s;
+}
+.data-table tbody tr:hover { background: var(--blue-50); }
+.data-table tbody tr.selected { background: var(--blue-50); }
+.data-table td {
+  padding: 10px 14px;
+  color: var(--text-primary);
+  vertical-align: middle;
+  white-space: nowrap;   /* 所有单元格单行显示，不换行 */
+}
+.data-table td.col-num { color: var(--text-muted); font-size: 12.5px; }
+.data-table td.col-question {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.data-table td.col-answer {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+/* Status Badges */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.badge-stored { background: var(--blue-50); color: var(--blue-600); border-color: #bfdbfe; }
+.badge-not-stored { background: var(--gray-50); color: var(--gray-600); border-color: var(--gray-200); }
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* Action Links */
+.action-links { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.action-link {
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 2px 0;
+  transition: color 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.action-link.store { color: var(--green-600); }
+.action-link.store:hover { color: var(--green-500); text-decoration: underline; }
+.action-link.delete { color: var(--red-500); }
+.action-link.delete:hover { color: var(--red-600); text-decoration: underline; }
+.action-link:disabled,
+.action-link.disabled { color: var(--gray-300); cursor: not-allowed; }
+.action-link.export { color: var(--orange-500); }
+.action-link.export:hover { color: var(--orange-500); text-decoration: underline; }
+
+/* Checkbox */
+.checkbox {
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.checkbox:hover { border-color: var(--blue-400); }
+.checkbox.checked {
+  background: var(--blue-500);
+  border-color: var(--blue-500);
+}
+.checkbox.checked::after {
+  content: '✓';
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+}
+/* 已入库数据：复选框禁用，不可勾选 */
+.checkbox.disabled {
+  background: var(--gray-100);
+  border-color: var(--border-color);
+  cursor: not-allowed;
+}
+.checkbox.disabled:hover { border-color: var(--border-color); }
+
+/* ========== Modal ========== */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 520px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 18px;
+  transition: all 0.15s;
+  border: none; background: none;
+}
+.modal-close:hover { background: var(--gray-100); color: var(--text-primary); }
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex; justify-content: flex-end; gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Form Elements in Modal */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 13px; font-weight: 500;
+  color: var(--text-primary); margin-bottom: 6px;
+}
+.form-group label .required { color: var(--red-500); margin-left: 2px; }
+.form-control {
+  width: 100%; height: 36px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+  background: var(--bg-white);
+}
+.form-control:focus { border-color: var(--blue-400); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+textarea.form-control { height: auto; min-height: 80px; resize: vertical; padding: 8px 12px; font-family: inherit; }
+.radio-group { display: flex; gap: 16px; }
+.radio-option {
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer; font-size: 13px; color: var(--text-primary);
+  user-select: none;
+}
+.radio-option input[type="radio"] { accent-color: var(--blue-500); }
+
+/* Toast Notification */
+.toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: 2000;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.3s ease;
+  display: flex; align-items: center; gap: 8px;
+  max-width: 360px;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.toast.success { background: var(--green-500); }
+.toast.error { background: var(--red-500); }
+.toast.info { background: var(--blue-500); }
+.toast.warning { background: var(--orange-500); }
+
+/* Multi-select Dropdown */
+.multi-select-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0;
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  min-width: 200px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 100;
+  display: none;
+}
+.multi-select-dropdown.show { display: block; }
+.multi-select-option {
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: background 0.1s;
+}
+.multi-select-option:hover { background: var(--gray-50); }
+.multi-select-option .ms-check {
+  width: 15px; height: 15px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #fff;
+  flex-shrink: 0;
+}
+.multi-select-option.selected .ms-check {
+  background: var(--blue-500); border-color: var(--blue-500);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* Pagination */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-color);
+  font-size: 13px; color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.pagination-info { display: flex; align-items: center; gap: 4px; }
+.pagination-btns { display: flex; align-items: center; gap: 4px; }
+.page-btn {
+  min-width: 32px; height: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-white);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  padding: 0 8px;
+}
+.page-btn:hover:not(:disabled) { border-color: var(--blue-400); color: var(--blue-600); }
+.page-btn.active { background: var(--blue-500); color: #fff; border-color: var(--blue-500); }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Responsive tweaks for table scroll */
+.table-scroll { overflow-x: auto; }
+
+/* 问题列 ↔ 是否入库列：缩小字段间距 */
+.data-table thead th:nth-child(4),
+.data-table tbody td:nth-child(4),
+.data-table thead th:nth-child(5),
+.data-table tbody td:nth-child(5) {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.data-table thead th:nth-child(5),
+.data-table tbody td:nth-child(5) {
+  padding-right: 12px;
+}
+.data-table th:nth-child(4) { min-width: 180px; }
+.data-table th:nth-child(5) { width: 80px; }
+
+/* 表格横向滚动 + 固定首列（复选框/序号）与末列（操作） */
+.data-table { min-width: 964px; }  /* 含新增「运维」列 90px */
+.data-table th.sticky-l1, .data-table td.sticky-l1 {
+  position: sticky; left: 0; z-index: 3;
+  background: var(--bg-white);
+}
+.data-table th.sticky-l2, .data-table td.sticky-l2 {
+  position: sticky; left: 40px; z-index: 3;
+  background: var(--bg-white);
+  box-shadow: 1px 0 0 var(--border-color), 2px 0 5px -2px rgba(15,23,42,0.07);
+}
+.data-table th.sticky-r, .data-table td.sticky-r {
+  position: sticky; right: 0; z-index: 3;
+  background: var(--bg-white);
+  box-shadow: -1px 0 0 var(--border-color), -2px 0 5px -2px rgba(15,23,42,0.07);
+}
+/* 表头固定列需盖在内容之上 */
+.data-table thead th.sticky-l1,
+.data-table thead th.sticky-l2,
+.data-table thead th.sticky-r {
+  background: var(--gray-50);
+  z-index: 6;
+}
+/* 行状态变化时固定列同步底色 */
+.data-table tbody tr:hover td.sticky-l1,
+.data-table tbody tr:hover td.sticky-l2,
+.data-table tbody tr:hover td.sticky-r,
+.data-table tbody tr.selected td.sticky-l1,
+.data-table tbody tr.selected td.sticky-l2,
+.data-table tbody tr.selected td.sticky-r,
+.data-table tbody tr.active-detail td.sticky-l1,
+.data-table tbody tr.active-detail td.sticky-l2,
+.data-table tbody tr.active-detail td.sticky-r {
+  background: var(--blue-50);
+}
+
+/* ========== 列表 + 详情 左右分栏 ========== */
+.content-split {
+  display: flex;
+  gap: 0;                 /* 无间隙：列表区与详情区紧挨，靠竖线分隔 */
+  align-items: stretch;
+  flex: 1;                /* 占满卡片剩余高度 */
+  min-height: 0;
+}
+.list-pane {
+  flex: 1 1 50%;
+  width: 50%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* 与右侧详情区共用同一张卡片，仅用一条竖向分割线隔开 */
+  border-right: 1px solid var(--border-color);
+}
+.list-pane .table-scroll {
+  flex: 1;
+  overflow: auto;   /* 纵向、横向都在列表内部滚动 */
+  min-height: 0;
+}
+.detail-pane {
+  flex: 1 1 50%;
+  width: 50%;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg-white);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.detail-pane-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.detail-pane-header .detail-tag {
+  font-size: 12px; font-weight: 400; color: var(--text-muted);
+}
+.detail-pane-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+}
+.detail-field { margin-bottom: 14px; }
+.detail-field label {
+  display: block; font-size: 12.5px;
+  color: var(--text-secondary); margin-bottom: 6px;
+}
+.detail-field .static-text {
+  font-size: 13px;
+  padding: 9px 12px;
+  background: var(--gray-50);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+}
+
+/* 详情基础信息：文字紧凑展示，省空间 */
+.detail-baseinfo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 18px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+.detail-baseinfo .bi-item {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.detail-baseinfo .bi-item.bi-full { grid-column: 1 / -1; }
+.detail-baseinfo .bi-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 62px;
+}
+.detail-baseinfo .bi-value {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  word-break: break-all;
+}
+.detail-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  margin-bottom: 10px;
+}
+
+/* 所在知识库 — 表格单元格 */
+.kb-cell {
+  color: var(--text-primary);
+  cursor: default;
+}
+
+/* 所在知识库 — 详情面板 */
+.detail-kb-list { display: flex; flex-direction: column; gap: 8px; }
+.detail-kb-item {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--gray-50);
+}
+.detail-kb-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.detail-kb-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.kb-meta-tag {
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--blue-50);
+  color: var(--blue-600);
+  white-space: nowrap;
+}
+.kb-meta-tag.gray { background: var(--gray-100); color: var(--text-secondary); }
+.kb-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 9px 12px;
+  background: var(--gray-50);
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+}
+.detail-field .detail-input {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.detail-field .detail-input:focus {
+  border-color: var(--blue-400);
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+}
+/* ========== 富文本编辑器 ========== */
+.rich-toolbar {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: var(--gray-50);
+}
+.rich-toolbar .rt-btn {
+  min-width: 28px; height: 28px; padding: 0 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 4px;
+  font-size: 12.5px; color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  user-select: none;
+}
+.rich-toolbar .rt-btn:hover { background: var(--blue-50); color: var(--blue-600); border-color: var(--blue-200); }
+.rich-toolbar .rt-btn.active { background: var(--blue-100); color: var(--blue-600); border-color: var(--blue-200); }
+.rich-toolbar .rt-sep { width: 1px; height: 16px; background: var(--border-color); margin: 0 4px; }
+.rich-editor {
+  min-height: 190px;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 6px 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.8;
+  outline: none;
+  background: var(--bg-white);
+  color: var(--text-primary);
+  transition: border-color 0.15s;
+}
+.rich-editor:focus { border-color: var(--blue-400); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+/* 已入库：问题/答案只读 */
+.detail-input[readonly] {
+  background: var(--gray-50);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.rich-editor[contenteditable="false"] {
+  background: var(--gray-50);
+  color: var(--text-secondary);
+  cursor: default;
+}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.rich-editor:empty:before { content: attr(data-placeholder); color: var(--text-muted); }
+.rich-editor p { margin: 0 0 8px; }
+.rich-editor h3 { font-size: 15px; font-weight: 600; margin: 0 0 8px; }
+.rich-editor ul, .rich-editor ol { margin: 0 0 8px; padding-left: 22px; }
+.rich-editor blockquote {
+  margin: 0 0 8px; padding: 6px 12px;
+  border-left: 3px solid var(--blue-200);
+  background: var(--gray-50); color: var(--text-secondary);
+}
+.rich-editor a { color: var(--blue-600); }
+.rich-editor b, .rich-editor strong { font-weight: 700; }
+
+.detail-field textarea {
+  width: 100%;
+  min-height: 96px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  resize: vertical;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.detail-field textarea:focus {
+  border-color: var(--blue-400);
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+}
+.detail-pane-footer {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-color);
+  display: flex; gap: 10px; justify-content: flex-end;
+  flex-shrink: 0;
+}
+/* 每页条数选择器 */
+.page-size-select {
+  height: 30px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0 6px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  background: var(--bg-white);
+  cursor: pointer;
+  outline: none;
+  margin-right: 10px;
+}
+.page-size-select:focus { border-color: var(--blue-400); }
+.pagination-info .page-count { color: var(--text-secondary); }
+
+.detail-empty {
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.detail-empty .empty-icon { font-size: 40px; margin-bottom: 10px; opacity: 0.6; }
+.data-table tbody tr.active-detail { background: var(--blue-50); box-shadow: inset 3px 0 0 var(--blue-500); }
+
+/* ========== 入库抽屉（右侧滑出） ========== */
+.modal-overlay.drawer-overlay {
+  align-items: stretch;
+  justify-content: flex-end;
+  background: rgba(15, 23, 42, 0.45);
+}
+.modal-overlay.drawer-overlay.show { animation: drawerMaskIn 0.22s ease; }
+@keyframes drawerMaskIn { from { opacity: 0; } to { opacity: 1; } }
+
+.drawer {
+  width: 500px;
+  max-width: 92vw;
+  height: 100vh;
+  background: var(--bg-white);
+  box-shadow: -10px 0 32px rgba(15, 23, 42, 0.18);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: drawerIn 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+@keyframes drawerIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* 抽屉头部 */
+.drawer-header {
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+}
+.drawer-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.drawer-title-bar { width: 3px; height: 15px; border-radius: 2px; background: var(--blue-500); flex-shrink: 0; }
+.drawer-title h3 { font-size: 15.5px; font-weight: 600; white-space: nowrap; }
+.drawer-sub {
+  font-size: 12px; color: var(--text-muted);
+  padding-left: 10px; margin-left: 2px;
+  border-left: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+/* 抽屉主体：三段式，头部/筛选固定，仅列表区滚动 */
+.drawer-body {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.drawer-section {
+  flex-shrink: 0;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+.drawer-section:last-child { border-bottom: none; }
+.drawer-section-list {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  padding-bottom: 12px;
+}
+.section-title {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.section-count {
+  margin-left: auto;
+  font-size: 11.5px; font-weight: 400; color: var(--text-muted);
+}
+
+/* 待入库信息（问题 / 系统 / 区域）— 紧凑纯文本 */
+.kb-pending {
+  background: var(--gray-50);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kb-pending-row { display: flex; align-items: baseline; gap: 8px; }
+.kb-pending-label {
+  flex: 0 0 28px;
+  font-size: 12px; color: var(--text-muted); line-height: 1.55;
+}
+.kb-pending-value {
+  flex: 1; min-width: 0;
+  font-size: 12.5px; color: var(--text-primary);
+  line-height: 1.55;
+}
+.kb-pending-value.ellipsis {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kb-pending-count { color: var(--text-muted); font-size: 12px; }
+
+/* 系统 / 区域 联动筛选（与列表同区，单行排列） */
+.kb-filter {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.kb-filter-label {
+  font-size: 12.5px; color: var(--text-secondary);
+  white-space: nowrap; flex-shrink: 0;
+}
+.kb-filter .filter-input { flex: 1; min-width: 0; width: auto; }
+/* 未选系统时区域下拉禁用（需先选系统） */
+.kb-filter .filter-input:disabled {
+  background: var(--gray-100);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  border-color: var(--border-color);
+}
+
+/* 知识库列表 */
+.kb-list {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px;
+}
+.kb-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.kb-item:hover { border-color: var(--blue-200); background: var(--blue-50); }
+.kb-item.selected { border-color: var(--blue-500); background: var(--blue-50); }
+.kb-item .checkbox { flex-shrink: 0; }
+.kb-info { flex: 1; min-width: 0; }
+.kb-name {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 400; color: var(--text-primary);
+}
+.kb-name-text {
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.kb-meta {
+  display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0; margin-left: auto;
+}
+.kb-tag {
+  font-size: 11px; font-weight: 400;
+  padding: 1px 8px; border-radius: 10px;
+  background: var(--blue-100); color: var(--blue-600);
+  white-space: nowrap;
+}
+.kb-tag.gray { background: var(--gray-100); color: var(--gray-600); }
+.kb-list-empty {
+  font-size: 13px; color: var(--text-muted);
+  padding: 28px 0; text-align: center;
+}
+</style>
+</head>
+<body data-page-node-id="C5raDEEGYVN1M34GrC3vq8">
+
+<!-- ===== Left Sidebar ===== -->
+<aside class="sidebar" id="sidebar" data-page-node-id="tEgA11fgZc7vNGeDvXUceW">
+  <div class="sidebar-logo" data-page-node-id="Xx66GS4IQN4BNbncWAEC74">
+    <div class="logo-icon" data-page-node-id="91V9UEFEIz5lHeQ99LnxF1">⚙</div>
+    <div class="logo-text" data-page-node-id="rcZfDKMJBBzplvZLlm74Jv">
+      <h1 data-page-node-id="kWcVYNxxRSyXu76O8i49m9">智能维护管理</h1>
+      <span data-page-node-id="kSV173WHvyRDNGXtKsJ09i">OPS · V3.2</span>
+    </div>
+  </div>
+
+  <!-- 智能维护 Group（一级菜单，含在线咨询等全部二级菜单） -->
+  <div class="menu-group" data-page-node-id="E2JMEkAZS5snsQ2EP5q5kz">
+    <div class="menu-group-title" onclick="toggleGroup(this)" data-page-node-id="gUEv3Z6ZINGSjPrwrL70BB">
+      <span class="mi" data-page-node-id="2oXpNajqSxHgf9KZYySrih">▣</span> 智能维护 <span class="arrow" style="margin-left:auto;" data-page-node-id="eMWbDL4dZGK1n1WBTSgZuj">▴</span>
+    </div>
+    <div class="submenu" style="max-height:500px;" data-page-node-id="tyBMs1GJBs62QGLb6BoQPk">
+      <div class="menu-item" data-page-node-id="G51FWWEmUN9HfKmsmzb93l">知识库管理</div>
+      <div class="menu-item" data-page-node-id="WqWaA4Llj2nvxNtx5U7X3m">数据探索</div>
+      <div class="menu-item" data-page-node-id="SitxT65xgl8Oahabdi3WA9">对话记录</div>
+      <div class="menu-item" data-page-node-id="CgEADoVZmv7093NFBMw55X">在线咨询</div>
+      <div class="menu-item" data-page-node-id="cDjTzZ5msNkN5DDqJAt55s">咨询实施监督</div>
+      <div class="menu-item" data-page-node-id="S0ZhzGt4O3yi4ecJoLpPNK">运维数据统计</div>
+      <div class="menu-item" data-page-node-id="Hlu7g7z03UILOFiGOMI3Ib">待办事项</div>
+      <div class="menu-item active" data-page-node-id="DO5EjaHf5qfQKagIZhAU5s">知识萃取入库</div>
+      <div class="menu-item" data-page-node-id="puvxFqQebIZ8y02iWHGjfZ">文件上传</div>
+      <div class="menu-item" data-page-node-id="1UssE0IGUWPERYASEhNrfN">问题反馈</div>
+    </div>
+  </div>
+
+  <!-- 系统管理 Group -->
+  <div class="menu-group" data-page-node-id="ReftAqqBDeLlR3vGPSG3W8">
+    <div class="menu-group-title" onclick="toggleGroup(this)" data-page-node-id="ddssoyEm3nR2ZuBkrkP8kq">
+      <span class="mi" data-page-node-id="9CimL0ApiCeFelZPChVsqF">▣</span> 系统管理 <span class="arrow" style="margin-left:auto;" data-page-node-id="E6VHx5xIFeXagjMkhdyQYZ">▴</span>
+    </div>
+    <div class="submenu" style="max-height:300px;" data-page-node-id="2nCDtTmvEiFHNrs6Rl3FgB">
+      <div class="menu-item" data-page-node-id="HP2Qt0TiHkJaioYjnjQWqB">用户管理</div>
+      <div class="menu-item" data-page-node-id="yUMijf4QDS5j0Ha58dB2yT">角色权限</div>
+      <div class="menu-item" data-page-node-id="1AfbD2iOVdFKgEkrLxqZHa">单位管理</div>
+      <div class="menu-item" data-page-node-id="3tASFZ2nsB6yvPqBNz3wBq">License管理</div>
+      <div class="menu-item" data-page-node-id="y3K4yEnnZwIiTBq3LII3mM">系统版本管理</div>
+      <div class="menu-item" data-page-node-id="DlIVhE4ozzDRZk2vyhQDcS">操作日志</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== Main Content ===== -->
+<div class="main-content" data-page-node-id="rU71EKQ9NQE5H2HAwg4o3K">
+
+  <!-- Top Bar -->
+  <header class="topbar" data-page-node-id="NicySuBSl6eZgHFNHl6mvW">
+    <div class="breadcrumb" data-page-node-id="WouHnnN8zP43ui3xBUoS7D">
+      <span data-page-node-id="FOlag4ElN8DEABFh6tC1n3">智能维护</span><span class="sep" data-page-node-id="r8v1NkCQpeoEEXyf3vD50k">/</span><span class="current" data-page-node-id="JsOYM2HpF1aSFwyKRwG5SA">知识萃取入库</span>
+    </div>
+    <div class="topbar-right" data-page-node-id="ZfUbO1t5Bn0jNwiBKmXt9m">
+      <div class="user-avatar" title="LCH" data-page-node-id="VE8KyDgAvgBSZvZa8CiCap">LCH</div>
+    </div>
+  </header>
+
+  <!-- Page Body -->
+  <div class="page-body" data-page-node-id="gJ8CaaApruYIo6uwBIoQ25">
+
+    <!-- 系统切换 + 筛选 + 表格（合并为同一张卡片） -->
+    <div class="table-container" data-page-node-id="U0t12AcxH7BmvoS7NG7NDJ">
+
+      <!-- Tab Nav: Systems -->
+      <nav class="tab-nav" id="tabNav" data-page-node-id="ng8VldQvbY1SeVtBPtM88z">
+        <div class="tab-item active" data-tab="single" onclick="switchTab(this)" data-page-node-id="G72aKzvCoeZCQxzbJhlT97"><span data-page-node-id="ED0jhJw67VDLER8xTLs0xr">事业工资系统（单机版）</span><span class="count" data-page-node-id="jMhMrXmF365yBZ4Z3LMFKB">28</span></div>
+        <div class="tab-item" data-tab="network" onclick="switchTab(this)" data-page-node-id="Tjgk5OACizcGNqnUqbTtbK"><span data-page-node-id="ebSDBAzdHmSkYFldLtpkt2">事业工资系统（网络版）</span><span class="count" data-page-node-id="JofA22qsXrhYN09xPUKcWO">42</span></div>
+        <div class="tab-item" data-tab="annual" onclick="switchTab(this)" data-page-node-id="46lYjkiIo86jPps694gegO"><span data-page-node-id="naIPFFM3VNaN2kzzFZtTEo">年报系统</span><span class="count" data-page-node-id="BXOnnAxmOMEOh2g6TlGMFA">11</span></div>
+      </nav>
+
+      <!-- Filter Bar（无前置标签，单行紧凑布局：筛选条件 + 全部操作按钮） -->
+      <div class="filter-bar" data-page-node-id="GYMXYuWJ0rFbAz9ZLRYIXb">
+        <div class="search-input-wrapper" data-page-node-id="oAzjWiUVUGhbZNUwWAcRRg">
+          <span class="search-icon" data-page-node-id="sul1U3ApRD2dRfJNIcOsOm">🔍</span>
+          <input type="text" class="filter-input" id="searchKeyword" placeholder="搜索单位 / 经办人 / 客服" oninput="applyFilters()" data-page-node-id="9CLVSsSjPTUufeDnboxRov">
+        </div>
+
+        <div class="multi-select-wrapper" id="regionSelect" data-page-node-id="mTYdFKydkBIRKdRCPyMGkq">
+          <div class="multi-select-display" onclick="toggleRegionDropdown()" data-page-node-id="ZqFuVzZlskghmFUmXNFzMA">
+            <span class="lead-icon" data-page-node-id="bO9Cp5TgTR7syf4en2UUB5">📍</span>
+            <span id="regionDisplayText" data-page-node-id="2qjwogiqzumOBoZ5sU7RjC">全部区域</span>
+            <span style="font-size:10px;color:#9ca3af;margin-left:8px;" data-page-node-id="BUq3tIwoAY1XNcnPkZ6psv">▾</span>
+          </div>
+          <div class="multi-select-dropdown" id="regionDropdown" data-page-node-id="1vwgeZJPDVeaMoCqUr6DEW"></div>
+        </div>
+
+        <select class="filter-input" id="filterStored" onchange="applyFilters()" data-page-node-id="XUw8CwKrho4A1rqISGMwhh">
+          <option value="" data-page-node-id="AO1dcoagmc2G2NY2bUFS36">是否入库</option>
+          <option value="yes" data-page-node-id="G0wHynPUFpCmCkH0cwGc2I">是</option>
+          <option value="no" data-page-node-id="0u83eDdAY21Hmeb3MK1xBE">否</option>
+        </select>
+
+        <div class="date-range-box" onclick="document.getElementById('dateStart').focus()" data-page-node-id="UnBzuUGk2IcJ5Avtoa1yBe">
+          <input type="text" class="date-input" id="dateStart" placeholder="开始日期" onchange="applyFilters()" data-page-node-id="V7ZicfC5DdNWipLYCUqIG6">
+          <span class="date-arrow" data-page-node-id="J75Klit6lQMKkIFtgtxsul">→</span>
+          <input type="text" class="date-input" id="dateEnd" placeholder="结束日期" onchange="applyFilters()" data-page-node-id="ppUv3LSTaZLE5MiVcbuIjG">
+          <span class="date-icon" data-page-node-id="fFxAPCshICudcU1PFCXEWt">📅</span>
+        </div>
+
+        <button class="btn-default" onclick="resetFilters()" data-page-node-id="JeYwhO5YPzXAOZAKB3HrKj">重置</button>
+        <button class="btn-primary" onclick="applyFilters()" data-page-node-id="5YkmcGF0X5wRQogwHrfxgu">搜索</button>
+
+        <span class="filter-spacer" data-page-node-id="LIUJi1zWrmvhPgyTLaC942"></span>
+
+        <div class="btn-group" data-page-node-id="UUsGEyv88uvhtyq1G4uaQI">
+          <button class="btn-action" onclick="batchStore()" data-page-node-id="vreDUbywKuovae8yRd89hd">批量入库</button>
+          <button class="btn-action danger" onclick="batchDelete()" data-page-node-id="nCoCjctZmg6wiZ31iGLfp8">批量删除</button>
+          <button class="btn-action" onclick="exportData()" data-page-node-id="qQXJeqbaGovVCH5FJYi2Q7">导出数据</button>
+        </div>
+      </div>
+
+      <!-- 左右分栏：左侧列表 / 右侧详情（同卡片内，无间隙，竖线分隔） -->
+      <div class="content-split" data-page-node-id="soNj3rK1cH7LjzBR5zhs7g">
+
+        <!-- 左：数据列表 -->
+        <div class="list-pane" data-page-node-id="6NjBhLw0oDKHFfaEv3eal5">
+          <div class="table-scroll" data-page-node-id="z3DvtoH9oxA1cVtDUTG5L5">
+            <table class="data-table" id="dataTable" data-page-node-id="YHbRVGOLPgzDtNx5f7pE1W">
+              <thead data-page-node-id="e6Da3OkswYq67ujQNVneHW">
+                <tr data-page-node-id="WtPPIppEY8YcFg9Ton3dty">
+                  <th class="sticky-l1" style="width:40px;" data-page-node-id="YhpC4LOCwxrsiO5eaFSjue"><div class="checkbox" onclick="toggleSelectAll(this)" id="selectAllBox" data-page-node-id="yNrpHeeXEJvDeuIxT588FB"></div></th>
+                  <th class="sticky-l2" style="width:50px;" data-page-node-id="DI1KJxD4d7KJ5CoZmxm1zR">序号</th>
+                  <th style="width:90px;" data-page-node-id="C3s9rtSDGcNKCkgbBpjwku">区域</th>
+                  <th style="min-width:180px;" data-page-node-id="IYqpfyAmR4bQcIomOzm9KX">问题</th>
+                  <th style="width:80px;" data-page-node-id="mVQHa7kL1m4oFZHpHcnBv2">是否入库</th>
+                  <th style="width:170px;" data-page-node-id="hDDTuUVmYWPl4BPTJUeO2R">所在知识库</th>
+                  <th style="width:90px;" data-page-node-id="opsColTh">运维</th>
+                  <th style="width:160px;" data-page-node-id="Ah7RacoOzdXlybPvSiDDbo">提取时间</th>
+                  <th class="sticky-r" style="width:104px;" data-page-node-id="cP3bBXYFxJwBLNLbXkdWCm">操作</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody" data-page-node-id="HHImcYMDWT1BbqYtoCCORn">
+                <!-- Dynamic rows -->
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" data-page-node-id="roTEc4JM4Pql0PPvBxGPda">
+            <div class="pagination-info" data-page-node-id="tNbKytb23Bb4XzMMI6y0tK">
+              <select class="page-size-select" id="pageSize" onchange="changePageSize(this.value)" data-page-node-id="ooE2iXXhEbs5BPl8TF3VMH">
+                <option value="10" data-page-node-id="VXqLteYp0HzsoK81U2mEK5">10 条/页</option>
+                <option value="20" data-page-node-id="ccHt6hTMeCGFf25VgHZYGt">20 条/页</option>
+                <option value="50" data-page-node-id="qWKrV01qGZFb2YzpEF0lV1">50 条/页</option>
+                <option value="100" data-page-node-id="TRAhH2tFF7bxjkmUOJRfQo">100 条/页</option>
+              </select>
+              <span class="page-count" data-page-node-id="x92J2b2h9V7eip50vZeHSg">共 <strong id="totalCount" data-page-node-id="69DElg50CL6sYLz7xu835l">81</strong> 条记录</span>
+            </div>
+            <div class="pagination-btns" id="pageBtns" data-page-node-id="t8HFyrSYFTFb7NWDmPj1g1"></div>
+          </div>
+        </div>
+
+        <!-- 右：问题/答案详情（可编辑） -->
+        <aside class="detail-pane" data-page-node-id="lqQFZ7NsjzTzNlr824LUAI">
+          <div class="detail-pane-header" data-page-node-id="VWJlEUgBXsn2nLi64ETLcz">
+            <span data-page-node-id="ZOEbVTqkICOtw2pxzPdjYk">问题详情</span>
+            <span class="detail-tag" id="detailTag" data-page-node-id="yZsqXtcWDSSPnOZCzuoVtn">未选择</span>
+          </div>
+          <div class="detail-pane-body" id="detailBody" data-page-node-id="GQBhhCbUJ1tHDDwpO38KKw">
+            <div class="detail-empty" data-page-node-id="syxjrTuG13zb5lMcclvjov">
+              <div class="empty-icon" data-page-node-id="iidzoz3E5jGV9XtqDts65t">📄</div>
+              <p data-page-node-id="UFGN14eQfLd4JeatwTHnob">点击左侧任意一条数据</p>
+              <p data-page-node-id="q7DDtsYfZH2gpowmkODYaI">在此查看并编辑问题与答案</p>
+            </div>
+          </div>
+          <div class="detail-pane-footer" id="detailFooter" style="display:none;" data-page-node-id="CLI3FRgfvguBQfuXxLhSGW">
+            <button class="btn-primary" id="saveDetailBtn" onclick="saveDetail()" data-page-node-id="S8lmJHUAEVzfjODB9Q9eZt">保存修改</button>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== Delete Confirm Modal ===== -->
+<div class="modal-overlay" id="deleteModal" data-page-node-id="N6FFPQLjNmWeDImKWRwa2e">
+  <div class="modal" style="width:420px;" data-page-node-id="cAnI6Q7N0APJ3aEgujH7TX">
+    <div class="modal-header" data-page-node-id="VOwnMk51y3hzV4o1gN2XTJ">
+      <h3 data-page-node-id="PIEKY8wRUH2TC5crDlcNGl">确认删除</h3>
+      <button class="modal-close" onclick="closeModal('deleteModal')" data-page-node-id="LuuCFOlnnWWoR9oBt1sYYY">✕</button>
+    </div>
+    <div class="modal-body" data-page-node-id="DCV1dD47erlCYWJKswEYYs">
+      <p style="font-size:14px;line-height:1.7;color:var(--text-secondary);" data-page-node-id="vG5wQ1v8meZv1H7ED9qwL5">
+        ⚠️ 确定要删除该条知识萃取数据吗？此操作<strong style="color:var(--red-600);" data-page-node-id="5x6Qffha7jWTYzDsTkz1yS">不可恢复</strong>。
+      </p>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:8px;" id="deleteTargetInfo" data-page-node-id="ybwG4um9gKaQNxk7veFuG4"></p>
+    </div>
+    <div class="modal-footer" data-page-node-id="nXgWLmMuu2mGlsezPmex1X">
+      <button class="btn-default" onclick="closeModal('deleteModal')" data-page-node-id="RRCTbaZ2ne6YGKK79WUbPx">取消</button>
+      <button class="btn-primary" style="background:var(--red-500);" onclick="confirmDelete()" onmouseover="this.style.background='var(--red-600)'" onmouseout="this.style.background='var(--red-500)'" data-page-node-id="LASEO5DvGHftQCHC60gGTM">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 知识库选择抽屉（入库，右侧滑出） ===== -->
+<div class="modal-overlay drawer-overlay" id="kbModal" data-page-node-id="pFYQl1mypECXupa3Hobgna">
+  <div class="drawer" data-page-node-id="0cxjDWBRGPlapaLuY8LS9r">
+
+    <!-- 头部 -->
+    <div class="drawer-header" data-page-node-id="AFzmMvvuXHC0uJfLpb35r2">
+      <div class="drawer-title" data-page-node-id="kbDrawerTitle">
+        <span class="drawer-title-bar" data-page-node-id="kbDrawerBar"></span>
+        <h3 data-page-node-id="xWB3We4I0YQUFBDiRGrecj">选择知识库</h3>
+        <span class="drawer-sub" id="kbDrawerSub" data-page-node-id="kbDrawerSubNode">共 0 条待入库</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('kbModal')" data-page-node-id="axLnx80Mjvuh18JAYd6AKQ">✕</button>
+    </div>
+
+    <!-- 主体：待入库信息 / 筛选 / 列表 -->
+    <div class="drawer-body" data-page-node-id="JstWXT85MA0hDnv4DslS0F">
+
+      <!-- 1. 当前待入库条目：问题 + 区域 -->
+      <div class="drawer-section" data-page-node-id="kbPendingSection">
+        <div class="section-title" data-page-node-id="kbPendingTitle">待入库内容</div>
+        <div class="kb-pending" id="kbPendingInfo" data-page-node-id="kbPendingInfoNode"></div>
+      </div>
+
+      <!-- 2. 系统 / 区域 筛选 + 知识库列表（同一区，仅列表滚动） -->
+      <div class="drawer-section drawer-section-list" data-page-node-id="kbListSection">
+        <div class="section-title" data-page-node-id="kbListTitle">
+          知识库列表
+          <span class="section-count" id="kbListCount" data-page-node-id="kbListCountNode">可多选</span>
+        </div>
+        <div class="kb-filter" data-page-node-id="kbFilterNode">
+          <span class="kb-filter-label" data-page-node-id="kbFilterSysLabel">系统</span>
+          <select class="filter-input" id="kbFilterSystem" onchange="onKbSystemChange()" data-page-node-id="kbFilterSys"></select>
+          <span class="kb-filter-label" data-page-node-id="kbFilterRegLabel">区域</span>
+          <select class="filter-input" id="kbFilterRegion" onchange="onKbRegionChange()" data-page-node-id="kbFilterReg"></select>
+        </div>
+        <div class="kb-list" id="kbList" data-page-node-id="hid2VCFYgCdIVBgw64i2P5"></div>
+      </div>
+
+    </div>
+
+    <!-- 底部操作 -->
+    <div class="modal-footer" data-page-node-id="UQu53XYx34hrplFIDVAvtU">
+      <span style="margin-right:auto;font-size:12.5px;color:var(--text-muted);" id="kbSelectedHint" data-page-node-id="QZztdVTgNL3B2wNxl5LheE">已选择 0 个知识库</span>
+      <button class="btn-default" onclick="closeModal('kbModal')" data-page-node-id="6TFBIAGShW4AlBpgsv2h5c">取消</button>
+      <button class="btn-primary" id="kbConfirmBtn" onclick="confirmKbStore()" data-page-node-id="qCoumqDXcnfuDLQLcH9iIh">确认入库</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer" data-page-node-id="AToEEz0zZKMRRzIRmvGhhC"></div>
+
+<script>
+// ========== Sample Data ==========
+const REGIONS = [
+  '锦江区','青羊区','金牛区','武侯区','成华区','龙泉驿区',
+  '青白江区','新都区','温江区','双流区','郫都区','新津区'
+];
+
+let sampleData = [
+  { id: 1, system: '事业工资系统（单机版）', region: '锦江区', question: '如何批量导入人员基础信息？', answer: '进入【人员管理】→【批量导入】，下载模板后填写信息上传即可。支持Excel格式，单次最多导入5000条。', stored: true, kbList: [{ name: '工资发放常见问题库', system: '事业工资系统（单机版）', region: '锦江区' }], operator: '张伟', extractTime: '2026-08-12 14:32:18' },
+  { id: 2, system: '事业工资系统（单机版）', region: '青羊区', question: '工资发放后能否修改发放金额？', answer: '已发放的工资不可直接修改金额。如需调整，可通过【补发/扣发】功能处理，或联系管理员进行冲正操作。', stored: false, kbList: [], operator: '李娜', extractTime: '2026-08-12 13:18:47' },
+  { id: 3, system: '事业工资系统（网络版）', region: '金牛区', question: '单位信息变更需要哪些审批流程？', answer: '单位名称、统一社会信用代码等关键信息变更需经主管部门审批后，由系统管理员在后台修改。一般信息变更可由单位经办人自行操作。', stored: true, kbList: [{ name: '网络版审批流程知识库', system: '事业工资系统（网络版）', region: '武侯区' }], operator: '王强', extractTime: '2026-08-12 11:45:09' },
+  { id: 4, system: '事业工资系统（网络版）', region: '武侯区', question: '如何重置用户登录密码？', answer: '方法一：用户本人通过登录页"忘记密码"功能，使用手机验证码重置；方法二：由单位管理员在【用户管理】中重置为初始密码。', stored: false, kbList: [], operator: '刘洋', extractTime: '2026-08-12 10:22:36' },
+  { id: 5, system: '事业工资系统（单机版）', region: '成华区', question: '年终一次性奖金如何计税？', answer: '年终一次性奖金可选择单独计税或并入综合所得计税。系统默认按单独计税方式计算，用户可在【个税设置】中切换计税方式。', stored: false, kbList: [], operator: '陈静', extractTime: '2026-08-11 17:05:52' },
+  { id: 6, system: '事业工资系统（网络版）', region: '龙泉驿区', question: '社保公积金基数如何核定？', answer: '每年年初根据上年度月平均工资自动核定基数。如需手动调整，进入【社保管理】→【基数核定】，填写核定值后提交审批。', stored: false, kbList: [], operator: '杨磊', extractTime: '2026-08-11 15:33:26' },
+  { id: 7, system: '年报系统', region: '青白江区', question: '年报数据与月报数据不一致怎么处理？', answer: '年报数据以最终决算数为准，允许与月报存在合理差异。若差异超过5%，需在年报说明中解释原因并附相关证明材料。', stored: true, kbList: [{ name: '年报填报规范库', system: '年报系统', region: '双流区' }], operator: '赵敏', extractTime: '2026-08-11 14:10:41' },
+  { id: 8, system: '事业工资系统（单机版）', region: '新都区', question: '离休人员工资如何单独核算？', answer: '离休人员在系统中标记为"离休"身份后，系统将按照离休工资标准独立核算，不参与在职人员的绩效和津贴计算。', stored: false, kbList: [], operator: '黄勇', extractTime: '2026-08-11 11:28:13' },
+  { id: 9, system: '事业工资系统（网络版）', region: '温江区', question: '如何导出历史工资发放明细？', answer: '进入【工资管理】→【发放查询】→选择时间范围→点击【导出Excel】。支持按部门、人员类别等维度筛选后导出。', stored: true, kbList: [{ name: '网络版常见故障库', system: '事业工资系统（网络版）', region: '全市' }], operator: '周涛', extractTime: '2026-08-10 16:44:38' },
+  { id: 10, system: '年报系统', region: '双流区', question: '报表填报截止时间是什么时候？', answer: '每年1月15日前完成初稿填报，2月底前完成终审。具体时间以当年通知为准，系统会在首页显示倒计时提醒。', stored: false, kbList: [], operator: '吴婷', extractTime: '2026-08-10 09:55:04' },
+  { id: 11, system: '事业工资系统（单机版）', region: '郫都区', question: '岗位变动后工资何时生效？', answer: '岗位变动的工资调整自审批通过的次月起生效。紧急情况可申请追溯调整，但需提供充分理由和审批文件。', stored: true, kbList: [{ name: '单机版操作指引库', system: '事业工资系统（单机版）', region: '全市' }], operator: '徐鹏', extractTime: '2026-08-09 15:20:57' },
+  { id: 12, system: '事业工资系统（网络版）', region: '新津区', question: '系统提示"数据校验不通过"怎么办？', answer: '查看校验详情中的错误提示，常见原因包括：必填项未填、数值超出范围、逻辑关系不符。修正后重新提交校验即可。', stored: false, kbList: [], operator: '孙浩', extractTime: '2026-08-09 11:08:22' },
+];
+
+// State
+let currentTab = 'single';
+let selectedRows = new Set();
+let currentDeleteId = null;
+let batchDeleteIds = null;
+let currentStoreId = null; // 兼容保留（入库流程已改为知识库选择弹窗）
+let selectedRegions = [];
+let activeDetailId = null;
+let currentPage = 1;
+let pageSize = 10;
+
+// ========== Initialize ==========
+document.addEventListener('DOMContentLoaded', function() {
+  initRegionDropdown();
+  applyFilters();
+  // 页面首次加载后，默认选中当前列表的第一条数据并展示详情
+  const firstRow = document.querySelector('#tableBody tr[data-id]');
+  if (firstRow) selectRow(Number(firstRow.dataset.id));
+  try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (e) {}
+});
+
+// ========== Region Multi-Select ==========
+function initRegionDropdown() {
+  const dd = document.getElementById('regionDropdown');
+  dd.innerHTML = REGIONS.map(r =>
+    `<div class="multi-select-option" data-region="${r}" onclick="toggleRegion('${r}',this)">
+      <span class="ms-check">${selectedRegions.includes(r)?'✓':''}</span>${r}
+    </div>`
+  ).join('');
+}
+
+function toggleRegionDropdown() {
+  document.getElementById('regionDropdown').classList.toggle('show');
+}
+
+function toggleRegion(region, el) {
+  if (selectedRegions.includes(region)) {
+    selectedRegions = selectedRegions.filter(r => r !== region);
+    el.classList.remove('selected');
+  } else {
+    selectedRegions.push(region);
+    el.classList.add('selected');
+  }
+  // Update check mark
+  initRegionDropdown();
+  selectedRegions.forEach(r => {
+    const opt = document.querySelector(`.multi-select-option[data-region="${r}"]`);
+    if (opt) opt.classList.add('selected');
+  });
+  // Update display text
+  const disp = document.getElementById('regionDisplayText');
+  disp.textContent = selectedRegions.length === 0 ? '全部区域' : `已选${selectedRegions.length}项`;
+  applyFilters();
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#regionSelect')) {
+    document.getElementById('regionDropdown').classList.remove('show');
+  }
+});
+
+// ========== Table Rendering ==========
+// 问题最多显示 12 个字，超出用 "..." 表示
+function truncateText(str, max) {
+  if (!str) return '';
+  return str.length > max ? str.slice(0, max) + '...' : str;
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('tableBody');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📭</div><p>暂无数据</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map((row, idx) => `
+    <tr class="${selectedRows.has(row.id)?'selected':''} ${activeDetailId===row.id?'active-detail':''}" data-id="${row.id}" onclick="selectRow(${row.id})">
+      <td class="sticky-l1"><div class="checkbox ${row.stored?'disabled':''} ${selectedRows.has(row.id)&&!row.stored?'checked':''}" title="${row.stored?'已入库，不可勾选':''}" ${row.stored?'':'onclick="event.stopPropagation();toggleRowSelect(' + row.id + ',this)"'}></div></td>
+      <td class="col-num sticky-l2">${idx + 1}</td>
+      <td>${row.region}</td>
+      <td class="col-question" title="${row.question}">${truncateText(row.question, 12)}</td>
+      <td>${row.stored
+        ? '<span class="badge badge-stored">是</span>'
+        : '<span class="badge badge-not-stored">否</span>'}</td>
+      <td style="font-size:12.5px;white-space:nowrap;">${renderKbCell(row)}</td>
+      <td style="white-space:nowrap;">${row.operator || '—'}</td>
+      <td style="color:var(--text-secondary);font-size:12.5px;white-space:nowrap;">${row.extractTime || '—'}</td>
+      <td class="sticky-r">
+        <div class="action-links">
+          ${!row.stored
+            ? `<span class="action-link store" onclick="event.stopPropagation();openKbModal([${row.id}])">入库</span>`
+            : ''}
+          <span class="action-link delete" onclick="event.stopPropagation();openDeleteModal(${row.id})">删除</span>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  document.getElementById('totalCount').textContent = data.length;
+}
+
+// 所在知识库：显示知识库名称，未入库显示灰色「—」
+function renderKbCell(row) {
+  const list = row.kbList || [];
+  if (list.length === 0) {
+    return '<span style="color:var(--text-muted);">—</span>';
+  }
+  const names = list.map(k => k.name).join('、');
+  const full = list.map(k => `${k.name}（${k.system} · ${k.region}）`).join('\n');
+  return `<span class="kb-cell" title="${full}">${truncateText(names, 12)}</span>`;
+}
+
+// ========== 左右联动：列表 ↔ 详情 ==========
+function selectRow(id) {
+  activeDetailId = id;
+  // 高亮当前行
+  document.querySelectorAll('#tableBody tr').forEach(tr => {
+    tr.classList.toggle('active-detail', Number(tr.dataset.id) === id);
+  });
+  renderDetail(id);
+}
+
+function renderDetail(id) {
+  const body = document.getElementById('detailBody');
+  const footer = document.getElementById('detailFooter');
+  const tag = document.getElementById('detailTag');
+  const row = sampleData.find(d => d.id === id);
+
+  if (!row) {
+    activeDetailId = null;
+    tag.textContent = '未选择';
+    footer.style.display = 'none';
+    body.innerHTML = `<div class="detail-empty"><div class="empty-icon">📄</div><p>点击左侧任意一条数据</p><p>在此查看并编辑问题与答案</p></div>`;
+    return;
+  }
+
+  const locked = !!row.stored;   // 已入库 → 问题/答案只读，不可编辑
+  const storedColor = row.stored ? 'var(--blue-600)' : 'var(--gray-600)';
+
+  tag.textContent = `ID ${row.id}`;
+  footer.style.display = 'flex';
+  const saveBtn = document.getElementById('saveDetailBtn');
+  if (saveBtn) { saveBtn.disabled = locked; }
+
+  body.innerHTML = `
+    <div class="detail-section-title">基础信息</div>
+    <div class="detail-baseinfo">
+      <div class="bi-item"><span class="bi-label">所属系统</span><span class="bi-value">${row.system}</span></div>
+      <div class="bi-item"><span class="bi-label">所属区域</span><span class="bi-value">${row.region}</span></div>
+      <div class="bi-item"><span class="bi-label">是否入库</span><span class="bi-value" style="color:${storedColor};">${row.stored?'是':'否'}</span></div>
+      <div class="bi-item bi-full"><span class="bi-label">提取时间</span><span class="bi-value">${row.extractTime || '—'}</span></div>
+    </div>
+    <div class="detail-field">
+      <label>问题${locked ? '（已入库，只读）' : ''}</label>
+      <input type="text" class="detail-input" id="editQuestion" value="${row.question.replace(/"/g, '&quot;')}" placeholder="请输入问题"${locked ? ' readonly' : ''}>
+    </div>
+    <div class="detail-field">
+      <label>答案${locked ? '（已入库，只读）' : '（支持富文本编辑）'}</label>
+      <div class="rich-toolbar"${locked ? ' style="display:none;"' : ''}>
+        <button type="button" class="rt-btn" title="加粗" onmousedown="event.preventDefault();execCmd('bold')"><b>B</b></button>
+        <button type="button" class="rt-btn" title="斜体" onmousedown="event.preventDefault();execCmd('italic')"><i>I</i></button>
+        <button type="button" class="rt-btn" title="下划线" onmousedown="event.preventDefault();execCmd('underline')"><u>U</u></button>
+        <button type="button" class="rt-btn" title="删除线" onmousedown="event.preventDefault();execCmd('strikeThrough')"><s>S</s></button>
+        <span class="rt-sep"></span>
+        <button type="button" class="rt-btn" title="标题" onmousedown="event.preventDefault();toggleHeading()">H</button>
+        <button type="button" class="rt-btn" title="无序列表" onmousedown="event.preventDefault();execCmd('insertUnorderedList')">• 列表</button>
+        <button type="button" class="rt-btn" title="有序列表" onmousedown="event.preventDefault();execCmd('insertOrderedList')">1. 列表</button>
+        <button type="button" class="rt-btn" title="引用" onmousedown="event.preventDefault();toggleQuote()">❝ 引用</button>
+        <span class="rt-sep"></span>
+        <button type="button" class="rt-btn" title="插入链接" onmousedown="event.preventDefault();insertLink()">🔗 链接</button>
+        <button type="button" class="rt-btn" title="清除格式" onmousedown="event.preventDefault();execCmd('removeFormat')">清除格式</button>
+      </div>
+      <div class="rich-editor" id="editAnswer" contenteditable="${locked ? 'false' : 'true'}" data-placeholder="请输入答案内容...">${row.answer}</div>
+    </div>
+    <div class="detail-field">
+      <label>所在知识库</label>
+      <div id="detailKbBox">${renderKbDetail(row)}</div>
+    </div>
+  `;
+}
+
+// 仅刷新详情面板的「所在知识库」，避免覆盖正在编辑的内容
+function syncDetailKb() {
+  const box = document.getElementById('detailKbBox');
+  if (!box || !activeDetailId) return;
+  const row = sampleData.find(d => d.id === activeDetailId);
+  if (row) box.innerHTML = renderKbDetail(row);
+}
+
+// 所在知识库详情：名称 / 系统 / 区域
+function renderKbDetail(row) {
+  const list = row.kbList || [];
+  if (list.length === 0) {
+    return `<div class="kb-empty">尚未入库，暂无所属知识库</div>`;
+  }
+  return `<div class="detail-kb-list">${list.map(k => `
+    <div class="detail-kb-item">
+      <div class="detail-kb-name">${k.name}</div>
+      <div class="detail-kb-meta">
+        <span class="kb-meta-tag">${k.system}</span>
+        <span class="kb-meta-tag gray">${k.region}</span>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+// ========== 富文本编辑器 ==========
+function execCmd(cmd, val) {
+  const ed = document.getElementById('editAnswer');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand(cmd, false, val || null);
+  syncToolbarState();
+}
+
+function toggleHeading() {
+  const ed = document.getElementById('editAnswer');
+  if (!ed) return;
+  ed.focus();
+  const block = (document.queryCommandValue('formatBlock') || '').toString().toLowerCase().replace(/[<>]/g, '');
+  document.execCommand('formatBlock', false, block === 'h3' ? 'p' : 'h3');
+  syncToolbarState();
+}
+
+function toggleQuote() {
+  const ed = document.getElementById('editAnswer');
+  if (!ed) return;
+  ed.focus();
+  const block = (document.queryCommandValue('formatBlock') || '').toString().toLowerCase().replace(/[<>]/g, '');
+  document.execCommand('formatBlock', false, block === 'blockquote' ? 'p' : 'blockquote');
+  syncToolbarState();
+}
+
+function insertLink() {
+  const url = prompt('请输入链接地址：', 'https://');
+  if (!url) return;
+  execCmd('createLink', url);
+}
+
+// 同步工具条按钮的高亮状态
+function syncToolbarState() {
+  const btns = document.querySelectorAll('.rich-toolbar .rt-btn');
+  const states = { bold: 'bold', italic: 'italic', underline: 'underline', strikeThrough: 'strikeThrough' };
+  btns.forEach(btn => {
+    const t = btn.getAttribute('title');
+    if (states[t]) {
+      let on = false;
+      try { on = document.queryCommandState(states[t]); } catch (e) {}
+      btn.classList.toggle('active', !!on);
+    }
+  });
+}
+
+// 富文本 → 纯文本（导出用）
+function stripHtml(html) {
+  if (!html) return '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = String(html).replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|h3|li|blockquote)>/gi, '\n');
+  return (tmp.innerText || tmp.textContent || '').replace(/\n{2,}/g, '\n').trim();
+}
+
+function saveDetail() {
+  if (!activeDetailId) return;
+  const row = sampleData.find(d => d.id === activeDetailId);
+  if (!row) return;
+  if (row.stored) return;   // 已入库数据不可编辑，禁止保存
+  const q = document.getElementById('editQuestion').value.trim();
+  const answerEl = document.getElementById('editAnswer');
+  const aHtml = answerEl.innerHTML.trim();
+  const aText = (answerEl.innerText || answerEl.textContent || '').trim();
+  if (!q || !aText) {
+    showToast('warning', '问题与答案均不能为空');
+    return;
+  }
+  row.question = q;
+  row.answer = aHtml;   // 保存富文本 HTML
+  applyFilters();
+  showToast('success', '修改已保存 ✓');
+}
+
+// ========== Selection ==========
+function toggleRowSelect(id, checkboxEl) {
+  // 已入库的数据不可勾选
+  const row = sampleData.find(d => d.id === id);
+  if (row && row.stored) return;
+  if (selectedRows.has(id)) {
+    selectedRows.delete(id);
+    checkboxEl.classList.remove('checked');
+  } else {
+    selectedRows.add(id);
+    checkboxEl.classList.add('checked');
+  }
+  // Update row visual
+  const tr = checkboxEl.closest('tr');
+  if (tr) tr.classList.toggle('selected', selectedRows.has(id));
+}
+
+function toggleSelectAll(el) {
+  const isChecked = el.classList.contains('checked');
+  if (isChecked) {
+    selectedRows.clear();
+    el.classList.remove('checked');
+  } else {
+    // 已入库的数据不参与全选
+    const selectable = getFilteredData().filter(d => !d.stored);
+    if (selectable.length === 0) {
+      showToast('warning', '当前无可勾选数据（均已入库）');
+      return;
+    }
+    selectable.forEach(d => selectedRows.add(d.id));
+    el.classList.add('checked');
+  }
+  renderTable(getFilteredData());
+}
+
+function clearSelection() {
+  selectedRows.clear();
+  document.getElementById('selectAllBox').classList.remove('checked');
+  renderTable(getFilteredData());
+}
+
+// ========== Filters ==========
+function getFilteredData() {
+  let data = [...sampleData];
+  const keyword = document.getElementById('searchKeyword').value.trim().toLowerCase();
+  const stored = document.getElementById('filterStored').value;
+  const dateStart = (document.getElementById('dateStart').value || '').trim();
+  const dateEnd = (document.getElementById('dateEnd').value || '').trim();
+
+  if (keyword) {
+    data = data.filter(d =>
+      d.question.toLowerCase().includes(keyword) ||
+      d.answer.toLowerCase().includes(keyword) ||
+      d.region.includes(keyword)
+    );
+  }
+  if (selectedRegions.length > 0) {
+    data = data.filter(d => selectedRegions.includes(d.region));
+  }
+  if (stored) {
+    data = data.filter(d => stored === 'yes' ? d.stored : !d.stored);
+  }
+  // 时间范围：按提取时间的日期部分（YYYY-MM-DD）比较
+  if (dateStart) {
+    data = data.filter(d => (d.extractTime || '').slice(0, 10) >= dateStart);
+  }
+  if (dateEnd) {
+    data = data.filter(d => (d.extractTime || '').slice(0, 10) <= dateEnd);
+  }
+  return data;
+}
+
+function applyFilters() {
+  const all = getFilteredData();
+  const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * pageSize;
+  const pageData = all.slice(start, start + pageSize);
+  renderTable(pageData);
+  document.getElementById('totalCount').textContent = all.length;
+  renderPagination(totalPages);
+  syncDetailKb();
+}
+
+// ========== Pagination ==========
+function changePageSize(size) {
+  pageSize = Number(size);
+  currentPage = 1;
+  applyFilters();
+}
+
+function goPage(page) {
+  const all = getFilteredData();
+  const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
+  if (page === 'prev') page = Math.max(1, currentPage - 1);
+  if (page === 'next') page = Math.min(totalPages, currentPage + 1);
+  if (typeof page !== 'number' || page < 1 || page > totalPages) return;
+  currentPage = page;
+  applyFilters();
+}
+
+function renderPagination(totalPages) {
+  const box = document.getElementById('pageBtns');
+  if (!box) return;
+  let btns = `<button class="page-btn" onclick="goPage('prev')" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`;
+  let pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (currentPage > 3) pages.push('...');
+    const from = Math.max(2, currentPage - 1);
+    const to = Math.min(totalPages - 1, currentPage + 1);
+    for (let i = from; i <= to; i++) pages.push(i);
+    if (currentPage < totalPages - 2) pages.push('...');
+    pages.push(totalPages);
+  }
+  pages.forEach(p => {
+    if (p === '...') {
+      btns += `<span style="padding:0 4px;color:var(--text-muted);">…</span>`;
+    } else {
+      btns += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
+    }
+  });
+  btns += `<button class="page-btn" onclick="goPage('next')" ${currentPage === totalPages ? 'disabled' : ''}>›</button>`;
+  box.innerHTML = btns;
+}
+
+function resetFilters() {
+  document.getElementById('searchKeyword').value = '';
+  document.getElementById('filterStored').value = '';
+  document.getElementById('dateStart').value = '';
+  document.getElementById('dateEnd').value = '';
+  selectedRegions = [];
+  document.getElementById('regionDisplayText').textContent = '全部区域';
+  initRegionDropdown();
+  applyFilters();
+  showToast('info', '筛选条件已重置');
+}
+
+// ========== Tabs ==========
+function switchTab(el) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab = el.dataset.tab;
+  applyFilters();
+}
+
+// ========== Delete Modal ==========
+function openDeleteModal(id) {
+  currentDeleteId = id;
+  batchDeleteIds = null;
+  const row = sampleData.find(d => d.id === id);
+  if (!row) return;
+  document.getElementById('deleteTargetInfo').innerHTML = `问题：<strong>${row.question.substring(0,30)}${row.question.length>30?'...':''}</strong>`;
+  openModal('deleteModal');
+}
+
+function confirmDelete() {
+  if (batchDeleteIds) {
+    // 批量删除
+    sampleData = sampleData.filter(d => !batchDeleteIds.includes(d.id));
+    const n = batchDeleteIds.length;
+    if (activeDetailId && batchDeleteIds.includes(activeDetailId)) renderDetail(null);
+    batchDeleteIds = null;
+    closeModal('deleteModal');
+    clearSelection();
+    showToast('error', `已删除 ${n} 条数据`);
+    applyFilters();
+    return;
+  }
+  if (!currentDeleteId) return;
+  if (activeDetailId === currentDeleteId) renderDetail(null);
+  sampleData = sampleData.filter(d => d.id !== currentDeleteId);
+  selectedRows.delete(currentDeleteId);
+  currentDeleteId = null;
+  closeModal('deleteModal');
+  showToast('error', '已删除该条数据');
+  applyFilters();
+}
+
+// ========== 知识库选择（入库） ==========
+const KNOWLEDGE_BASES = [
+  { id: 'kb1', system: '事业工资系统（单机版）', region: '锦江区', name: '工资发放常见问题库', desc: '收录工资计算、发放流程、差错处理类问答，供单机版用户自助查询。' },
+  { id: 'kb2', system: '事业工资系统（单机版）', region: '全市', name: '单机版操作指引库', desc: '覆盖人员管理、批量导入、报表导出等基础操作的标准化问答。' },
+  { id: 'kb3', system: '事业工资系统（网络版）', region: '武侯区', name: '网络版审批流程知识库', desc: '单位信息变更、基数核定等审批流程相关问答集合。' },
+  { id: 'kb4', system: '事业工资系统（网络版）', region: '全市', name: '网络版常见故障库', desc: '登录异常、数据校验不通过等高频故障的解决方案。' },
+  { id: 'kb5', system: '年报系统', region: '双流区', name: '年报填报规范库', desc: '年报指标口径、填报时限、差异说明等规范类问答。' },
+  { id: 'kb6', system: '事业工资系统（网络版）', region: '龙泉驿区', name: '社保公积金专题库', desc: '社保公积金基数核定、比例调整等专题问答。' },
+];
+
+let selectedKbs = new Set();
+let pendingStoreIds = [];
+let kbFilterSystem = '';   // '' = 全部系统
+let kbFilterRegion = '';   // '' = 全部区域
+
+// HTML 转义（问题文本会插入弹窗）
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+// 各系统对应的区域标准：不同系统有不同的区域范围（区域候选由所选系统决定）
+const SYSTEM_REGIONS = {
+  '事业工资系统（单机版）': ['锦江区', '全市'],
+  '事业工资系统（网络版）': ['武侯区', '龙泉驿区', '全市'],
+  '年报系统': ['双流区'],
+};
+// 未选系统时的区域候选：所有系统区域标准的并集
+const ALL_KB_REGIONS = [...new Set(Object.values(SYSTEM_REGIONS).flat())];
+
+function getKbSystems() {
+  return Object.keys(SYSTEM_REGIONS);
+}
+function getKbRegions(system) {
+  // 未选系统 → 全部区域；已选系统 → 仅该系统下的区域标准
+  return system ? (SYSTEM_REGIONS[system] || []) : ALL_KB_REGIONS;
+}
+
+function openKbModal(ids) {
+  pendingStoreIds = ids;
+  selectedKbs = new Set();
+  kbFilterSystem = '';
+  kbFilterRegion = '';
+  initKbFilter();
+  renderPendingInfo();
+  renderKbList();
+  openModal('kbModal');
+}
+
+// 初始化系统下拉 + 联动刷新区域下拉
+function initKbFilter() {
+  const sysSel = document.getElementById('kbFilterSystem');
+  sysSel.innerHTML = '<option value="">全部系统</option>' +
+    getKbSystems().map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  sysSel.value = kbFilterSystem;
+  refreshKbRegionSelect();
+}
+function refreshKbRegionSelect() {
+  const regSel = document.getElementById('kbFilterRegion');
+  // 未选系统 → 区域不可选（各系统区域标准不同，需先确定系统）
+  if (!kbFilterSystem) {
+    kbFilterRegion = '';
+    regSel.innerHTML = '<option value="">请先选择系统</option>';
+    regSel.value = '';
+    regSel.disabled = true;
+    return;
+  }
+  const regions = getKbRegions(kbFilterSystem);   // 只取当前系统的区域标准
+  if (kbFilterRegion && !regions.includes(kbFilterRegion)) kbFilterRegion = '';
+  regSel.innerHTML = '<option value="">全部区域</option>' +
+    regions.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
+  regSel.value = kbFilterRegion;
+  regSel.disabled = false;
+}
+function onKbSystemChange() {
+  kbFilterSystem = document.getElementById('kbFilterSystem').value;
+  kbFilterRegion = '';          // 系统变化 → 区域候选重置
+  refreshKbRegionSelect();
+  renderKbList();
+}
+function onKbRegionChange() {
+  kbFilterRegion = document.getElementById('kbFilterRegion').value;
+  renderKbList();
+}
+
+// 当前待入库条目：问题 + 区域
+function renderPendingInfo() {
+  const el = document.getElementById('kbPendingInfo');
+  const sub = document.getElementById('kbDrawerSub');
+  const rows = pendingStoreIds.map(id => sampleData.find(d => d.id === id)).filter(Boolean);
+  if (rows.length === 0) { el.style.display = 'none'; el.innerHTML = ''; sub.textContent = '共 0 条待入库'; return; }
+  el.style.display = 'flex';
+  sub.textContent = `共 ${rows.length} 条待入库`;
+
+  const systems = [...new Set(rows.map(r => r.system))];
+  const regions = [...new Set(rows.map(r => r.region))];
+  const question = rows[0].question || '';
+  const qTail = rows.length > 1 ? `<span class="kb-pending-count"> 等 ${rows.length} 条</span>` : '';
+
+  // 紧凑纯文本：问题单行省略（悬浮显示全文），系统 / 区域 顿号连接
+  el.innerHTML = `
+    <div class="kb-pending-row">
+      <span class="kb-pending-label">问题</span>
+      <span class="kb-pending-value ellipsis" title="${escapeHtml(question)}">${escapeHtml(question)}${qTail}</span>
+    </div>
+    <div class="kb-pending-row">
+      <span class="kb-pending-label">系统</span>
+      <span class="kb-pending-value">${escapeHtml(systems.join('、')) || '—'}</span>
+    </div>
+    <div class="kb-pending-row">
+      <span class="kb-pending-label">区域</span>
+      <span class="kb-pending-value">${escapeHtml(regions.join('、')) || '—'}</span>
+    </div>
+  `;
+}
+
+function renderKbList() {
+  const list = document.getElementById('kbList');
+  // 按 系统 + 区域 过滤：未选系统时展示全部知识库；选定系统后只展示该系统下的知识库
+  const data = KNOWLEDGE_BASES.filter(kb =>
+    (!kbFilterSystem || kb.system === kbFilterSystem) &&
+    (!kbFilterRegion || kb.region === kbFilterRegion)
+  );
+  // 列表区右上角计数：当前筛选结果数 / 已选数
+  const countEl = document.getElementById('kbListCount');
+  countEl.textContent = data.length
+    ? `可多选 · 共 ${data.length} 个`
+    : '暂无匹配项';
+
+  if (data.length === 0) {
+    list.innerHTML = '<div class="kb-list-empty">该条件下暂无知识库</div>';
+  } else {
+    list.innerHTML = data.map(kb => `
+      <div class="kb-item ${selectedKbs.has(kb.id) ? 'selected' : ''}" onclick="toggleKb('${kb.id}')">
+        <div class="checkbox ${selectedKbs.has(kb.id) ? 'checked' : ''}"></div>
+        <div class="kb-info">
+          <div class="kb-name">
+            <span class="kb-name-text" title="${escapeHtml(kb.name)}">${kb.name}</span>
+            <span class="kb-meta">
+              <span class="kb-tag">${kb.system}</span>
+              <span class="kb-tag gray">${kb.region}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  // 已选但被当前筛选条件隐藏的数量（切换系统/区域后可能出现）
+  const hiddenSelected = [...selectedKbs].filter(id => !data.some(kb => kb.id === id)).length;
+  const hint = document.getElementById('kbSelectedHint');
+  hint.textContent = hiddenSelected
+    ? `已选择 ${selectedKbs.size} 个知识库（${hiddenSelected} 个不在当前筛选内）`
+    : `已选择 ${selectedKbs.size} 个知识库`;
+  const btn = document.getElementById('kbConfirmBtn');
+  btn.disabled = selectedKbs.size === 0;
+  btn.style.opacity = selectedKbs.size === 0 ? '0.5' : '1';
+  btn.style.pointerEvents = selectedKbs.size === 0 ? 'none' : 'auto';
+}
+
+function toggleKb(id) {
+  if (selectedKbs.has(id)) selectedKbs.delete(id);
+  else selectedKbs.add(id);
+  renderKbList();
+}
+
+function confirmKbStore() {
+  if (selectedKbs.size === 0) return;
+  const picked = KNOWLEDGE_BASES.filter(kb => selectedKbs.has(kb.id));
+  const kbNames = picked.map(kb => kb.name).join('、');
+  const pickedInfo = picked.map(kb => ({ name: kb.name, system: kb.system, region: kb.region }));
+  let stored = 0;
+  pendingStoreIds.forEach(id => {
+    const row = sampleData.find(d => d.id === id);
+    if (row && !row.stored) {   // 已入库的不重复入库
+      row.stored = true;
+      row.kbList = pickedInfo;  // 记录所在知识库（名称/系统/区域）
+      stored++;
+    }
+    selectedRows.delete(id);    // 入库后取消勾选（已入库不可再勾选）
+  });
+  closeModal('kbModal');
+  if (pendingStoreIds.length > 1) clearSelection();
+  pendingStoreIds = [];
+  showToast('success', `已入库 ${stored} 条 → ${kbNames}`);
+  applyFilters();
+}
+
+
+// ========== Batch Actions ==========
+function batchStore() {
+  if (selectedRows.size === 0) {
+    showToast('warning', '请先勾选要入库的数据');
+    return;
+  }
+  // 未入库的才需要入库
+  const ids = [...selectedRows].filter(id => {
+    const row = sampleData.find(d => d.id === id);
+    return row && !row.stored;
+  });
+  if (ids.length === 0) {
+    showToast('warning', '勾选的数据都已入库，无需重复入库');
+    return;
+  }
+  openKbModal(ids);
+}
+
+function batchDelete() {
+  if (selectedRows.size === 0) {
+    showToast('warning', '请先勾选要删除的数据');
+    return;
+  }
+  batchDeleteIds = [...selectedRows];
+  currentDeleteId = null;
+  document.getElementById('deleteTargetInfo').innerHTML = `共选中 <strong>${batchDeleteIds.length}</strong> 条数据，删除后<strong style="color:var(--red-600);">不可恢复</strong>。`;
+  openModal('deleteModal');
+}
+
+// ========== Export ==========
+function exportData() {
+  const data = getFilteredData();
+  if (data.length === 0) {
+    showToast('warning', '没有可导出的数据');
+    return;
+  }
+  // Build CSV
+  let csv = '\uFEFF序号,系统,区域,问题,答案,是否入库,所在知识库,提取时间\n';
+  data.forEach((r, i) => {
+    const kbText = (r.kbList || []).map(k => `${k.name}（${k.system} · ${k.region}）`).join('；');
+    csv += `${i+1},"${r.system}","${r.region}","${r.question.replace(/"/g,'""')}","${stripHtml(r.answer).replace(/"/g,'""')}",${r.stored?'是':'否'},"${kbText}","${r.extractTime || ''}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `知识萃取_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('success', `已导出 ${data.length} 条数据`);
+}
+
+// ========== Modals ==========
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+// ========== Sidebar Toggle ==========
+function toggleGroup(titleEl) {
+  const arrow = titleEl.querySelector('.arrow');
+  const submenu = titleEl.nextElementSibling;
+  submenu.classList.toggle('collapsed');
+  if (submenu.classList.contains('collapsed')) {
+    submenu.style.maxHeight = '0';
+    arrow.textContent = '▾';
+  } else {
+    submenu.style.maxHeight = submenu.scrollHeight + 'px';
+    arrow.textContent = '▴';
+  }
+}
+
+// ========== Toast ==========
+function showToast(type, message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
+  toast.innerHTML = `<span>${icons[type]||''}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(40px)';
+    toast.style.transition = 'all 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+</script>
+
+</body>
+</html>

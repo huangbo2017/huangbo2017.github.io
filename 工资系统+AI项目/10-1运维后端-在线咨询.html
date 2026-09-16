@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="02FfujCIyG3la2q7cJTlgg">
+<head data-page-node-id="jgpq5sGj8kp6faIer69RIS">
+  <meta charset="UTF-8" data-page-node-id="BvNP6Lk3TSZ5WNjq5ii58N" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="5HR08V0XlXS46H6M30pzzb" />
+  <title>智能维护管理 - 在线咨询</title>
+  <style>
+    :root {
+      --sidebar-bg: #0f172a;
+      --sidebar-text: #94a3b8;
+      --sidebar-active: #3b82f6;
+      --sidebar-hover: rgba(255,255,255,0.05);
+      --primary: #3b82f6;
+      --primary-light: #dbeafe;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --gray: #9ca3af;
+      --gray-dark: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f3f4f6;
+      --panel-bg: #ffffff;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --chat-self: #e0f2fe;
+      --chat-other: #f0fdf4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; font-size: 14px; color: var(--text); background: var(--bg); }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* Layout */
+    .app { display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 200px;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: width 0.28s ease, transform 0.28s ease;
+      position: relative;
+    }
+    .sidebar.collapsed {
+      width: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      white-space: nowrap;
+    }
+    .sidebar-title { color: #fff; font-size: 16px; font-weight: 600; }
+    .sidebar-toggle {
+      width: 28px; height: 28px;
+      border: none; border-radius: 4px;
+      background: transparent; color: var(--sidebar-text);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .sidebar-toggle:hover { background: var(--sidebar-hover); color: #fff; }
+
+    .sidebar-menu { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .menu-group { margin-bottom: 4px; }
+    .menu-item {
+      display: flex; align-items: center;
+      padding: 12px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .menu-item:hover { background: var(--sidebar-hover); color: #fff; }
+    .menu-item.active { color: var(--sidebar-active); background: rgba(59,130,246,0.12); }
+    .menu-icon { width: 20px; margin-right: 10px; display: flex; justify-content: center; }
+    .menu-arrow { margin-left: auto; transition: transform 0.2s; font-size: 12px; }
+    .menu-arrow.open { transform: rotate(90deg); }
+    .submenu { overflow: hidden; transition: max-height 0.25s ease; }
+    .submenu.closed { max-height: 0; }
+    .submenu.open { max-height: 900px; }
+    .submenu-item {
+      padding: 10px 16px 10px 46px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .submenu-item:hover { background: var(--sidebar-hover); color: #fff; }
+    .submenu-item.active { color: #fff; background: rgba(59,130,246,0.22); font-weight: 500; position: relative; }
+    .submenu-item.active::before { content: ''; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; }
+
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--bg); }
+
+    /* Top bar */
+    .topbar {
+      height: 48px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .sidebar-float-btn {
+      width: 32px; height: 32px;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: #fff; color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .sidebar-float-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .breadcrumb { color: var(--text-secondary); font-size: 13px; }
+    .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+    .breadcrumb a:last-child { color: var(--primary); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .user-info { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+
+    /* Content */
+    .content { flex: 1; display: flex; flex-direction: column; padding: 12px; overflow: hidden; }
+
+    /* Tabs */
+    .tabs-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--panel-bg); border: 1px solid var(--border);
+      border-bottom: none; padding: 0 12px; border-radius: 6px 6px 0 0;
+    }
+    .tabs { display: flex; }
+    .tab {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+    .tab:hover { color: var(--primary); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
+    .tabs-actions { display: flex; align-items: center; gap: 8px; }
+    .tabs-actions .btn-sm { padding: 3px 8px; font-size: 11px; }
+    .tabs-actions .btn-sm svg { width: 12px; height: 12px; }
+
+    /* Status toggle */
+    .status-toggle { display: flex; align-items: center; gap: 10px; }
+    .toggle-option {
+      display: flex; align-items: center; gap: 4px;
+      cursor: pointer; color: var(--text-secondary); font-size: 13px;
+    }
+    .toggle-option input { display: none; }
+    .toggle-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .toggle-option input:checked + .toggle-dot { border-color: var(--success); }
+    .toggle-option input:checked + .toggle-dot::after {
+      content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success);
+    }
+    .toggle-option.busy input:checked + .toggle-dot { border-color: var(--warning); }
+    .toggle-option.busy input:checked + .toggle-dot::after { background: var(--warning); }
+    .hint { color: var(--warning); font-size: 12px; margin-left: 4px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border);
+      background: #fff; color: var(--text); font-size: 13px;
+      transition: all 0.2s;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-danger { color: var(--danger); border-color: #fecaca; background: #fef2f2; }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn:disabled {
+      opacity: 0.55; cursor: not-allowed;
+      color: var(--gray-dark); background: #f3f4f6;
+      border-color: var(--border); pointer-events: none;
+    }
+
+    /* Workspace */
+    .workspace {
+      flex: 1; display: flex; position: relative;
+      background: var(--panel-bg);
+      border: 1px solid var(--border); border-top: none;
+      border-radius: 0 0 6px 6px;
+      overflow: hidden;
+    }
+
+    /* Region tree */
+    .region-panel {
+      width: 168px; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; flex-shrink: 0;
+      transition: width 0.28s ease;
+      overflow: hidden;
+    }
+    .region-panel.collapsed { width: 0; border-right: none; }
+    .region-header {
+      padding: 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px; font-weight: 500;
+    }
+    .region-collapse-btn {
+      margin-left: auto; width: 26px; height: 26px;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: #fff; color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .region-collapse-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .region-expand-btn {
+      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      z-index: 6; width: 18px; height: 48px;
+      border: 1px solid var(--border); border-left: none;
+      border-radius: 0 4px 4px 0; background: #fff; color: var(--text-secondary);
+      display: none; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .region-expand-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .region-tree { flex: 1; overflow-y: auto; padding: 8px; }
+    .tree-node { user-select: none; }
+    .tree-row {
+      display: flex; align-items: center; gap: 4px;
+      padding: 6px 4px; border-radius: 4px; cursor: pointer;
+    }
+    .tree-row:hover { background: #f9fafb; }
+    .tree-row .arrow {
+      width: 15px; height: 15px; display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: var(--text-secondary); transition: transform 0.2s;
+    }
+    .tree-row .arrow.open { transform: rotate(90deg); }
+    .tree-row .arrow.leaf { visibility: hidden; }
+    .tree-row input[type="checkbox"] { cursor: pointer; }
+    .tree-row .label { flex: 1; }
+    .tree-children { padding-left: 18px; overflow: hidden; transition: max-height 0.25s ease; }
+    .tree-children.closed { max-height: 0; }
+    .tree-children.open { max-height: 500px; }
+
+    /* Table area */
+    .table-panel { flex: 0 0 40%; min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+    .table-toolbar {
+      padding: 8px 10px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .select {
+      padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px;
+      background: #fff; color: var(--text); min-width: 84px; font-size: 12px;
+    }
+    .search-box {
+      position: relative; flex: 0 0 190px;
+    }
+    .search-box input { font-size: 12px; padding: 5px 24px 5px 8px; }
+    .search-box .icon-search {
+      position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+      color: var(--text-secondary); pointer-events: none; font-size: 12px;
+    }
+    .filter-switch { display: inline-flex; align-items: center; cursor: pointer; user-select: none; }
+    .filter-switch input { display: none; }
+    .switch-track {
+      display: inline-flex; align-items: center;
+      height: 22px; padding: 0 8px; border-radius: 11px;
+      background: #e5e7eb; color: #4b5563; font-size: 11px;
+      transition: all 0.2s;
+    }
+    .filter-switch input:checked + .switch-track { background: #dbeafe; color: #2563eb; }
+    .table-toolbar .btn { padding: 4px 8px; font-size: 12px; }
+    .table-toolbar .btn svg { width: 13px; height: 13px; }
+
+    .table-wrap { flex: 1; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { padding: 6px 6px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; font-size: 13px; overflow: hidden; text-overflow: ellipsis; }
+    th { color: var(--text-secondary); font-weight: 400; position: sticky; top: 0; z-index: 3; background: #f9fafb; }
+    td { color: var(--text); }
+    th:first-child, td:first-child { position: sticky; left: 0; z-index: 4; width: 10%; text-align: center; }
+    th:last-child, td:last-child { position: sticky; right: 0; z-index: 4; width: 16%; text-align: center; }
+    th:first-child, th:last-child { z-index: 5; background: #f9fafb; }
+    td:first-child, td:last-child { background: #fff; }
+    tbody tr { cursor: pointer; transition: background 0.15s; }
+    tbody tr:hover td { background: #f9fafb; }
+    tbody tr.selected td { background: #eff6ff; }
+    tbody tr.selected td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+    th:nth-child(2), td:nth-child(2) { width: 12%; }
+    th:nth-child(3), td:nth-child(3) { width: 36%; }
+    th:nth-child(4), td:nth-child(4) { width: 14%; }
+    th:nth-child(5), td:nth-child(5) { width: 12%; }
+    .status-text { font-size: 13px; }
+    .status-processing { color: #2563eb; }
+    .status-communicating { color: #6b7280; }
+    .status-timeout { color: #dc2626; }
+    .status-pending { color: #d97706; }
+    .status-closed { color: #6b7280; }
+    .key-star { color: #ef4444; margin-right: 4px; font-size: 13px; }
+    .unread-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      background: #ef4444; color: #fff; border-radius: 8px;
+      font-size: 10px; margin-right: 4px; vertical-align: middle;
+    }
+    .seq-cell { display: inline-flex; align-items: center; justify-content: center; }
+    .msg-preview { display: none; }
+    .op-btns { display: flex; gap: 2px; }
+    .op-btn {
+      width: 22px; height: 22px; border-radius: 4px; border: none;
+      background: transparent; color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .op-btn:hover { background: #f3f4f6; color: var(--primary); }
+    .op-btn.danger:hover { color: var(--danger); }
+
+    .table-footer {
+      padding: 8px 10px; border-top: 1px solid var(--border);
+      display: flex; justify-content: center; align-items: center; gap: 6px;
+    }
+    .pagination-btn {
+      width: 24px; height: 24px; border: 1px solid var(--border); border-radius: 4px;
+      background: #fff; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+    }
+    .pagination-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .pagination-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* Chat panel */
+    .chat-panel {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; flex-shrink: 0;
+      background: var(--panel-bg);
+    }
+    .chat-header {
+      padding: 10px 12px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .chat-title { font-weight: 400; font-size: 13px; color: var(--text-secondary); }
+    .chat-subtitle { font-size: 12px; color: var(--text-secondary); }
+    .chat-header-actions { display: flex; gap: 6px; }
+    .chat-header-actions .btn-sm { padding: 3px 8px; font-size: 11px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 12px; background: #f9fafb; }
+    .chat-date { display: flex; align-items: center; gap: 12px; text-align: center; color: var(--text-secondary); font-size: 12px; margin: 16px 0; }
+    .chat-date::before, .chat-date::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .message-group { padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid transparent; }
+    .message-group.group-odd { background: rgba(59,130,246,0.05); border-color: rgba(59,130,246,0.10); }
+    .message-group.group-even { background: rgba(34,197,94,0.04); border-color: rgba(34,197,94,0.08); }
+    .message-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; color: var(--text); font-weight: 500; }
+    .message-group-header .time { color: var(--text-secondary); font-size: 12px; font-weight: 400; }
+    .message { margin-bottom: 10px; max-width: 80%; }
+    .message:last-child { margin-bottom: 0; }
+    .message.self { margin-left: auto; }
+    .message-header { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+    .message.self .message-header { justify-content: flex-end; }
+    .message-body {
+      padding: 8px 12px; border-radius: 8px;
+      line-height: 1.5; font-size: 13px;
+      background: #fff; color: var(--text); border: 1px solid var(--border);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .chat-input-area {
+      border-top: 1px solid var(--border); padding: 8px 10px;
+      background: #fff;
+    }
+    .chat-input {
+      width: 100%; min-height: 56px; padding: 8px 10px;
+      border: 1px solid var(--border); border-radius: 6px;
+      resize: none; font-family: inherit; font-size: 13px;
+    }
+    .chat-input:focus { outline: none; border-color: var(--primary); }
+    .chat-input-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; gap: 8px; }
+    .chat-toolbar { display: flex; align-items: center; gap: 10px; }
+    .chat-tool-btn {
+      padding: 0; border: none; background: transparent;
+      color: var(--text-secondary); font-size: 12px;
+      display: flex; align-items: center; gap: 4px; white-space: nowrap;
+    }
+    .chat-tool-btn svg { width: 13px; height: 13px; }
+    .chat-tool-btn:hover { color: var(--primary); }
+    .chat-send-actions { display: flex; align-items: center; gap: 8px; }
+    .chat-hints { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+    .chat-voice-btn {
+      padding: 0; border: none; background: transparent;
+      color: var(--text-secondary); font-size: 12px;
+      display: flex; align-items: center; gap: 3px; white-space: nowrap;
+    }
+    .chat-voice-btn svg { width: 13px; height: 13px; }
+    .chat-voice-btn:hover { color: var(--primary); }
+    .chat-send {
+      padding: 5px 12px;
+      background: var(--primary); color: #fff; border: none; border-radius: 4px;
+      font-size: 12px; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
+    }
+    .chat-send svg { width: 13px; height: 13px; }
+    .chat-send:hover { background: #2563eb; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+      z-index: 330;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: #fff; border-radius: 8px; width: 420px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden;
+      transform: translateY(-10px); transition: transform 0.2s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-header { padding: 16px; border-bottom: 1px solid var(--border); font-weight: 600; }
+    .modal-body { padding: 16px; color: var(--text-secondary); line-height: 1.6; }
+    .modal-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+    .btn-sm { padding: 5px 14px; font-size: 13px; }
+
+    /* AI knowledge extraction drawer */
+    .drawer-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+      opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 150;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .extract-drawer {
+      position: fixed; top: 0; right: 0; height: 100%;
+      width: 640px; max-width: 94vw; background: #fff;
+      box-shadow: -8px 0 24px rgba(0,0,0,0.12);
+      display: flex; flex-direction: column; z-index: 160;
+      transform: translateX(100%); transition: transform 0.28s ease;
+    }
+    .extract-drawer.open { transform: translateX(0); }
+    .drawer-header {
+      padding: 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .drawer-title { font-weight: 600; font-size: 15px; }
+    .drawer-sub { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+    .drawer-close { border: none; background: transparent; color: var(--text-secondary); font-size: 18px; cursor: pointer; line-height: 1; }
+    .drawer-close:hover { color: var(--text); }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 16px; }
+    .drawer-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+    .ex-unit { font-size: 13px; color: var(--text); margin-bottom: 6px; }
+    .ex-unit b { color: var(--primary); }
+    .ex-section { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px dashed var(--border); }
+    .ex-section:last-child { border-bottom: none; }
+    .ex-field-label { font-size: 13px; font-weight: 700; color: #000; margin-bottom: 6px; }
+    .ex-prompt {
+      width: 100%; min-height: 120px; resize: vertical; padding: 10px;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-family: inherit; font-size: 13px; line-height: 1.5; margin-bottom: 0;
+    }
+    .ex-prompt:focus { outline: none; border-color: var(--primary); }
+    .ex-tip { font-size: 12px; color: var(--text-secondary); }
+    .ex-tip-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; }
+
+    .ex-progress-wrap {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 26px 8px; gap: 14px; background: #f8fafc; border-radius: 8px;
+    }
+    .ex-spinner { width: 38px; height: 38px; border: 3px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: exspin 0.8s linear infinite; }
+    @keyframes exspin { to { transform: rotate(360deg); } }
+    .ex-step { font-size: 13px; color: var(--text); }
+    .ex-progress-track { width: 100%; height: 6px; background: #eef2f7; border-radius: 3px; overflow: hidden; }
+    .ex-progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.12s linear; }
+    .ex-percent { font-size: 12px; color: var(--text-secondary); }
+
+    /* In-button loading spinner (header "AI知识萃取" button) */
+    .btn-loading .btn-spin {
+      display: inline-block; width: 12px; height: 12px; margin-right: 6px;
+      border: 2px solid rgba(59,130,246,0.28); border-top-color: currentColor;
+      border-radius: 50%; vertical-align: -2px; animation: exspin 0.7s linear infinite;
+    }
+    /* spinner on a solid blue button (the drawer's 开始萃取) */
+    .btn-primary.btn-loading .btn-spin {
+      border-color: rgba(255,255,255,0.45); border-top-color: #fff;
+    }
+    /* the running 开始萃取 button stays blue instead of the generic grey disabled look */
+    #exStartBtn.btn-loading:disabled {
+      opacity: 1; cursor: default; color: #fff;
+      background: var(--primary); border-color: var(--primary);
+    }
+    /* keep the processing button crisp (not faded) while it is non-clickable */
+    #extractBtn.btn-loading:disabled {
+      opacity: 1; cursor: default;
+      color: var(--primary); background: #eff6ff; border-color: #bfdbfe;
+    }
+
+    /* ---- Extraction results live inside the drawer now ---- */
+    #exResultCards { display: flex; flex-direction: column; gap: 12px; }
+    .qa-text {
+      width: 100%; min-height: 50px; padding: 10px 12px; border-radius: 8px;
+      background: #f6f8fb; color: var(--text); font-size: 13px; line-height: 1.6;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .qa-a-text { background: #eefaf3; box-shadow: inset 3px 0 0 #6ee7b7; }
+
+    /* --- Extraction results: soft knowledge blocks --- */
+    .ex-result-head {
+      font-size: 14px; font-weight: 700; color: #000; line-height: 1.5;
+      margin-bottom: 14px; padding-left: 10px;
+      border-left: 3px solid var(--primary);
+    }
+    .extract-empty { text-align: center; color: var(--text-secondary); padding: 44px 0; }
+
+    .qa-card {
+      background: #f6f8fb;
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .qa-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .qa-no {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; padding: 0 6px; border-radius: 6px;
+      background: #e6efff; color: var(--primary);
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .qa-hd-title { font-size: 13px; font-weight: 600; color: #334155; }
+
+    /* Delete button (per knowledge entry) */
+    .qa-del {
+      margin-left: auto; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; padding: 0;
+      border: none; border-radius: 6px; background: transparent;
+      color: #94a3b8; cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .qa-del:hover { background: #fee2e2; color: #ef4444; }
+    .qa-del:active { background: #fecaca; }
+    .qa-del:focus-visible { outline: 2px solid var(--primary-light); outline-offset: 1px; }
+
+    .qa-input {
+      display: block; width: 100%; min-height: 50px; resize: vertical;
+      padding: 10px 12px; border: none; border-radius: 8px;
+      font-family: inherit; font-size: 13px; line-height: 1.6;
+      background: #fff; color: var(--text);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+    .qa-input:focus { outline: 2px solid var(--primary-light); box-shadow: none; }
+
+    .qa-ans-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: #059669; margin: 12px 0 6px;
+    }
+    .qa-ans-label::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #10b981; }
+
+    .qa-a-input { box-shadow: inset 3px 0 0 #6ee7b7, 0 1px 2px rgba(15, 23, 42, 0.05); }
+
+    /* Delete confirm popover — floats right above the delete button */
+    .delete-pop {
+      position: fixed; top: 0; left: 0; z-index: 320;
+      min-width: 168px; padding: 12px 14px 10px;
+      background: #fff; border: 1px solid #e8ecf2; border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.06);
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transform: translateY(4px) scale(0.98); transform-origin: bottom center;
+      transition: opacity 0.14s ease, transform 0.14s ease;
+    }
+    .delete-pop.open { opacity: 1; visibility: visible; pointer-events: auto; transform: none; }
+    .delete-pop-title {
+      font-size: 13px; font-weight: 600; color: #334155; line-height: 1.5;
+      margin-bottom: 10px; white-space: nowrap;
+    }
+    .delete-pop-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .pop-btn {
+      height: 26px; padding: 0 12px; border-radius: 6px; cursor: pointer;
+      border: 1px solid #d7dee8; background: #fff; color: #475569;
+      font-family: inherit; font-size: 12px; line-height: 1;
+      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+    .pop-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .pop-btn-danger { border-color: #fecaca; background: #fee2e2; color: #dc2626; }
+    .pop-btn-danger:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+    .delete-pop-arrow {
+      position: absolute; bottom: -5px; left: var(--arrow-x, 50%);
+      width: 9px; height: 9px; margin-left: -5px;
+      background: #fff; border-right: 1px solid #e8ecf2; border-bottom: 1px solid #e8ecf2;
+      transform: rotate(45deg);
+    }
+    .delete-pop.flip { transform-origin: top center; }
+    .delete-pop.flip .delete-pop-arrow {
+      bottom: auto; top: -5px;
+      border: none; border-left: 1px solid #e8ecf2; border-top: 1px solid #e8ecf2;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: rgba(17,24,39,0.92); color: #fff;
+      padding: 10px 18px; border-radius: 6px; font-size: 13px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s; z-index: 200;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+  </style>
+</head>
+<body data-page-node-id="H80ecHEYG7WzgP75AOsnQe">
+  <div class="app" data-page-node-id="NjLsaNcA325h3yHUtqEPR4">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" data-page-node-id="bbwwCXWBdcNTARNbVWVo5l">
+      <div class="sidebar-header" data-page-node-id="Q61Y1WXfjvEY1qyzAQoFdk">
+        <span class="sidebar-title" data-page-node-id="hQOvWnkgD2Bc8Fqa2ABXeZ">智能维护管理</span>
+        <button class="sidebar-toggle" id="collapseSidebar" title="收起菜单" data-page-node-id="2BE1bzzzB1H0BrNLNB9jse">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="XGZbth9unkj7ESfebGtIHf"><polyline points="11 17 6 12 11 7" data-page-node-id="EiHBflxWaVL9hdb2Iry0ZD"></polyline><polyline points="18 17 13 12 18 7" data-page-node-id="u2rWB50NcBtz8nioDAwfSi"></polyline></svg>
+        </button>
+      </div>
+      <nav class="sidebar-menu" data-page-node-id="gbOJADDTcC81IuDOlC2SOT">
+        <div class="menu-group" data-page-node-id="Vo1dYjWndPOOB8vL5oFraE">
+          <div class="menu-item active" data-submenu="menu-maint" data-page-node-id="mN1jGEQp4sb22rnQ1dG6AC">
+            <span class="menu-icon" data-page-node-id="D6fktFrFvP3ve4v8i3VY1x"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="xQnBfB7IkCq9qoIl9e4kU3"><rect x="3" y="3" width="18" height="18" rx="2" data-page-node-id="ZKW8zurRGnupOMSdyu5v04"></rect><path d="M3 9h18" data-page-node-id="geoVgM8dFQugA6C5bcIjFQ"></path><path d="M9 21V9" data-page-node-id="dLFrtyNsaAoKjz2rCOGiMl"></path></svg></span>
+            <span data-page-node-id="eFYHEHoX8GF6M54ChSq3im">智能维护</span>
+            <span class="menu-arrow open" data-page-node-id="BE1J4EDrXf8mxtdkFA2r2m">▶</span>
+          </div>
+          <div class="submenu open" id="menu-maint" data-page-node-id="ghREYxDS0wMxq89plK0ZRA">
+            <div class="submenu-item" data-page-node-id="Ja1f26C9053rxxYMG7MA3U">知识库管理</div>
+            <div class="submenu-item" data-page-node-id="azQHnGrxQevY0PRVsBxtY4">数据洞察</div>
+            <div class="submenu-item" data-page-node-id="MvWGpcon6usQCKr5R9JNor">对话记录</div>
+            <div class="submenu-item active" data-page-node-id="6ngINz7Gg8AA5wugZp9w4g">在线咨询</div>
+            <div class="submenu-item" data-page-node-id="gwYQEaBq6RGLwPi51UZXAY">群组会话</div>
+            <div class="submenu-item" data-page-node-id="kFe69GslyoxAMQsJHFA8km">咨询实施监管</div>
+            <div class="submenu-item" data-page-node-id="59EGD2JvWY57H1o0ohVBYq">运维数据统计</div>
+            <div class="submenu-item" data-page-node-id="CKrmwF6DfD9wLEd6MnwW12">待办事项</div>
+            <div class="submenu-item">知识萃取</div>
+            <div class="submenu-item" data-page-node-id="PE4h8va9BazQDNLomFWitG">文件上传</div>
+            <div class="submenu-item">问题反馈</div>
+          </div>
+        </div>
+        <div class="menu-group" data-page-node-id="oq3FTMqc5gqFKfiFTC26uA">
+          <div class="menu-item" data-submenu="menu-sys" data-page-node-id="HLiQ1GMul9ASFCFS5F1Cwb">
+            <span class="menu-icon" data-page-node-id="7OhpNV4aGSSub12DWW6sBm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="lC49BuXjq5cde3KnaxTD07"><path d="M12 2L2 7l10 5 10-5-10-5z" data-page-node-id="KvV0iVT1yJu3xauPXGDJlY"></path><path d="M2 17l10 5 10-5" data-page-node-id="p5w3izB4V7Kin3kHy1rooP"></path><path d="M2 12l10 5 10-5" data-page-node-id="kbT9gPx0ons84KE2dC1kJn"></path></svg></span>
+            <span data-page-node-id="xzwZEMGH9iUxdWjmG2Ao9B">系统管理</span>
+            <span class="menu-arrow open" data-page-node-id="Zi7ufkmJohtCdd0k0BUhtk">▶</span>
+          </div>
+          <div class="submenu open" id="menu-sys" data-page-node-id="M6IQ5h4SLMA38fkAVHRCIr">
+            <div class="submenu-item" data-page-node-id="FgL99f7azgIMuz7kQ2gwpF">用户管理</div>
+            <div class="submenu-item" data-page-node-id="GPjWOrLlfUNHEZzhcywpBG">角色权限</div>
+            <div class="submenu-item" data-page-node-id="sxg4eh078lrsOP2rECtPzi">单位管理</div>
+            <div class="submenu-item" data-page-node-id="VKKgzkx0o4D85cY6sjRmRy">license管理</div>
+            <div class="submenu-item" data-page-node-id="hpDt3vybxoCLA6zWC0UcFt">系统版本管理</div>
+            <div class="submenu-item" data-page-node-id="77MCwk68Z4lrL1ghscdepo">操作日志</div>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main" data-page-node-id="Dg4pMd6GIX1EDhMXvdqVhI">
+      <header class="topbar" data-page-node-id="XA8FFF3f2vCrHF78zfWlSu">
+        <div class="topbar-left" data-page-node-id="HfUh0EEyiSXX9nhaBX9gRK">
+          <button class="sidebar-float-btn" id="expandSidebar" title="展开菜单" style="display:none" data-page-node-id="cg1gwI5zGTObyLrL54xkFF">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="mPCmZW9xHDHAcXu2ig67hb"><line x1="3" y1="12" x2="21" y2="12" data-page-node-id="7Kk2etKlZEFuBR0Nyv7bly"></line><line x1="3" y1="6" x2="21" y2="6" data-page-node-id="ChfsoYH3s1MRuABnwEKU44"></line><line x1="3" y1="18" x2="21" y2="18" data-page-node-id="f76sJz2KRxTqAvEj49xuCk"></line></svg>
+          </button>
+          <div class="breadcrumb" data-page-node-id="jsoRzc9wMAFIQuGZkjGF6o">
+            <a href="#" data-page-node-id="BfyVdsbm9JJGRusFeSLpZY">当前位置：运维支撑</a>
+            <span data-page-node-id="bs0f6ga4RBI73xYEvf7NCE"> / </span>
+            <a href="#" data-page-node-id="2Iog8uDjmHe0YcgED4uv8y">在线咨询</a>
+          </div>
+        </div>
+        <div class="topbar-right" data-page-node-id="aikjLdo7anr4noZOn4gaQ8">
+          <div class="user-info" data-page-node-id="b88GlKbOepPLqrUrSvlVH8">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="rhQzy3wBmj6yYWg1o8TKp4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" data-page-node-id="QcnvJ4iKEvqIf8o58fVT40"></path><circle cx="12" cy="7" r="4" data-page-node-id="LqiWdRLQPlOklhNIvijY6a"></circle></svg>
+            <span data-page-node-id="MtBAsz8htBqw5aG1Jztl9v">1KQ9527</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="content" data-page-node-id="30871pW9n5OwbRs9bTGUsF">
+        <div class="tabs-bar" data-page-node-id="gXyxPlm3FBHHbQRXYHzAAw">
+          <div class="tabs" data-page-node-id="QjkRBpCl4ejgS7poYK2ZOw">
+            <div class="tab active" data-tab="single" data-page-node-id="7LM7ggk24hFF3mSdqLjgZh">事业工资系统（单机版）</div>
+            <div class="tab" data-tab="network" data-page-node-id="gRGPW9EADdTqdXIzWuDKwa">事业工资系统（网络版）</div>
+            <div class="tab" data-tab="annual" data-page-node-id="y8zpNtxjil2bdaSNR7EbDd">年报系统</div>
+          </div>
+          <div class="tabs-actions" data-page-node-id="9cWXlTf9E8QuScopiabxEm">
+            <button class="btn btn-sm" id="reconnectBtn" title="重新连接" data-page-node-id="RI6fG8m1NRULnrA0iomEXj">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="aFkVmWqe8AIvtrEVJrsMYD"><polyline points="23 4 23 10 17 10" data-page-node-id="eiBWDxrEO4EnoPKt5sBlje"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" data-page-node-id="SYSb6WGydJZvoFGXL7KEBL"></path></svg>
+              重连
+            </button>
+            <div class="status-toggle" data-page-node-id="jOzArZuRGbm2dtN2rFTW9p">
+              <span data-page-node-id="UI2Rj0ECeQymFvgNDMfiY5">当前状态：</span>
+              <label class="toggle-option" data-page-node-id="PUyXiRQ0I9XGpJGUrzQVaf">
+                <input type="radio" name="onlineStatus" value="online" checked data-page-node-id="3kl5FM5EokvOdsmJ34AjOB">
+                <span class="toggle-dot" data-page-node-id="QLJDP20XQRcJb4AcfS0PEH"></span>
+                <span data-page-node-id="tLKof8pFTKtQzphJHZ3pIY">在线</span>
+              </label>
+              <label class="toggle-option busy" data-page-node-id="VpVONzizcddIkvCThf0yLE">
+                <input type="radio" name="onlineStatus" value="busy" data-page-node-id="BLrrIZdGsBCFZ1L2TJdCIO">
+                <span class="toggle-dot" data-page-node-id="POcW8CdiRz7DEaTNGCMCQS"></span>
+                <span data-page-node-id="BXOCJchQMwIWrF7IiDIE0Q">繁忙</span>
+              </label>
+              <span class="hint" data-page-node-id="bCtOA6sHrvYnBq166lf4Pf">（繁忙状态不接收消息）</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace" data-page-node-id="bRLHogTghImUel8j5dkHbt">
+          <!-- Region tree -->
+          <aside class="region-panel" id="regionPanel" data-page-node-id="JZMh3EEOz5A1vTcXLoE1fe">
+            <div class="region-header" data-page-node-id="6QXmDjvV9QfBARlmOds0V9">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="Fv3A1nUDQofbPPVyEW5Apd"><path d="M12 2L2 7l10 5 10-5-10-5z" data-page-node-id="sWjOqcFpBWbRpEcAAMSG1k"></path><path d="M2 17l10 5 10-5" data-page-node-id="ueGZYyBe52M9K0P4wLDYHF"></path><path d="M2 12l10 5 10-5" data-page-node-id="slwU5ohrfRPHqwAlB2QScP"></path></svg>
+              <span data-page-node-id="IJWyyPWJOsxWmGKIwnvKGf">区域筛选</span>
+              <button class="region-collapse-btn" id="regionCollapseBtn" title="收起区域" data-page-node-id="mhEKkKTjTOImxa022AsDVl">‹</button>
+            </div>
+            <div class="region-tree" id="regionTree" data-page-node-id="6m3HxnlS8bfJeh0nGBLqG6"></div>
+          </aside>
+          <button class="region-expand-btn" id="regionExpandBtn" title="展开区域" data-page-node-id="VrguN6dDBhvLJrDt0a9mmp">›</button>
+
+          <!-- Table -->
+          <div class="table-panel" data-page-node-id="EZOpGCs0suPT3noednkPBW">
+            <div class="table-toolbar" data-page-node-id="cdgmHmYFLlzoe0pug6oNt5">
+              <div class="search-box" data-page-node-id="Mw65zGou1fGKk5go4rvU6s">
+                <input type="text" id="searchInput" placeholder="搜索单位/经办人" data-page-node-id="fZ4A2Zbcs2O1tQ6oHIKC5Q">
+                <span class="icon-search" data-page-node-id="UXHzK4Q2Lib9fn7vPHCbkG">🔍</span>
+              </div>
+              <select class="select" id="statusFilter" data-page-node-id="HL1ffyV5xas59Uch9mCQV0">
+                <option value="" data-page-node-id="WkB4pcKjf4EDSLEVGD7lju">状态选择</option>
+                <option value="processing" data-page-node-id="SpGlAgtKSpyw12Bu9JX4Wz">处理中</option>
+                <option value="timeout" data-page-node-id="YJvYi3Rg0Nbv2rKA9OA7OE">已超时</option>
+                <option value="pending" data-page-node-id="0IcpGIgvnjhTk6UfKTF67S">待关闭</option>
+                <option value="closed" data-page-node-id="FdZqhroZlNqFf8snwbUASi">已关闭</option>
+                <option value="communicating" data-page-node-id="B7H2IwujogJYiZWRB6t936">沟通中</option>
+              </select>
+              <label class="filter-switch" title="只显示重点单位" data-page-node-id="66ioC10Nt5EW7L6RAQEkCf">
+                <input type="checkbox" id="keyUnitFilter" data-page-node-id="X4z6tnhOtvUCGUJB5WGlAZ">
+                <span class="switch-track" data-page-node-id="RvJHPzeF8BbRnhPu4JL5F9"><span class="switch-thumb" data-page-node-id="BYIK4YNjXQDvWXLuwxUMO5">重点单位</span></span>
+              </label>
+              <div style="flex:1" data-page-node-id="T1rlbZQpSs2mi8EY6BxOb2"></div>
+              <button class="btn" id="refreshBtn" title="刷新列表" data-page-node-id="zdlPtlog04TACyrF0B1tT7">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="CKuSCfmcnZNce4FUtFY9RR"><polyline points="23 4 23 10 17 10" data-page-node-id="k6VXTeUNnaHVwCyAgXPVBh"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" data-page-node-id="ZmsCpMAhfDsVzuSGEJnz6j"></path></svg>
+                刷新
+              </button>
+              <button class="btn" id="exportBtn" data-page-node-id="5ERtZ6O3NMIwKqF4BSB0S6">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="mbqP9gAAwZQFJVzvVrEW6W"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" data-page-node-id="FkwMj75OjdJQtgdr5iOjtu"></path><polyline points="7 10 12 15 17 10" data-page-node-id="LX3oN5PbHCMHJeBy5fFxps"></polyline><line x1="12" y1="15" x2="12" y2="3" data-page-node-id="JzF2ZpDFIoVyWy5VkxYmdN"></line></svg>
+                导出
+              </button>
+            </div>
+            <div class="table-wrap" data-page-node-id="DJCWZkafxYFgysjfRuQSur">
+              <table data-page-node-id="IQCkAgyaQFtT6FCuXcRqre">
+                <thead data-page-node-id="e5jYEO0Uy7phufgBv2zPQE">
+                  <tr data-page-node-id="3An5jVzjdE0LKRuEvH9Xcz">
+                    <th data-page-node-id="rNP9Dxu1XIHII1RRsGvUEd">序号</th>
+                    <th data-page-node-id="m6GEJPkEFpF1RFzbkWAD8b">区域</th>
+                    <th data-page-node-id="HjwP9GyviSEeuoEI1eW4sN">单位名称</th>
+                    <th data-page-node-id="CKCqFnqzMu1jkEaF59xr9l">经办人</th>
+                    <th data-page-node-id="TG6Uc7wAauqT4EptcsCAcY">状态</th>
+                    <th data-page-node-id="KD3KLrYfnuA4ycbk7AsQx4">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="sessionTable" data-page-node-id="cts1G9sKHgf24ECHXAG7W1"></tbody>
+              </table>
+            </div>
+            <div class="table-footer" data-page-node-id="ax2VCc4R8CHkiX9DNH4Sby">
+              <button class="pagination-btn" id="prevPage" data-page-node-id="nCnewQCkoY24feOwyHZDMx">‹</button>
+              <button class="pagination-btn active" data-page-node-id="5cwi9kwt85cB7XItBy5QCL">1</button>
+              <button class="pagination-btn" data-page-node-id="BSQ9cnH4ZqZn5mzXQb7zTp">2</button>
+              <button class="pagination-btn" id="nextPage" data-page-node-id="BJHeUx4IewJ5O7Yu4afdkW">›</button>
+            </div>
+          </div>
+
+          <!-- Chat -->
+          <aside class="chat-panel" data-page-node-id="YBW1pjCRvHormR8D7GFSCM">
+            <div class="chat-header" data-page-node-id="JHO5Se3bHaAC2DzMWRuZl3">
+              <div data-page-node-id="Qa42ra8He68G4gSmEOnsMc">
+                <div class="chat-title" data-page-node-id="1AZfgdlADJJFQBevBESXQX">成都旅游学院 | 张三 13800138000</div>
+              </div>
+              <div class="chat-header-actions" data-page-node-id="LNTAhSFmnHAiyhGhqogRHT">
+                <button class="btn btn-sm" id="createTodoBtn" data-page-node-id="YFyPBpZbQ3XY1wygat7jFT">创建待办</button>
+                <button class="btn btn-sm" id="extractBtn" data-page-node-id="aBytEqBYYde6z96KJU3UKF">AI知识萃取</button>
+                <button class="btn btn-sm" data-page-node-id="3lG0KdtR6fKZD1NXlzT92P">查看AI对话</button>
+                <button class="btn btn-sm btn-danger" id="closeSessionBtn" data-page-node-id="A1JTVWPxjEi7lB7OFo2dFQ">关闭会话</button>
+              </div>
+            </div>
+            <div class="chat-messages" id="chatMessages" data-page-node-id="jKFdsQNmkMPB2ooPoz3F3k"></div>
+            <div class="chat-input-area" data-page-node-id="mTjl7J0CTcceyGsnerGmVx">
+              <textarea class="chat-input" id="chatInput" placeholder="输入回复内容..."></textarea>
+              <div class="chat-input-footer" data-page-node-id="0OYokx5s8Ooz2RHDpjxmUF">
+                <div class="chat-toolbar" data-page-node-id="dUShkZ4qKsA9z6tiHypd2A">
+                  <button class="chat-tool-btn" data-page-node-id="1eqYiKldrrMcxlaWTMpyVq">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="BIJBNmHIDvFMgwIN5yQHY7"><circle cx="12" cy="12" r="10" data-page-node-id="dcWnNieIx30ZFTiymqEacW"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" data-page-node-id="T6AwxCO5uuUpP5UEDYmwBf"></path><line x1="12" y1="17" x2="12.01" y2="17" data-page-node-id="bobDjKYX8DH5dH4DIXQP5E"></line></svg>
+                    常见问题
+                  </button>
+                  <button class="chat-tool-btn" data-page-node-id="Ma1qkFBneo5vDwuBWCiNF3">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="ZdqjZfcqZu7vdAvrzJS9cX"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" data-page-node-id="wio1e1IX12iRm7DCbyQOFa"></path></svg>
+                    本地文件
+                  </button>
+                  <button class="chat-tool-btn" id="clearInput" data-page-node-id="T37ovjoCK0GkbzLIcS4IyB">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="jhpZQvAcWWrn3moCztD62w"><polyline points="3 6 5 6 21 6" data-page-node-id="wWcdEyTgBgbBvwFQu12GQA"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" data-page-node-id="yrljrkls7hEW4xZaJMBZTE"></path></svg>
+                    清空输入
+                  </button>
+                </div>
+                <div class="chat-send-actions" data-page-node-id="dBj2eTfCSXdJzEjrvtDHsG">
+                  <span class="chat-hints" data-page-node-id="V6NO7oUM3OFDLKYx1pmWix">Enter 发送 · Shift+Enter 换行</span>
+                  <button class="chat-voice-btn" data-page-node-id="k0odoPbC51OqDLDR2MwFRf">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="ia1EdHexGxbzvg60PnjOBt"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" data-page-node-id="DJxXQQn0V1NHMV8ukNaLis"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2" data-page-node-id="bc4IAMACTgGfDrdHDFmZfP"></path><line x1="12" y1="19" x2="12" y2="23" data-page-node-id="FCKkcb0XqTV3JolRJs9rIR"></line><line x1="8" y1="23" x2="16" y2="23" data-page-node-id="BD80dRAMTrAMn8Sbo0vahZ"></line></svg>
+                    语音
+                  </button>
+                  <button class="chat-send" id="sendBtn" data-page-node-id="acOWkSvAbs9zGzYgW2PZPG">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="WoEMFcrBK1fHg6lUpDQjO8"><line x1="22" y1="2" x2="11" y2="13" data-page-node-id="zL0quh10lvaJJ98YEKmbFo"></line><polygon points="22 2 15 22 11 13 2 9 22 2" data-page-node-id="kUgtCx0K5Y9BgljCG0Cvnb"></polygon></svg>
+                    发送
+                  </button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Confirm modal -->
+  <div class="modal-overlay" id="confirmModal" data-page-node-id="KSRRgZJxqENculBDRQhl19">
+    <div class="modal" data-page-node-id="z4i456PqQnJoXkvFsyvqI2">
+      <div class="modal-header" data-page-node-id="3yt28vWesvxkatVE708Had">操作确认</div>
+      <div class="modal-body" id="modalBody" data-page-node-id="mz6SmD97IX5auVPmARXVmY">确定要关闭当前会话吗？</div>
+      <div class="modal-footer" data-page-node-id="DjNAP7wVU4Qfpj43jxJQly">
+        <button class="btn btn-sm" id="modalCancel" data-page-node-id="GIvAodjsWVpsMFkq7DS201">取消</button>
+        <button class="btn btn-sm btn-danger" id="modalConfirm" data-page-node-id="JeApHg4tUUiDm3LvxLeVjh">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete confirm popover (anchored above the delete button) -->
+  <div class="delete-pop" id="deletePop" role="dialog" aria-label="删除确认">
+    <div class="delete-pop-title">确认删除？</div>
+    <div class="delete-pop-actions">
+      <button class="pop-btn" id="delPopCancel" type="button">取消</button>
+      <button class="pop-btn pop-btn-danger" id="delPopConfirm" type="button">删除</button>
+    </div>
+    <span class="delete-pop-arrow"></span>
+  </div>
+
+  <!-- AI knowledge extraction drawer -->
+  <div class="drawer-overlay" id="extractOverlay" data-page-node-id="1W3eWtEqCvby06MKD61C3e"></div>
+  <aside class="extract-drawer" id="extractDrawer" data-page-node-id="AOYmAb26Pqjm1IpTFjTreQ">
+    <div class="drawer-header" data-page-node-id="e0l9CnjNtxjEAayUDNUQi7">
+      <div data-page-node-id="PrtS9N7EqeJ5K7W2ZvApdo">
+        <div class="drawer-title" data-page-node-id="l3eeSresblVlC4486Tiit4">AI 知识萃取</div>
+        <div class="drawer-sub" data-page-node-id="ox0KJYCx0dWIRIRMWVvoz2">从本轮对话中提取用户问题与标准回答</div>
+      </div>
+      <button class="drawer-close" id="extractClose" title="关闭" data-page-node-id="qXEcHMX3qTR3gAVcEBiNJD">✕</button>
+    </div>
+    <div class="drawer-body" id="extractBody" data-page-node-id="DiqGmmEwVaS7QJCU4cD9mU">
+      <section class="ex-section ex-config-section" data-page-node-id="1SdllrIhoStk9Rt3jhbHcr">
+        <div class="ex-field-label" data-page-node-id="Bmdb6iRiBrgQkLr5xITLrR">知识萃取提示词模板</div>
+        <textarea class="ex-prompt" id="extractPrompt"></textarea>
+        <div class="ex-tip-row" data-page-node-id="ydUcTpaINuP7yHsZscP8L4">
+          <div class="ex-tip" data-page-node-id="X82aNiOm6fvz2TB7PqatLl">提示：可手动调整提示词以改变萃取的粒度与侧重点。</div>
+          <button class="btn btn-sm btn-primary" id="exStartBtn" data-page-node-id="hri7O6HeHGhyS2tIxo6WaY">开始萃取</button>
+        </div>
+      </section>
+
+      <section class="ex-section ex-progress-section" id="exProgressSection" hidden data-page-node-id="HPORkQD1BBDYe3WB6W1yEo">
+        <div class="ex-progress-wrap" data-page-node-id="biSfmTNVHTnKp4InyESGSH">
+          <div class="ex-spinner" data-page-node-id="OwL4WG2wkEqBbimvEgSy1L"></div>
+          <div class="ex-step" id="exStep" data-page-node-id="kQB5qVUZIM88U1o1w11EgD">准备对话数据…</div>
+          <div class="ex-progress-track" data-page-node-id="AsHAjHsjssKbDg9GoBXfWd"><div class="ex-progress-bar" id="exProgressBar" style="width:0%" data-page-node-id="opm9Z0rDGsGLhauPd25G6k"></div></div>
+          <div class="ex-percent" id="exPercent" data-page-node-id="IqTAVL30iTN7swOgR0Jw1V">0%</div>
+        </div>
+      </section>
+
+      <section class="ex-section ex-result-section" id="exResultSection" hidden data-page-node-id="6kJNB4tKS43wr2IeNLguNt">
+        <div class="ex-result-head" id="exResultHead" data-page-node-id="1Jy0mGHAcBTV9SyoTUsFJc"></div>
+        <div id="exResultCards" data-page-node-id="xbDlvGZqd2ivSmbGaBVCoY"></div>
+      </section>
+    </div>
+    <div class="drawer-footer" id="extractFooter" data-page-node-id="nNkwYizobuA9wEfn2AwqmC"></div>
+  </aside>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" data-page-node-id="Ad48xpHiDNvIhbekTQCIPn"></div>
+
+  <script>
+    // Data
+    const treeData = [
+      { id: 'all', label: '全区域', checked: true, children: [
+        { id: 'sc', label: '四川省', checked: true, children: [
+          { id: 'sc-province', label: '省直', checked: true },
+          { id: 'cd', label: '成都市', checked: true, children: [
+            { id: 'cd-city', label: '市直市直', checked: true },
+            { id: 'jj', label: '锦江区锦江区', checked: true },
+            { id: 'qy', label: '青羊区青羊区', checked: true },
+            { id: 'xd', label: '新都区新都区', checked: true }
+          ]}
+        ]}
+      ]}
+    ];
+
+    const sessions = [
+      { no: 1, region: '金牛区', org: '成都旅游学院', status: 'processing', agent: '张三', keyUnit: true, unread: 3, lastMessage: '29.转正定级模块中，为什么无人员显示？', title: '成都旅游学院 | 张三 13800138000', chat: [
+        { date: '2026年4月13日 18:22:16', groups: [
+          { agent: '李欣怡', time: '2026-04-13 14:42:08 - 2026-04-13 16:22:08', messages: [
+            { who: 'other', name: '陈思宇', time: '14:42:08', text: '29.转正定级模块中，为什么无人员显示？' },
+            { who: 'self', name: '李欣怡', time: '15:10:08', text: '人员基础信息修改中，实际任职更改为“试用期”即可正常显示。' },
+            { who: 'other', name: '陈思宇', time: '15:30:00', text: '试用期员工的工资如何计算？' },
+            { who: 'self', name: '李欣怡', time: '15:52:00', text: '试用期工资按转正工资的80%发放，且不低于当地最低工资标准。' },
+            { who: 'other', name: '陈思宇', time: '16:05:00', text: '转正后社保基数会自动更新吗？' },
+            { who: 'self', name: '李欣怡', time: '16:22:08', text: '转正后请在“社保管理”中手动重算基数，系统不会自动同步。' }
+          ]}
+        ]}
+      ]},
+      { no: 2, region: '金牛区', org: '四川环境研究机构', status: 'communicating', agent: '向钱进', keyUnit: false, unread: 1, lastMessage: '请问社保基数如何批量导入？', title: '四川环境研究机构 | 向钱进 13900139000', chat: [
+        { date: '2026年5月21日 10:15:32', groups: [
+          { agent: '李小明', time: '2026-05-21 09:30:00 - 2026-05-21 10:15:00', messages: [
+            { who: 'other', name: '王芳', time: '09:30:00', text: '请问社保基数如何批量导入？' },
+            { who: 'self', name: '李小明', time: '10:15:00', text: '在“社保管理-基数导入”中下载模板后批量上传。' }
+          ]}
+        ]}
+      ]},
+      { no: 3, region: '青羊区', org: '四川沼气研究机构', status: 'processing', agent: '翔多多', keyUnit: true, unread: 5, lastMessage: '工资汇总表导不出，提示权限不足。', title: '四川沼气研究机构 | 翔多多 13700137000', chat: [
+        { date: '2026年5月30日 15:22:26', groups: [
+          { agent: '李欣怡', time: '2026-05-30 14:42:08 - 2026-05-30 14:42:08', messages: [
+            { who: 'other', name: '陈思宇', time: '14:42:08', text: '工资汇总表导不出，提示权限不足。' },
+            { who: 'self', name: '李欣怡', time: '14:42:08', text: '请检查是否已分配“报表导出”权限。' }
+          ]},
+          { agent: '李小明', time: '2026-05-30 16:22:08', messages: [
+            { who: 'other', name: '陈思宇', time: '14:42:08', text: '录入人员如何半月起薪？' },
+            { who: 'self', name: '李小明', time: '16:22:08', text: '请在“工资发放”模块中选择起薪日期为当月15日。' }
+          ]}
+        ]}
+      ]},
+      { no: 4, region: '武侯区', org: '西南科技大学', status: 'timeout', agent: '李小炮', keyUnit: false, unread: 0, lastMessage: '系统登录报错了。', title: '西南科技大学 | 李小炮 13600136000', chat: [
+        { date: '2026年6月1日 09:12:00', groups: [
+          { agent: '王二狗', time: '2026-06-01 09:00:00 - 2026-06-01 09:12:00', messages: [
+            { who: 'other', name: '赵强', time: '09:00:00', text: '系统登录报错了。' }
+          ]}
+        ]}
+      ]},
+      { no: 5, region: '温江区', org: '成都妇幼保健院', status: 'communicating', agent: '王二狗', keyUnit: true, unread: 2, lastMessage: '人员调动后工资没有同步。', title: '成都妇幼保健院 | 王二狗 13500135000', chat: [
+        { date: '2026年6月2日 14:30:00', groups: [
+          { agent: '李欣怡', time: '2026-06-02 14:20:00 - 2026-06-02 14:30:00', messages: [
+            { who: 'other', name: '刘梅', time: '14:20:00', text: '人员调动后工资没有同步。' },
+            { who: 'self', name: '李欣怡', time: '14:30:00', text: '请在“人员变动”模块中确认调动流程已审批通过。' }
+          ]}
+        ]}
+      ]},
+      { no: 6, region: '金牛区', org: '成都旅游学院', status: 'timeout', agent: '张三', keyUnit: false, unread: 0, lastMessage: '年报数据校验不通过。', title: '成都旅游学院 | 张三 13800138000', chat: [
+        { date: '2026年6月3日 11:00:00', groups: [
+          { agent: '李小明', time: '2026-06-03 10:50:00 - 2026-06-03 11:00:00', messages: [
+            { who: 'other', name: '陈思宇', time: '10:50:00', text: '年报数据校验不通过。' },
+            { who: 'self', name: '李小明', time: '11:00:00', text: '请根据校验提示补充缺少的字段。' }
+          ]}
+        ]}
+      ]},
+      { no: 7, region: '金牛区', org: '四川环境研究机构', status: 'pending', agent: '向钱进', keyUnit: false, unread: 0, lastMessage: '如何新增单位岗位？', title: '四川环境研究机构 | 向钱进 13900139000', chat: [
+        { date: '2026年6月4日 16:45:00', groups: [
+          { agent: '王二狗', time: '2026-06-04 16:30:00 - 2026-06-04 16:45:00', messages: [
+            { who: 'other', name: '王芳', time: '16:30:00', text: '如何新增单位岗位？' },
+            { who: 'self', name: '王二狗', time: '16:45:00', text: '在“岗位管理”中点击新增，填写岗位信息保存即可。' }
+          ]}
+        ]}
+      ]},
+      { no: 8, region: '青羊区', org: '四川沼气研究机构', status: 'communicating', agent: '翔多多', keyUnit: true, unread: 4, lastMessage: '工资条发送失败。', title: '四川沼气研究机构 | 翔多多 13700137000', chat: [
+        { date: '2026年6月5日 08:20:00', groups: [
+          { agent: '李欣怡', time: '2026-06-05 08:10:00 - 2026-06-05 08:20:00', messages: [
+            { who: 'other', name: '陈思宇', time: '08:10:00', text: '工资条发送失败。' },
+            { who: 'self', name: '李欣怡', time: '08:20:00', text: '请检查邮箱配置及人员邮箱是否填写正确。' }
+          ]}
+        ]}
+      ]},
+      { no: 9, region: '武侯区', org: '西南科技大学', status: 'pending', agent: '李小炮', keyUnit: false, unread: 0, lastMessage: '请假流程如何配置？', title: '西南科技大学 | 李小炮 13600136000', chat: [
+        { date: '2026年6月6日 13:10:00', groups: [
+          { agent: '李小明', time: '2026-06-06 13:00:00 - 2026-06-06 13:10:00', messages: [
+            { who: 'other', name: '赵强', time: '13:00:00', text: '请假流程如何配置？' },
+            { who: 'self', name: '李小明', time: '13:10:00', text: '在“流程中心-请假流程”中启用并配置审批节点。' }
+          ]}
+        ]}
+      ]},
+      { no: 10, region: '温江区', org: '成都妇幼保健院', status: 'closed', agent: '王二狗', keyUnit: false, unread: 0, lastMessage: '已解决，谢谢。', title: '成都妇幼保健院 | 王二狗 13500135000', chat: [
+        { date: '2026年6月7日 17:00:00', groups: [
+          { agent: '李欣怡', time: '2026-06-07 16:50:00 - 2026-06-07 17:00:00', messages: [
+            { who: 'other', name: '刘梅', time: '16:50:00', text: '已解决，谢谢。' },
+            { who: 'self', name: '李欣怡', time: '17:00:00', text: '不客气，有问题随时联系。' }
+          ]}
+        ]}
+      ]},
+      { no: 11, region: '金牛区', org: '成都旅游学院', status: 'closed', agent: '张三', keyUnit: true, unread: 0, lastMessage: '咨询已完成。', title: '成都旅游学院 | 张三 13800138000', chat: [
+        { date: '2026年6月8日 10:00:00', groups: [
+          { agent: '李小明', time: '2026-06-08 09:50:00 - 2026-06-08 10:00:00', messages: [
+            { who: 'other', name: '陈思宇', time: '09:50:00', text: '咨询已完成。' }
+          ]}
+        ]}
+      ]},
+      { no: 12, region: '金牛区', org: '四川环境研究机构', status: 'closed', agent: '向钱进', keyUnit: false, unread: 0, lastMessage: '好的。', title: '四川环境研究机构 | 向钱进 13900139000', chat: [
+        { date: '2026年6月9日 15:30:00', groups: [
+          { agent: '王二狗', time: '2026-06-09 15:20:00 - 2026-06-09 15:30:00', messages: [
+            { who: 'other', name: '王芳', time: '15:20:00', text: '好的。' }
+          ]}
+        ]}
+      ]}
+    ];
+
+    const statusMap = {
+      processing: { label: '处理中', class: 'status-processing' },
+      communicating: { label: '沟通中', class: 'status-communicating' },
+      timeout: { label: '已超时', class: 'status-timeout' },
+      pending: { label: '待关闭', class: 'status-pending' },
+      closed: { label: '已关闭', class: 'status-closed' }
+    };
+
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const collapseBtn = document.getElementById('collapseSidebar');
+    const expandBtn = document.getElementById('expandSidebar');
+
+    function toggleSidebar() {
+      sidebar.classList.toggle('collapsed');
+      const collapsed = sidebar.classList.contains('collapsed');
+      collapseBtn.style.display = collapsed ? 'none' : 'flex';
+      expandBtn.style.display = collapsed ? 'flex' : 'none';
+    }
+    collapseBtn.addEventListener('click', toggleSidebar);
+    expandBtn.addEventListener('click', toggleSidebar);
+
+    // Region panel collapse / expand
+    const regionPanel = document.getElementById('regionPanel');
+    const regionCollapseBtn = document.getElementById('regionCollapseBtn');
+    const regionExpandBtn = document.getElementById('regionExpandBtn');
+
+    regionCollapseBtn.addEventListener('click', () => {
+      regionPanel.classList.add('collapsed');
+      regionExpandBtn.style.display = 'flex';
+    });
+    regionExpandBtn.addEventListener('click', () => {
+      regionPanel.classList.remove('collapsed');
+      regionExpandBtn.style.display = 'none';
+    });
+
+    // Menu accordion
+    document.querySelectorAll('.menu-item[data-submenu]').forEach(item => {
+      item.addEventListener('click', () => {
+        const sub = document.getElementById(item.dataset.submenu);
+        const arrow = item.querySelector('.menu-arrow');
+        const isOpen = sub.classList.contains('open');
+        sub.classList.toggle('open', !isOpen);
+        sub.classList.toggle('closed', isOpen);
+        arrow.classList.toggle('open', !isOpen);
+      });
+    });
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderTable();
+      });
+    });
+
+    // Region tree render
+    const regionTree = document.getElementById('regionTree');
+    function renderTree(nodes, container, level = 0) {
+      nodes.forEach(node => {
+        const nodeEl = document.createElement('div');
+        nodeEl.className = 'tree-node';
+        const hasChildren = node.children && node.children.length;
+        const row = document.createElement('div');
+        row.className = 'tree-row';
+        row.innerHTML = `
+          <span class="arrow ${hasChildren ? '' : 'leaf'} ${hasChildren ? 'open' : ''}">▶</span>
+          <input type="checkbox" ${node.checked ? 'checked' : ''} data-id="${node.id}">
+          <span class="label">${node.label}</span>
+        `;
+        nodeEl.appendChild(row);
+
+        if (hasChildren) {
+          const children = document.createElement('div');
+          children.className = 'tree-children open';
+          renderTree(node.children, children, level + 1);
+          nodeEl.appendChild(children);
+
+          row.querySelector('.arrow').addEventListener('click', (e) => {
+            e.stopPropagation();
+            children.classList.toggle('open');
+            children.classList.toggle('closed');
+            row.querySelector('.arrow').classList.toggle('open');
+          });
+        }
+
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', () => {
+          updateChildren(checkbox, node, checkbox.checked);
+          renderTable();
+        });
+
+        container.appendChild(nodeEl);
+      });
+    }
+
+    function updateChildren(checkbox, node, checked) {
+      node.checked = checked;
+      const parent = checkbox.closest('.tree-node');
+      if (parent) {
+        parent.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = checked);
+      }
+    }
+
+    renderTree(treeData, regionTree);
+
+    // Table render
+    const sessionTable = document.getElementById('sessionTable');
+    const statusFilter = document.getElementById('statusFilter');
+    const searchInput = document.getElementById('searchInput');
+    const keyUnitFilter = document.getElementById('keyUnitFilter');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const chatMessages = document.getElementById('chatMessages');
+    let selectedSession = null;
+
+    function renderChat(s) {
+      document.querySelector('.chat-title').textContent = s.title;
+      chatMessages.innerHTML = '';
+      s.chat.forEach(day => {
+        const dateEl = document.createElement('div');
+        dateEl.className = 'chat-date';
+        dateEl.textContent = day.date;
+        chatMessages.appendChild(dateEl);
+        day.groups.forEach((group, idx) => {
+          const groupEl = document.createElement('div');
+          groupEl.className = 'message-group ' + (idx % 2 === 0 ? 'group-odd' : 'group-even');
+          groupEl.innerHTML = `<div class="message-group-header"><span>服务客服：${group.agent}</span><span class="time">${group.time}</span></div>`;
+          group.messages.forEach(m => {
+            const msgEl = document.createElement('div');
+            msgEl.className = 'message ' + (m.who === 'self' ? 'self' : 'other');
+            msgEl.innerHTML = `<div class="message-header">${m.who === 'other' ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ` : ''}${m.name} ${m.time}</div><div class="message-body"></div>`;
+            msgEl.querySelector('.message-body').textContent = m.text;
+            groupEl.appendChild(msgEl);
+          });
+          chatMessages.appendChild(groupEl);
+        });
+      });
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function renderTable() {
+      const filter = statusFilter.value;
+      const query = searchInput.value.trim().toLowerCase();
+      const onlyKey = keyUnitFilter.checked;
+      sessionTable.innerHTML = '';
+
+      const filtered = sessions.filter(s => {
+        const matchStatus = !filter || s.status === filter;
+        const matchSearch = !query || s.org.toLowerCase().includes(query) || s.agent.toLowerCase().includes(query);
+        const matchKey = !onlyKey || s.keyUnit;
+        return matchStatus && matchSearch && matchKey;
+      });
+
+      filtered.forEach(s => {
+        const st = statusMap[s.status];
+        const tr = document.createElement('tr');
+        const star = s.keyUnit ? '<span class="key-star">★</span>' : '';
+        const unread = s.unread > 0 ? `<span class="unread-badge">${s.unread}</span>` : '';
+        tr.innerHTML = `
+          <td><span class="seq-cell">${unread}${s.no}</span></td>
+          <td>${s.region}</td>
+          <td>${star}${s.org}</td>
+          <td>${s.agent}</td>
+          <td><span class="status-text ${st.class}">${st.label}</span></td>
+          <td>
+            <div class="op-btns">
+              <button class="op-btn" title="转出"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8L22 12L18 16"></path><path d="M2 12H22"></path><path d="M11 5L2 12L11 19"></path></svg></button>
+              <button class="op-btn" title="置顶"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button>
+              <button class="op-btn danger" title="删除"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+            </div>
+          </td>
+        `;
+        if (s === selectedSession) tr.classList.add('selected');
+        tr.addEventListener('click', () => {
+          selectedSession = s;
+          document.querySelectorAll('#sessionTable tr').forEach(r => r.classList.remove('selected'));
+          tr.classList.add('selected');
+          renderChat(s);
+          // extraction is per-session: the shown result follows the selected
+          // session, but an extraction running elsewhere keeps going
+          currentExtract = [];
+          updateExtractBtn();
+        });
+        tr.querySelectorAll('.op-btn').forEach(btn => {
+          btn.addEventListener('click', e => { e.stopPropagation(); });
+        });
+        sessionTable.appendChild(tr);
+      });
+    }
+
+    statusFilter.addEventListener('change', renderTable);
+    searchInput.addEventListener('input', renderTable);
+    keyUnitFilter.addEventListener('change', renderTable);
+    refreshBtn.addEventListener('click', () => {
+      refreshBtn.querySelector('svg').style.transition = 'transform 0.5s';
+      refreshBtn.querySelector('svg').style.transform = 'rotate(360deg)';
+      setTimeout(() => { refreshBtn.querySelector('svg').style.transform = 'rotate(0deg)'; }, 500);
+      renderTable();
+      showToast('列表已刷新');
+    });
+    renderTable();
+    if (sessionTable.querySelector('tr')) {
+      sessionTable.querySelector('tr').click();
+    }
+
+    // Pagination mock
+    document.querySelectorAll('.pagination-btn').forEach(btn => {
+      if (!btn.id) {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.pagination-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      }
+    });
+
+    // Modal
+    const modal = document.getElementById('confirmModal');
+    const modalBody = document.getElementById('modalBody');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalConfirm = document.getElementById('modalConfirm');
+    let modalResolve = null;
+
+    function openModal(message, opts) {
+      modalBody.textContent = message;
+      modalConfirm.textContent = (opts && opts.confirmText) || '确定';
+      modal.classList.add('open');
+      return new Promise(resolve => { modalResolve = resolve; });
+    }
+    modalCancel.addEventListener('click', () => { modal.classList.remove('open'); if (modalResolve) modalResolve(false); });
+    modalConfirm.addEventListener('click', () => { modal.classList.remove('open'); if (modalResolve) modalResolve(true); });
+
+    // Close session
+    document.getElementById('closeSessionBtn').addEventListener('click', async () => {
+      const ok = await openModal('确定要关闭当前会话吗？关闭后该咨询将标记为“已关闭”。');
+      if (ok) alert('会话已关闭');
+    });
+
+    // Create todo (no modal, lightweight toast feedback)
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1800);
+    }
+    document.getElementById('createTodoBtn').addEventListener('click', () => {
+      showToast('已为当前会话创建待办事项');
+    });
+
+    document.getElementById('reconnectBtn').addEventListener('click', () => {
+      showToast('正在重新连接…');
+      setTimeout(() => showToast('连接已恢复'), 1200);
+    });
+
+    // AI knowledge extraction (right drawer, unified single panel)
+    const extractOverlay = document.getElementById('extractOverlay');
+    const extractDrawer = document.getElementById('extractDrawer');
+    const extractFooter = document.getElementById('extractFooter');
+    const exPrompt = document.getElementById('extractPrompt');
+    const exStartBtn = document.getElementById('exStartBtn');
+    const exProgressSection = document.getElementById('exProgressSection');
+    const exResultSection = document.getElementById('exResultSection');
+    const exResultHead = document.getElementById('exResultHead');
+    const exResultCards = document.getElementById('exResultCards');
+
+    const defaultPrompt = '1、提取客户的实质性问题，合并客户连续表述，去除无关情绪、寒暄；多个问题拆分成多条样本。\n2、提取客服对应的完整有效答复，去掉客套话；答非所问 / 无答复写“无有效回答”。\n3、纯闲聊无业务问题直接跳过，不生成样本，禁止编造内容。';
+    let currentPrompt = defaultPrompt;
+    let currentExtract = [];
+    let extractTimer = null;
+    let extractRunningSession = null;
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    }
+
+    // Core extraction: pair each user ('other') message with the following agent ('self') reply.
+    function extractKnowledge(s) {
+      const pairs = [];
+      s.chat.forEach(day => {
+        day.groups.forEach(group => {
+          const msgs = group.messages;
+          for (let i = 0; i < msgs.length; i++) {
+            if (msgs[i].who === 'other') {
+              const question = msgs[i].text;
+              let answer = '';
+              for (let j = i + 1; j < msgs.length; j++) {
+                if (msgs[j].who === 'self') { answer = msgs[j].text; break; }
+              }
+              pairs.push({ question, answer, agent: group.agent });
+            }
+          }
+        });
+      });
+      return pairs;
+    }
+
+    // ---- Header "AI知识萃取" button = the task state machine ----
+    // idle:  "AI知识萃取"     -> opens the prompt drawer
+    // running: "萃取处理中" + spinner (disabled)
+    // done:  "查看萃取结果"   -> opens the result popup
+    function setExtractBtn(mode) {
+      const btn = document.getElementById('extractBtn');
+      if (mode === 'processing') {
+        btn.classList.add('btn-loading');
+        btn.innerHTML = '<span class="btn-spin"></span>萃取处理中';
+        btn.disabled = true;
+      } else if (mode === 'done') {
+        btn.classList.remove('btn-loading');
+        btn.textContent = '查看萃取结果';
+        btn.disabled = false;
+      } else {
+        btn.classList.remove('btn-loading');
+        btn.textContent = 'AI知识萃取';
+        btn.disabled = false;
+      }
+    }
+
+    // a session may hold a freshly extracted (unsaved) result, or an already saved one
+    function sessionExtractResult(s) {
+      if (!s) return [];
+      if (s.extractedKnowledge && s.extractedKnowledge.length) return s.extractedKnowledge;
+      if (s.extractResult && s.extractResult.length) return s.extractResult;
+      return [];
+    }
+
+    function updateExtractBtn() {
+      if (!selectedSession) { setExtractBtn('idle'); return; }
+      if (extractRunningSession === selectedSession) { setExtractBtn('processing'); return; }
+      if (selectedSession.extractSaved || selectedSession.extractDone) setExtractBtn('done');
+      else setExtractBtn('idle');
+    }
+
+    // the header button always opens the drawer; what the drawer shows depends on state
+    function onExtractBtnClick() {
+      if (!selectedSession) { showToast('请先在左侧选择一条会话'); return; }
+      openExtractDrawer();
+    }
+
+    // The drawer is the single home for the whole flow:
+    // 提示词模板 → 萃取进度 → 萃取结果 all live here.
+    function openExtractDrawer() {
+      if (!selectedSession) { showToast('请先在左侧选择一条会话'); return; }
+      currentPrompt = selectedSession.extractPrompt || defaultPrompt;
+      exPrompt.value = currentPrompt;
+      if (!currentExtract.length) {
+        currentExtract = sessionExtractResult(selectedSession).map(p => ({ question: p.question, answer: p.answer || '', agent: p.agent }));
+      }
+      renderDrawerState();
+      extractOverlay.classList.add('open');
+      extractDrawer.classList.add('open');
+    }
+
+    // single source of truth for the three sections + the action button + footer
+    function renderDrawerState() {
+      const saved = !!selectedSession.extractSaved;
+      const running = extractRunningSession === selectedSession;
+
+      exPrompt.disabled = saved || running;
+
+      exProgressSection.hidden = !running;
+
+      const showResult = !running && !!selectedSession.extractDone;
+      exResultSection.hidden = !showResult;
+      if (showResult) renderExtractResult(saved);
+
+      exStartBtn.classList.remove('btn-loading');
+      if (running) {
+        exStartBtn.classList.add('btn-loading');
+        exStartBtn.innerHTML = '<span class="btn-spin"></span>萃取处理中';
+        exStartBtn.disabled = true;
+      } else if (saved) {
+        exStartBtn.textContent = '已完成萃取';
+        exStartBtn.disabled = true;
+      } else if (currentExtract.length) {
+        exStartBtn.textContent = '重新萃取';
+        exStartBtn.disabled = false;
+      } else {
+        exStartBtn.textContent = '开始萃取';
+        exStartBtn.disabled = false;
+      }
+      renderFooter();
+    }
+
+    function closeExtractDrawer() {
+      extractOverlay.classList.remove('open');
+      extractDrawer.classList.remove('open');
+      closeDeletePop();
+      // closing the drawer does NOT stop an extraction in flight — it keeps
+      // running in the background while the header button shows 萃取处理中.
+      if (extractRunningSession === selectedSession) {
+        showToast('萃取将在后台继续，完成后可查看结果');
+      }
+    }
+    const extractClose = document.getElementById('extractClose');
+    extractClose.addEventListener('click', closeExtractDrawer);
+    extractOverlay.addEventListener('click', closeExtractDrawer);
+
+    function renderFooter() {
+      const saved = !!selectedSession.extractSaved;
+      const running = extractRunningSession === selectedSession;
+      if (!saved && !running && currentExtract.length) {
+        extractFooter.innerHTML = `
+          <button class="btn btn-sm" id="exCancelBtn">关闭</button>
+          <button class="btn btn-sm btn-primary" id="exSaveBtn">保存</button>`;
+        document.getElementById('exCancelBtn').addEventListener('click', closeExtractDrawer);
+        document.getElementById('exSaveBtn').addEventListener('click', saveExtract);
+      } else {
+        extractFooter.innerHTML = `<button class="btn btn-sm" id="exCancelBtn">关闭</button>`;
+        document.getElementById('exCancelBtn').addEventListener('click', closeExtractDrawer);
+      }
+    }
+
+    // Triggered from the drawer's "开始萃取": the progress runs INSIDE the drawer,
+    // and the header button mirrors the task state (萃取处理中 → 查看萃取结果).
+    function startExtract() {
+      // only one extraction task may run at a time
+      if (extractTimer) { clearInterval(extractTimer); extractTimer = null; }
+      if (extractRunningSession && extractRunningSession !== selectedSession) extractRunningSession = null;
+
+      const promptVal = exPrompt.value.trim();
+      if (promptVal) { currentPrompt = promptVal; selectedSession.extractPrompt = currentPrompt; }
+      currentExtract = [];
+      delete selectedSession.extractResult;
+      delete selectedSession.extractDone;
+      extractRunningSession = selectedSession;
+      setExtractBtn('processing');
+      renderDrawerState();
+
+      let pct = 0;
+      const steps = [
+        { at: 1, text: '准备对话数据…' },
+        { at: 25, text: '分析用户意图与问题边界…' },
+        { at: 55, text: '提取问题与标准回答…' },
+        { at: 85, text: '结构化与去重…' }
+      ];
+      let stepIdx = 0;
+      const stepEl = document.getElementById('exStep');
+      const bar = document.getElementById('exProgressBar');
+      const pctEl = document.getElementById('exPercent');
+      stepEl.textContent = steps[0].text;
+      bar.style.width = '0%'; pctEl.textContent = '0%';
+      extractTimer = setInterval(() => {
+        pct = Math.min(100, pct + Math.random() * 7 + 4);
+        bar.style.width = pct + '%';
+        pctEl.textContent = Math.floor(pct) + '%';
+        while (stepIdx < steps.length && pct >= steps[stepIdx].at) {
+          stepEl.textContent = steps[stepIdx].text;
+          stepIdx++;
+        }
+        if (pct >= 100) {
+          clearInterval(extractTimer); extractTimer = null;
+          // the task may finish while another session is selected — always write
+          // the result back onto the session it was started for
+          const sess = extractRunningSession;
+          let result = [];
+          try {
+            result = extractKnowledge(sess);
+          } catch (e) {
+            result = [];
+          }
+          sess.extractResult = result.map(p => ({ question: p.question, answer: p.answer, agent: p.agent }));
+          sess.extractDone = true;
+          extractRunningSession = null;
+          if (sess === selectedSession) {
+            currentExtract = sess.extractResult.map(p => ({ question: p.question, answer: p.answer, agent: p.agent }));
+            renderDrawerState();
+          }
+          updateExtractBtn();
+          showToast('萃取完成，点击「查看萃取结果」查看');
+        }
+      }, 130);
+    }
+    exStartBtn.addEventListener('click', startExtract);
+
+    // ---- Extraction result list, rendered inside the drawer ----
+    function renderExtractResult(readOnly) {
+      if (!currentExtract.length) {
+        exResultHead.textContent = '本轮对话中暂无可提取的问答。';
+        exResultCards.innerHTML = '<div class="extract-empty">未提取到有效问答，可调整提示词后重新萃取。</div>';
+        return;
+      }
+      exResultHead.textContent = readOnly
+        ? `已保存 ${currentExtract.length} 组问答，结果不可编辑`
+        : `共提取 ${currentExtract.length} 组问答，可直接修改后保存`;
+      exResultCards.innerHTML = currentExtract.map((p, i) => `
+        <div class="qa-card">
+          <div class="qa-hd">
+            <span class="qa-no">${i + 1}</span>
+            <span class="qa-hd-title">用户问题</span>
+            ${readOnly ? '' : `<button class="qa-del" data-i="${i}" type="button" title="删除该结果" aria-label="删除该结果">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>`}
+          </div>
+          <div class="qa-body">
+            ${readOnly
+              ? `<div class="qa-text">${escapeHtml(p.question)}</div>
+                 <div class="qa-ans-label">标准答案</div>
+                 <div class="qa-text qa-a-text">${escapeHtml(p.answer)}</div>`
+              : `<textarea class="qa-input" data-i="${i}" data-k="question">${escapeHtml(p.question)}</textarea>
+                 <div class="qa-ans-label">标准答案</div>
+                 <textarea class="qa-input qa-a-input" data-i="${i}" data-k="answer">${escapeHtml(p.answer)}</textarea>`}
+          </div>
+        </div>`).join('');
+      if (!readOnly) {
+        exResultCards.querySelectorAll('.qa-input').forEach(ta => {
+          ta.addEventListener('input', () => { currentExtract[+ta.dataset.i][ta.dataset.k] = ta.value; });
+        });
+        exResultCards.querySelectorAll('.qa-del').forEach(btn => {
+          btn.addEventListener('click', e => { e.stopPropagation(); openDeletePop(btn, +btn.dataset.i); });
+        });
+      }
+    }
+
+    // ---- Delete confirm popover (anchored above the delete button) ----
+    const deletePop = document.getElementById('deletePop');
+    let deleteTarget = null;
+
+    function positionDeletePop() {
+      if (!deleteTarget) return;
+      const anchor = deleteTarget.el.getBoundingClientRect();
+      const pop = deletePop.getBoundingClientRect();
+      const gap = 8;
+
+      const left = Math.max(8, Math.min(
+        anchor.left + anchor.width / 2 - pop.width / 2,
+        window.innerWidth - pop.width - 8
+      ));
+      const above = anchor.top - pop.height - gap;
+      const flip = above < 8;
+      const top = flip ? anchor.bottom + gap : above;
+
+      deletePop.classList.toggle('flip', flip);
+      deletePop.style.left = left + 'px';
+      deletePop.style.top = top + 'px';
+      // keep the arrow locked onto the button center even if the bubble is clamped
+      const arrowX = Math.max(14, Math.min(anchor.left + anchor.width / 2 - left, pop.width - 14));
+      deletePop.style.setProperty('--arrow-x', arrowX + 'px');
+    }
+
+    function openDeletePop(anchorEl, idx) {
+      deleteTarget = { el: anchorEl, idx };
+      deletePop.classList.remove('open', 'flip');
+      positionDeletePop();
+      requestAnimationFrame(() => deletePop.classList.add('open'));
+    }
+
+    function closeDeletePop() {
+      deleteTarget = null;
+      deletePop.classList.remove('open', 'flip');
+    }
+
+    function confirmDeleteExtract() {
+      if (!deleteTarget) return;
+      const idx = deleteTarget.idx;
+      closeDeletePop();
+      currentExtract.splice(idx, 1);
+      if (selectedSession && selectedSession.extractResult) selectedSession.extractResult.splice(idx, 1);
+      renderDrawerState();
+      showToast('已删除该组问答');
+    }
+
+    document.getElementById('delPopCancel').addEventListener('click', closeDeletePop);
+    document.getElementById('delPopConfirm').addEventListener('click', confirmDeleteExtract);
+    document.addEventListener('mousedown', e => {
+      if (!deleteTarget) return;
+      if (deletePop.contains(e.target) || e.target.closest('.qa-del')) return;
+      closeDeletePop();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDeletePop(); });
+    window.addEventListener('scroll', positionDeletePop, true);
+    window.addEventListener('resize', positionDeletePop);
+
+    async function saveExtract() {
+      const ok = await openModal('保存后该轮对话将不能再继续进行知识萃取，确认保存吗？');
+      if (!ok) return;
+      selectedSession.extractedKnowledge = currentExtract.map(p => ({ question: p.question, answer: p.answer, agent: p.agent }));
+      selectedSession.extractPrompt = currentPrompt;
+      selectedSession.extractSaved = true;
+      selectedSession.extractDone = true;
+      updateExtractBtn();
+      // results are now locked: the drawer switches to read-only (no more editing/saving)
+      renderDrawerState();
+      showToast('知识已保存，结果已锁定');
+    }
+
+    document.getElementById('extractBtn').addEventListener('click', onExtractBtnClick);
+
+    // Chat input
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function appendSelfMessage(text) {
+      const now = new Date();
+      const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      let lastGroup = chatMessages.querySelector('.message-group:last-child');
+      if (!lastGroup) {
+        lastGroup = document.createElement('div');
+        lastGroup.className = 'message-group group-odd';
+        lastGroup.innerHTML = `<div class="message-group-header"><span>服务客服：当前客服</span><span class="time">${now.toLocaleString()}</span></div>`;
+        chatMessages.appendChild(lastGroup);
+      }
+      const msg = document.createElement('div');
+      msg.className = 'message self';
+      msg.innerHTML = `<div class="message-header">我 ${time}</div><div class="message-body"></div>`;
+      msg.querySelector('.message-body').textContent = text;
+      lastGroup.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      appendSelfMessage(text);
+      chatInput.value = '';
+      if (selectedSession && selectedSession.unread > 0) {
+        selectedSession.unread = 0;
+        renderTable();
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    document.getElementById('clearInput').addEventListener('click', () => { chatInput.value = ''; chatInput.focus(); });
+  </script>
+</body>
+</html>

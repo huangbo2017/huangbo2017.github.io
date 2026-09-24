@@ -1,0 +1,2536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三夫科技 - 公众号主页</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: #e8ebf0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ========== 手机外框 ========== */
+  .phone {
+    width: 390px;
+    height: 640px;
+    position: relative;
+    background: #f2f4f7;
+    border-radius: 12px;
+    box-shadow: 0 8px 40px rgba(30,60,110,.25);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d5dae2;
+  }
+  .phone-home { background: #fff; }
+
+  /* ========== 状态栏 ========== */
+  .status-bar {
+    height: 28px;
+    background: #f7f8fa;
+    border-bottom: 1px solid #e5e8ee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 12px;
+    color: #1a1a1a;
+    flex-shrink: 0;
+  }
+  .phone-home .status-bar { background: #fff; border-bottom: none; }
+  .status-icons { display: flex; align-items: center; gap: 4px; }
+  .status-icons svg { display: block; }
+
+  /* =========================================================
+     公众号主页（三夫科技公众号样式，参考公众号首页截图）
+     ========================================================= */
+  .gzh-nav {
+    height: 44px;
+    background: #fff;
+    border-bottom: 1px solid #e5e6eb;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .nav-back {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; cursor: pointer;
+    color: #1a1a1a;
+    flex-shrink: 0;
+  }
+  .nav-back:hover { opacity: .6; }
+  .nav-account {
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: .5px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nav-more {
+    width: 36px; height: 36px;
+    margin-left: auto;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; cursor: pointer;
+    color: #1a1a1a;
+    flex-shrink: 0;
+  }
+  .nav-more:hover { opacity: .6; }
+
+  /* 聊天内容区（公众号推文消息） */
+  .chat {
+    flex: 1;
+    overflow-y: auto;
+    background: #ededed;
+    padding: 10px;
+  }
+  .msg-card { margin-bottom: 14px; }
+  .msg-img {
+    width: 100%;
+    height: 118px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .msg-bubble {
+    background: #fff;
+    border-radius: 8px;
+    padding: 9px 12px;
+    margin-top: 6px;
+  }
+  .bubble-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.5;
+  }
+  .bubble-text {
+    font-size: 12px;
+    color: #6a7280;
+    line-height: 1.6;
+    margin-top: 4px;
+  }
+  .msg-time {
+    font-size: 10px;
+    color: #b0b6c0;
+    margin-top: 6px;
+    padding-left: 2px;
+  }
+
+  /* 底部菜单（微信风格：键盘图标 + 菜单项 + ≡） */
+  .bottom-menu {
+    flex-shrink: 0;
+    height: 50px;
+    background: #fff;
+    border-top: 1px solid #e5e6eb;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  .kbd-btn {
+    width: 52px; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .kbd-btn:hover { opacity: .6; }
+  .menu-divider { width: 1px; height: 22px; background: #e5e6eb; flex-shrink: 0; }
+  .menu-item {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #2b2f36;
+    font-size: 13px;
+    background: transparent;
+    border: none;
+    position: relative;
+  }
+  .menu-item.active { color: #2b5db8; font-weight: 600; }
+  .menu-item:hover { color: #2b5db8; }
+  .menu-item svg { display: block; }
+
+  /* 公开信息二级菜单 */
+  .submenu {
+    position: absolute;
+    right: 10px;
+    bottom: 54px;
+    width: 140px;
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(30,60,110,.16);
+    overflow: hidden;
+    display: none;
+    z-index: 50;
+  }
+  .submenu.open { display: block; }
+  .submenu-item {
+    padding: 11px 14px;
+    font-size: 12px;
+    color: #2b2f36;
+    cursor: pointer;
+    border-bottom: 1px solid #f2f4f7;
+    background: #fff;
+  }
+  .submenu-item:last-child { border-bottom: none; }
+  .submenu-item:hover { background: #f0f6ff; color: #2b5db8; }
+
+  /* =========================================================
+     小程序（工资系统 AI 助手）
+     ========================================================= */
+
+  /* 导航栏（单行，随页面变化） */
+  .nav-bar {
+    height: 42px;
+    background: #f7f8fa;
+    border-bottom: 1px solid #e5e8ee;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .nav-left {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .nav-cancel-btn {
+    width: 30px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; background: none;
+    cursor: pointer;
+    color: #2b2f36;
+    padding: 0;
+  }
+  .nav-cancel-btn:hover { opacity: .6; }
+  .nav-back-btn {
+    border: none; background: none;
+    font-size: 13px; color: #2b5db8;
+    cursor: pointer; padding: 4px 0;
+  }
+  .nav-back-btn:hover { color: #234d9c; }
+  .nav-title {
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: .5px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nav-actions { display: none; gap: 6px; margin-left: auto; margin-right: 8px; }
+  .mini-btn {
+    height: 22px;
+    padding: 0 7px;
+    font-size: 11px;
+    border: 1px solid #b8cbe8;
+    background: #fff;
+    color: #2b5db8;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .mini-btn:hover { background: #eaf1fb; }
+  /* 微信小程序胶囊按钮 */
+  .capsule {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e2e5ea;
+    border-radius: 15px;
+    height: 28px;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .capsule-btn {
+    width: 38px; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+  }
+  .capsule-btn:hover { background: #f0f2f5; }
+  .capsule-divider { width: 1px; height: 15px; background: #e2e5ea; }
+
+  /* 内容区 */
+  .content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: #f2f4f7;
+  }
+  .page {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .page.active { display: flex; }
+
+  /* 未登录提示 */
+  .nologin-tip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #8a93a3;
+    font-size: 13px;
+    padding: 40px 0;
+  }
+  .nologin-tip .icon { font-size: 34px; opacity: .45; }
+
+  /* 聊天区 */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 10px;
+  }
+  .chat-area::-webkit-scrollbar { width: 4px; }
+  .chat-area::-webkit-scrollbar-thumb { background: #ccd3dd; border-radius: 2px; }
+
+  .chat-date {
+    text-align: center;
+    font-size: 10px;
+    color: #9aa3b0;
+    margin: 2px 0 8px;
+  }
+  .msg-row { display: flex; margin-bottom: 10px; gap: 8px; }
+  .msg-row.user { flex-direction: row-reverse; }
+  .avatar {
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    color: #fff;
+  }
+  .avatar.ai { background: #2b5db8; font-weight: 600; }
+  .avatar.me { background: #5a8f5a; }
+  .msg-body { max-width: 74%; display: flex; flex-direction: column; }
+  .msg-row.user .msg-body { align-items: flex-end; }
+  .msg-name { font-size: 10px; color: #9aa3b0; margin-bottom: 3px; }
+  .bubble {
+    padding: 6px 9px;
+    font-size: 12px;
+    line-height: 1.6;
+    border-radius: 4px;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+  .msg-row.ai .bubble { background: #fff; border: 1px solid #e2e6ec; color: #2b2f36; border-top-left-radius: 0; }
+  .msg-row.user .bubble { background: #2b5db8; color: #fff; border-top-right-radius: 0; }
+
+  /* 输入区 */
+  .input-bar {
+    flex-shrink: 0;
+    background: #f7f8fa;
+    border-top: 1px solid #e2e6ec;
+    padding: 7px 10px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .input-bar input {
+    flex: 1;
+    height: 28px;
+    border: 1px solid #d0d6df;
+    border-radius: 3px;
+    background: #fff;
+    padding: 0 8px;
+    font-size: 12px;
+    outline: none;
+  }
+  .input-bar input:focus { border-color: #2b5db8; }
+  .input-bar input:disabled { background: #eef0f4; color: #a8b0bc; }
+  .send-btn {
+    height: 28px;
+    padding: 0 13px;
+    background: #2b5db8;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 2px;
+  }
+  .send-btn:hover { background: #234d9c; }
+  .send-btn:disabled { background: #a9b8d0; cursor: default; }
+
+  /* 语音按钮 */
+  .voice-btn {
+    width: 28px; height: 28px;
+    flex-shrink: 0;
+    border: 1px solid #d0d6df;
+    border-radius: 3px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .voice-btn:hover { background: #eef3fb; }
+  .voice-btn:disabled { background: #eef0f4; cursor: default; }
+  /* 语音消息气泡 */
+  .voice-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 58px;
+  }
+  .voice-box .vplay {
+    width: 16px; height: 16px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  .voice-box .vdur { font-size: 11px; }
+  .msg-row.user .voice-box .vdur { color: #fff; }
+
+  /* 在线咨询列表 */
+  .consult-list { flex: 1; overflow-y: auto; padding: 7px 9px; }
+  .section-label {
+    font-size: 11px;
+    color: #8a93a3;
+    margin: 5px 2px;
+    letter-spacing: 1px;
+  }
+  .session-item {
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 4px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    cursor: pointer;
+  }
+  .session-item:hover { border-color: #b8cbe8; background: #fbfcff; }
+  .session-avatar {
+    width: 34px; height: 34px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 600;
+  }
+  .session-info { flex: 1; min-width: 0; }
+  .session-top { display: flex; align-items: center; gap: 6px; }
+  .session-name { font-size: 13px; font-weight: 600; color: #2b2f36; }
+  .session-tag {
+    font-size: 9px;
+    color: #2b5db8;
+    border: 1px solid #a9c3e8;
+    border-radius: 2px;
+    padding: 0 3px;
+    line-height: 14px;
+  }
+  .session-msg { font-size: 11px; color: #8a93a3; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .session-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .session-time { font-size: 10px; color: #b0b8c4; }
+  .badge {
+    min-width: 16px; height: 16px;
+    background: #e34d4d;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+  }
+
+  /* 子页面（客服/群聊） */
+  .group-page { display: none; flex-direction: column; position: absolute; inset: 0; background: #f2f4f7; z-index: 5; }
+  .group-page.active { display: flex; }
+
+  /* 群内子标签栏（导航栏下方） */
+  .group-tabs {
+    height: 34px;
+    flex-shrink: 0;
+    background: #fff;
+    border-bottom: 1px solid #e2e6ec;
+    display: flex;
+  }
+  .group-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #7a8494;
+    cursor: pointer;
+    position: relative;
+  }
+  .group-tab:hover { color: #4a5568; }
+  .group-tab.active { color: #2b5db8; font-weight: 600; }
+  .group-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 22px; height: 2px;
+    background: #2b5db8;
+    border-radius: 1px;
+  }
+  .group-tab-pane {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .group-tab-pane.active { display: flex; }
+
+  /* 群公告 */
+  .notice-list { flex: 1; overflow-y: auto; padding: 8px 10px; }
+  .notice-card {
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 4px;
+    padding: 9px 11px;
+    margin-bottom: 8px;
+  }
+  .notice-card.current { border-color: #b8cbe8; background: #f5f9ff; }
+  .notice-head { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+  .notice-flag {
+    font-size: 9px; color: #fff; background: #2b5db8;
+    border-radius: 2px; padding: 0 4px; line-height: 14px;
+  }
+  .notice-date { font-size: 10px; color: #9aa3b0; margin-left: auto; }
+  .notice-title { font-size: 12px; font-weight: 600; color: #2b2f36; margin-bottom: 3px; }
+  .notice-text { font-size: 11px; color: #5a6270; line-height: 1.6; }
+
+  /* 群成员（仅姓名 + 管理员标签） */
+  .member-list2 { flex: 1; overflow-y: auto; background: #fff; }
+  .member-row2 {
+    display: flex; align-items: center;
+    padding: 9px 12px;
+    border-bottom: 1px solid #f2f4f7;
+    font-size: 12px;
+    color: #2b2f36;
+  }
+  .member-tag2 {
+    margin-left: auto;
+    font-size: 9px; color: #2b5db8;
+    border: 1px solid #a9c3e8; border-radius: 2px;
+    padding: 0 4px; line-height: 15px;
+    flex-shrink: 0;
+  }
+
+  /* 群文件（名称/大小/上传人/上传时间/下载） */
+  .gfile-list2 { flex: 1; overflow-y: auto; padding: 7px 9px; }
+  .gfile-card2 {
+    background: #fff; border: 1px solid #e2e6ec; border-radius: 4px;
+    padding: 8px 10px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .gfile-icon2 {
+    width: 30px; height: 30px; border-radius: 4px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff;
+  }
+  .gfile-info2 { flex: 1; min-width: 0; }
+  .gfile-name2 { font-size: 12px; color: #2b2f36; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gfile-sub2 { font-size: 10px; color: #9aa3b0; margin-top: 2px; }
+
+  /* 文件下载 */
+  .file-list { flex: 1; overflow-y: auto; padding: 7px 9px; }
+  .file-item {
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .file-icon {
+    width: 32px; height: 32px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff;
+  }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 12px; font-weight: 600; color: #2b2f36; display: flex; align-items: center; gap: 5px; }
+  .file-name > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-desc { font-size: 10px; color: #8a93a3; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-meta { font-size: 10px; color: #9aa3b0; margin-top: 2px; }
+  .file-dl {
+    flex-shrink: 0;
+    height: 25px;
+    padding: 0 4px;
+    background: transparent;
+    color: #2b5db8;
+    border: none;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .file-dl:hover { color: #234d9c; }
+  .file-dl:disabled { color: #a8b0bc; cursor: default; }
+
+  /* 对话工具栏（新建/历史） */
+  .chat-toolbar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    background: #eef2f8;
+    border-bottom: 1px solid #e2e6ec;
+  }
+  .tool-btn {
+    height: 24px;
+    padding: 0 9px;
+    font-size: 11px;
+    border: 1px solid #b8cbe8;
+    background: #fff;
+    color: #2b5db8;
+    border-radius: 3px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tool-btn:hover { background: #eaf1fb; }
+  .tool-btn:disabled { background: #f1f3f6; color: #a8b0bc; border-color: #e2e6ec; cursor: default; }
+
+  /* 历史对话记录面板 */
+  .hist-overlay {
+    position: absolute;
+    top: 28px; right: 0; bottom: 48px; left: 0;
+    background: rgba(20,30,45,.35);
+    z-index: 30;
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-start;
+    opacity: 0; visibility: hidden;
+    transition: opacity .25s ease;
+  }
+  .hist-overlay.active { opacity: 1; visibility: visible; }
+  .hist-panel {
+    width: 66.67%;
+    height: 100%;
+    background: #fff;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 2px 0 12px rgba(30,60,110,.18);
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+  }
+  .hist-overlay.active .hist-panel { transform: translateX(0); }
+  .hist-head {
+    height: 38px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    border-bottom: 1px solid #eef1f5;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2b2f36;
+  }
+  .hist-close { border: none; background: none; cursor: pointer; color: #8a93a3; font-size: 15px; }
+  .hist-close:hover { color: #4a5568; }
+  .hist-body { flex: 1; overflow-y: auto; padding: 8px 10px; }
+  .hist-item {
+    background: #f7f8fa;
+    border: 1px solid #e2e6ec;
+    border-radius: 4px;
+    padding: 7px 10px;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .hist-item:hover { background: #eef3fb; border-color: #b8cbe8; }
+  .hist-item-main { flex: 1; min-width: 0; }
+  .hist-item-title { font-size: 12px; font-weight: 600; color: #2b2f36; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hist-item-time { font-size: 10px; color: #9aa3b0; margin-top: 3px; }
+  .hist-del-btn {
+    height: 22px; padding: 0 10px; font-size: 11px; flex-shrink: 0;
+    background: #fff; color: #c9403f; border: 1px solid #d9a0a0; border-radius: 3px; cursor: pointer;
+  }
+  .hist-del-btn:hover { background: #fdf3f3; }
+
+  /* 我的页面 */
+  .mine-body { flex: 1; overflow-y: auto; padding: 12px 10px; }
+  .info-card {
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .info-row {
+    display: flex;
+    padding: 10px 12px;
+    border-bottom: 1px solid #f2f4f7;
+    font-size: 12px;
+    align-items: center;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { width: 56px; color: #8a93a3; flex-shrink: 0; }
+  .info-value { color: #2b2f36; }
+  .logout-btn {
+    width: 100%;
+    margin-top: 16px;
+    height: 33px;
+    background: #fff;
+    border: 1px solid #d9a0a0;
+    color: #c9403f;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 4px;
+  }
+  .logout-btn:hover { background: #fdf3f3; }
+  .login-btn {
+    width: 100%;
+    margin-top: 16px;
+    height: 33px;
+    background: #2b5db8;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 4px;
+  }
+  .login-btn:hover { background: #234d9c; }
+
+  /* 登录 / 区域单位选择：底部抽屉 */
+  .drawer-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(20,30,45,.45);
+    z-index: 80;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  .drawer-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
+  .drawer {
+    width: 100%;
+    background: #fff;
+    border-radius: 14px 14px 0 0;
+    padding: 12px 16px 22px;
+    box-shadow: 0 -6px 30px rgba(20,40,80,.25);
+    transform: translateY(100%);
+    transition: transform .28s ease;
+  }
+  .drawer-overlay.open .drawer { transform: translateY(0); }
+  .drawer-handle {
+    width: 36px; height: 4px;
+    background: #dfe3ea;
+    border-radius: 2px;
+    margin: 0 auto 12px;
+  }
+  .drawer-title { font-size: 15px; font-weight: 600; color: #1a1a1a; text-align: center; margin-bottom: 6px; }
+  .drawer-desc { font-size: 12px; color: #6a7280; text-align: center; line-height: 1.6; margin-bottom: 12px; }
+  .drawer-desc-left { text-align: left; }
+  .modal-note { font-size: 10px; color: #b0b6c0; margin-bottom: 6px; }
+  .modal-field { margin-bottom: 10px; }
+  .modal-field label { display: block; font-size: 11px; color: #8a93a3; margin-bottom: 4px; }
+  .req { color: #e34d4d; margin-right: 2px; }
+  .modal-field select, .modal-field input {
+    width: 100%; height: 32px;
+    border: 1px solid #d0d6df; border-radius: 4px;
+    padding: 0 8px; font-size: 12px;
+    background: #fff; outline: none;
+    font-family: inherit; color: #2b2f36;
+  }
+  .modal-field input:disabled, .modal-field select:disabled { background: #eef0f4; color: #8a93a3; }
+
+  /* 密码要求提示 */
+  .pwd-hint { font-size: 10px; color: #b0b6c0; line-height: 1.5; margin-top: 3px; }
+  .pwd-wrap { position: relative; }
+  .pwd-wrap input { padding-right: 34px; }
+  .pwd-toggle {
+    position: absolute;
+    right: 4px; top: 50%;
+    transform: translateY(-50%);
+    border: none; background: none;
+    color: #8a93a3;
+    cursor: pointer;
+    padding: 4px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .pwd-toggle:hover { color: #2b5db8; }
+
+  /* 综审单位（单选） */
+  .dept-group { display: flex; gap: 16px; align-items: center; }
+  .dept-item {
+    display: inline-flex; align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+  }
+  .dept-item input { margin: 0; accent-color: #2b5db8; width: 14px; height: 14px; }
+  /* PC端地址行 */
+  .pc-line {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #2b5db8;
+    justify-content: flex-start;
+    margin-bottom: 12px;
+    word-break: break-all;
+    text-align: left;
+  }
+  .copy-btn {
+    border: none; background: none;
+    color: #2b5db8;
+    cursor: pointer;
+    padding: 2px;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .copy-btn:hover { color: #234d9c; }
+  .info-row .pc-url {
+    flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .modal-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .modal-btn {
+    flex: 1; height: 32px; border: none; border-radius: 4px;
+    font-size: 13px; cursor: pointer;
+  }
+  .modal-btn.default { background: #f2f4f7; color: #2b2f36; }
+  .modal-btn.default:hover { background: #e7ebf0; }
+  .modal-btn.primary { background: #07c160; color: #fff; }
+  .modal-btn.primary:hover { opacity: .9; }
+  .modal-btn.app { background: #2b5db8; color: #fff; }
+  .modal-btn.app:hover { background: #234d9c; }
+
+  /* 免责声明勾选行 */
+  .agree-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    font-size: 11px;
+    color: #5a6270;
+    line-height: 1.5;
+    margin: 2px 0 6px;
+  }
+  .agree-row input { margin-top: 2px; flex-shrink: 0; }
+  .agree-row a { color: #2b5db8; text-decoration: none; }
+
+  /* 免责声明勾选弹窗 */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(20,30,45,.45);
+    z-index: 96;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  .modal-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
+  .modal-box {
+    width: 82%;
+    max-width: 300px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px 16px 14px;
+    box-shadow: 0 10px 40px rgba(20,40,80,.3);
+  }
+  .modal-title { font-size: 15px; font-weight: 600; color: #1a1a1a; text-align: center; margin-bottom: 8px; }
+  .modal-desc { font-size: 12px; color: #6a7280; line-height: 1.6; margin-bottom: 12px; }
+
+  /* 免责声明全屏查看页 */
+  .disclaimer-view {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    z-index: 97;
+    flex-direction: column;
+    display: none;
+  }
+  .disclaimer-view.open { display: flex; }
+  .disclaimer-head {
+    height: 42px;
+    flex-shrink: 0;
+    background: #f7f8fa;
+    border-bottom: 1px solid #e5e8ee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  .disclaimer-close {
+    position: absolute;
+    left: 8px;
+    border: none;
+    background: none;
+    font-size: 15px;
+    color: #8a93a3;
+    cursor: pointer;
+  }
+  .disclaimer-close:hover { color: #4a5568; }
+  .disclaimer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px 26px;
+    font-size: 12px;
+    color: #2b2f36;
+    line-height: 1.8;
+  }
+  .disclaimer-body h2 { font-size: 13px; margin: 12px 0 6px; color: #1a1a1a; }
+  .disclaimer-body .meta { color: #8a93a3; font-size: 11px; margin-bottom: 8px; }
+  .disclaimer-body p { margin-bottom: 8px; text-align: justify; }
+
+  /* 底部标签栏 */
+  .tab-bar {
+    flex-shrink: 0;
+    height: 48px;
+    background: #fbfcfd;
+    border-top: 1px solid #dfe3ea;
+    display: flex;
+  }
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    color: #7a8494;
+    position: relative;
+    font-size: 10px;
+  }
+  .tab-item svg { display: block; }
+  .tab-item.active { color: #2b5db8; }
+  .tab-item .tab-badge {
+    position: absolute;
+    top: 3px; right: 22%;
+    min-width: 14px; height: 14px;
+    background: #e34d4d;
+    color: #fff;
+    border-radius: 7px;
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+  }
+
+  /* Toast */
+  .toast {
+    position: absolute;
+    left: 50%; top: 45%;
+    transform: translateX(-50%);
+    background: rgba(20,30,45,.82);
+    color: #fff;
+    font-size: 12px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    z-index: 99;
+    display: none;
+    max-width: 80%;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     屏幕一：公众号主页（三夫科技）
+     ========================================================= -->
+<div class="phone phone-home" id="phoneHome">
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span id="statusTime">14:08</span>
+    <div class="status-icons">
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="#1a1a1a">
+        <rect x="0" y="7" width="3" height="4" rx="0.5"/>
+        <rect x="4.3" y="5" width="3" height="6" rx="0.5"/>
+        <rect x="8.6" y="2.5" width="3" height="8.5" rx="0.5"/>
+        <rect x="12.9" y="0" width="3" height="11" rx="0.5" opacity="0.35"/>
+      </svg>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="#1a1a1a">
+        <path d="M7.5 9.2 L9.3 7.1 A2.9 2.9 0 0 0 5.7 7.1 Z"/>
+        <path d="M3.6 5.1 A5.9 5.9 0 0 1 11.4 5.1 L10.2 6.4 A4.2 4.2 0 0 0 4.8 6.4 Z" opacity="0.9"/>
+        <path d="M1.4 2.8 A9 9 0 0 1 13.6 2.8 L12.4 4.1 A7.3 7.3 0 0 0 2.6 4.1 Z" opacity="0.9"/>
+      </svg>
+      <svg width="23" height="11" viewBox="0 0 24 11">
+        <rect x="0.5" y="0.5" width="20" height="10" rx="2.5" fill="none" stroke="#1a1a1a" stroke-opacity="0.4"/>
+        <rect x="2" y="2" width="14" height="7" rx="1.2" fill="#1a1a1a"/>
+        <rect x="21.8" y="3.5" width="1.8" height="4" rx="0.9" fill="#1a1a1a" fill-opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 公众号导航栏 -->
+  <div class="gzh-nav">
+    <button class="nav-back" onclick="toast('返回（演示）')" title="返回">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M15 4l-8 8 8 8"/>
+      </svg>
+    </button>
+    <div class="nav-account">三夫科技</div>
+    <button class="nav-more" onclick="toast('更多（演示）')" title="更多">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- 聊天内容区：公众号推文消息 -->
+  <div class="chat" id="chat">
+    <div class="msg-card">
+      <div class="msg-img" style="background:linear-gradient(135deg,#2b5db8,#3a7dd8)">薪</div>
+      <div class="msg-bubble">
+        <div class="bubble-title">工资统发数字化解决方案</div>
+        <div class="bubble-text">三夫科技面向机关事业单位提供工资统发管理系统，覆盖工资数据报送、审核、发放全流程线上化管理。</div>
+      </div>
+      <div class="msg-time">09-16 10:00</div>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-img" style="background:linear-gradient(135deg,#3a7d44,#5aa866)">询</div>
+      <div class="msg-bubble">
+        <div class="bubble-title">AI 智能工资助手上线</div>
+        <div class="bubble-text">集成智能操作助手，员工可随时查询工资明细、导出工资条、了解薪酬政策，支持 PDF / Excel 导出，7×24 小时在线服务。</div>
+      </div>
+      <div class="msg-time">09-15 09:30</div>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-img" style="background:linear-gradient(135deg,#7a5fb0,#9a7fd0)">策</div>
+      <div class="msg-bubble">
+        <div class="bubble-title">薪酬政策实时同步</div>
+        <div class="bubble-text">系统与最新工资政策文件保持同步更新，AI 助手依据政策口径解答薪酬疑问，帮助各单位第一时间掌握政策要点。</div>
+      </div>
+      <div class="msg-time">09-12 15:20</div>
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-img" style="background:linear-gradient(135deg,#3a7d9c,#5aa0bf)">安</div>
+      <div class="msg-bubble">
+        <div class="bubble-title">数据安全合规保障</div>
+        <div class="bubble-text">系统通过信息安全等级保护认证，工资数据加密存储、权限分级管理、操作全程可审计，保障每一位员工的信息安全。</div>
+      </div>
+      <div class="msg-time">09-10 11:00</div>
+    </div>
+  </div>
+
+  <!-- 底部菜单 -->
+  <div class="bottom-menu">
+    <button class="kbd-btn" onclick="toast('键盘输入（演示）')" title="键盘输入">
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10.5" fill="none" stroke="#4a5568" stroke-width="1.5"/>
+        <g fill="#4a5568">
+          <rect x="5" y="6.2" width="2.6" height="2.4" rx="0.4"/>
+          <rect x="8.2" y="6.2" width="2.6" height="2.4" rx="0.4"/>
+          <rect x="11.4" y="6.2" width="2.6" height="2.4" rx="0.4"/>
+          <rect x="14.6" y="6.2" width="2.6" height="2.4" rx="0.4"/>
+          <rect x="5" y="9.2" width="2.6" height="2.4" rx="0.4"/>
+          <rect x="8.2" y="9.2" width="2.6" height="2.4" rx="0.4"/>
+          <rect x="11.4" y="9.2" width="2.6" height="2.4" rx="0.4"/>
+          <rect x="14.6" y="9.2" width="2.6" height="2.4" rx="0.4"/>
+          <rect x="7.4" y="13" width="9.2" height="2.2" rx="0.4"/>
+        </g>
+      </svg>
+    </button>
+    <div class="menu-divider"></div>
+    <button class="menu-item" onclick="enterApp()">
+      智能操作助手
+      <svg width="13" height="13" viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h10" stroke="#9aa3b0" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button class="menu-item" id="menuPub" onclick="toggleSub()">
+      公开信息
+      <svg width="13" height="13" viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h10" stroke="#9aa3b0" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+
+    <!-- 公开信息二级菜单 -->
+    <div class="submenu" id="submenu">
+      <div class="submenu-item" onclick="subAction('招聘信息')">招聘信息</div>
+      <div class="submenu-item" onclick="subAction('业务简介')">业务简介</div>
+      <div class="submenu-item" onclick="subAction('最新动态')">最新动态</div>
+      <div class="submenu-item" onclick="subAction('联系我们')">联系我们</div>
+    </div>
+  </div>
+
+  <div class="toast"></div>
+</div>
+
+<!-- =========================================================
+     屏幕二：小程序（工资系统 AI 助手）
+     ========================================================= -->
+<div class="phone" id="phoneMini" style="display:none">
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span id="statusTime2">14:08</span>
+    <div class="status-icons">
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="#1a1a1a">
+        <rect x="0" y="7" width="3" height="4" rx="0.5"/>
+        <rect x="4.3" y="5" width="3" height="6" rx="0.5"/>
+        <rect x="8.6" y="2.5" width="3" height="8.5" rx="0.5"/>
+        <rect x="12.9" y="0" width="3" height="11" rx="0.5" opacity="0.35"/>
+      </svg>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="#1a1a1a">
+        <path d="M7.5 9.2 L9.3 7.1 A2.9 2.9 0 0 0 5.7 7.1 Z"/>
+        <path d="M3.6 5.1 A5.9 5.9 0 0 1 11.4 5.1 L10.2 6.4 A4.2 4.2 0 0 0 4.8 6.4 Z" opacity="0.9"/>
+        <path d="M1.4 2.8 A9 9 0 0 1 13.6 2.8 L12.4 4.1 A7.3 7.3 0 0 0 2.6 4.1 Z" opacity="0.9"/>
+      </svg>
+      <svg width="23" height="11" viewBox="0 0 24 11">
+        <rect x="0.5" y="0.5" width="20" height="10" rx="2.5" fill="none" stroke="#1a1a1a" stroke-opacity="0.4"/>
+        <rect x="2" y="2" width="14" height="7" rx="1.2" fill="#1a1a1a"/>
+        <rect x="21.8" y="3.5" width="1.8" height="4" rx="0.9" fill="#1a1a1a" fill-opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 导航栏（单行，标题与左侧图标随页面变化） -->
+  <div class="nav-bar">
+    <div class="nav-left" id="navLeft">
+      <button class="nav-cancel-btn" id="btnCancel" onclick="closeMini()" title="取消">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 3l10 10M13 3L3 13"/>
+        </svg>
+      </button>
+      <button class="nav-back-btn" id="btnBack" style="display:none">‹ 返回</button>
+    </div>
+    <div class="nav-title" id="navTitle">AI工作窗口</div>
+    <div class="capsule">
+      <button class="capsule-btn" id="btnShare" title="分享">
+        <svg width="18" height="4" viewBox="0 0 18 4" fill="#1a1a1a">
+          <circle cx="2" cy="2" r="1.7"/><circle cx="9" cy="2" r="1.7"/><circle cx="16" cy="2" r="1.7"/>
+        </svg>
+      </button>
+      <div class="capsule-divider"></div>
+      <button class="capsule-btn" id="btnClose" title="关闭">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="#1a1a1a" stroke-width="1.5">
+          <circle cx="7.5" cy="7.5" r="6.2"/>
+          <circle cx="7.5" cy="7.5" r="2.4" fill="#1a1a1a" stroke="none"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="content">
+
+    <!-- ===== 页1：AI工作窗口 ===== -->
+    <div class="page active" id="page-ai">
+      <div class="chat-toolbar">
+        <button class="tool-btn" id="histAI" onclick="openHistory('ai')">🕘 历史对话</button>
+        <button class="tool-btn" id="newChatAI" onclick="newChat('ai')">＋ 新建对话</button>
+      </div>
+      <div class="chat-area" id="chatAI"></div>
+      <div class="input-bar">
+        <input type="text" id="inputAI" placeholder="请输入您的问题…">
+        <button class="send-btn" id="sendAI">发送</button>
+      </div>
+    </div>
+
+    <!-- ===== 页2：在线咨询 ===== -->
+    <div class="page" id="page-consult">
+      <div class="consult-list">
+        <div class="section-label">人工客服</div>
+        <div class="session-item" onclick="openDirectChat()">
+          <div class="session-avatar" style="background:#3a7d44">客</div>
+          <div class="session-info">
+            <div class="session-top"><span class="session-name">在线客服</span><span class="session-tag">一对一</span></div>
+            <div class="session-msg">您好，请问有什么可以帮您？</div>
+          </div>
+          <div class="session-meta" id="metaKefu">
+            <span class="session-time">14:02</span>
+            <span class="badge" id="badgeKefu">2</span>
+          </div>
+        </div>
+
+        <div class="section-label">群组会话</div>
+        <div class="session-item" onclick="openGroup(0)">
+          <div class="session-avatar" style="background:#2b5db8">群</div>
+          <div class="session-info">
+            <div class="session-top"><span class="session-name">工资系统运维群</span><span class="session-tag">群组</span></div>
+            <div class="session-msg">张工：系统已于昨晚完成升级，请及时验证…</div>
+          </div>
+          <div class="session-meta" id="metaGroup0">
+            <span class="session-time">13:45</span>
+            <span class="badge" id="badgeGroup0">3</span>
+          </div>
+        </div>
+        <div class="session-item" onclick="openGroup(1)">
+          <div class="session-avatar" style="background:#7a5fb0">群</div>
+          <div class="session-info">
+            <div class="session-top"><span class="session-name">政策答疑交流群</span><span class="session-tag">群组</span></div>
+            <div class="session-msg">李老师：本月社保基数调整通知已发布…</div>
+          </div>
+          <div class="session-meta" id="metaGroup1">
+            <span class="session-time">11:20</span>
+            <span class="badge" id="badgeGroup1">1</span>
+          </div>
+        </div>
+        <div class="session-item" onclick="openGroup(2)">
+          <div class="session-avatar" style="background:#3a7d9c">群</div>
+          <div class="session-info">
+            <div class="session-top"><span class="session-name">市直单位联络群</span><span class="session-tag">群组</span></div>
+            <div class="session-msg">王科员：报表模板已更新至文件区…</div>
+          </div>
+          <div class="session-meta">
+            <span class="session-time">昨天</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 客服一对一聊天 -->
+      <div class="group-page" id="directChat">
+        <div class="chat-area" id="chatDirect">
+          <div class="msg-row ai">
+            <div class="avatar" style="background:#3a7d44">客</div>
+            <div class="msg-body">
+              <div class="msg-name">在线客服</div>
+              <div class="bubble">您好，我是人工客服，请问有什么可以帮您？</div>
+            </div>
+          </div>
+        </div>
+        <div class="input-bar">
+          <input type="text" id="inputDirect" placeholder="请输入…">
+          <button class="voice-btn" id="voiceDirect" title="发送语音">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="2" y="6" width="2.6" height="4" rx="1.3"/>
+              <rect x="6.7" y="2" width="2.6" height="12" rx="1.3"/>
+              <rect x="11.4" y="4.5" width="2.6" height="7" rx="1.3"/>
+            </svg>
+          </button>
+          <button class="send-btn" id="sendDirect">发送</button>
+        </div>
+      </div>
+
+      <!-- 群聊 -->
+      <div class="group-page" id="groupChat">
+        <!-- 导航栏下方的 4 个子标签 -->
+        <div class="group-tabs">
+          <div class="group-tab active" data-gt="chat" onclick="switchGroupTab('chat')">群聊</div>
+          <div class="group-tab" data-gt="notice" onclick="switchGroupTab('notice')">群公告</div>
+          <div class="group-tab" data-gt="members" onclick="switchGroupTab('members')">群成员</div>
+          <div class="group-tab" data-gt="files" onclick="switchGroupTab('files')">群文件</div>
+        </div>
+
+        <!-- 群聊 -->
+        <div class="group-tab-pane active" id="gt-chat">
+          <div class="chat-area" id="chatGroup"></div>
+          <div class="input-bar">
+            <input type="text" id="inputGroup" placeholder="发言…">
+            <button class="voice-btn" id="voiceGroup" title="发送语音">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="2" y="6" width="2.6" height="4" rx="1.3"/>
+                <rect x="6.7" y="2" width="2.6" height="12" rx="1.3"/>
+                <rect x="11.4" y="4.5" width="2.6" height="7" rx="1.3"/>
+              </svg>
+            </button>
+            <button class="send-btn" id="sendGroup">发送</button>
+          </div>
+        </div>
+
+        <!-- 群公告 -->
+        <div class="group-tab-pane" id="gt-notice">
+          <div class="notice-list" id="noticeList"></div>
+        </div>
+
+        <!-- 群成员 -->
+        <div class="group-tab-pane" id="gt-members">
+          <div class="member-list2" id="memberList2"></div>
+        </div>
+
+        <!-- 群文件 -->
+        <div class="group-tab-pane" id="gt-files">
+          <div class="gfile-list2" id="gfileList2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 页3：文件下载 ===== -->
+    <div class="page" id="page-files">
+      <div class="file-list" id="fileList"></div>
+    </div>
+
+    <!-- ===== 页4：我的 ===== -->
+    <div class="page" id="page-mine">
+      <div class="mine-body">
+        <!-- 已登录 -->
+        <div id="settingsLoggedIn" style="display:none">
+          <div class="info-card">
+            <div class="info-row"><span class="info-label">账号</span><span class="info-value" id="minePhone">13812348888</span></div>
+            <div class="info-row"><span class="info-label">所在单位</span><span class="info-value" id="mineUnit">成都市财政局</span></div>
+            <div class="info-row"><span class="info-label">所在区域</span><span class="info-value" id="mineRegion">成都市</span></div>
+            <div class="info-row"><span class="info-label">经办人</span><span class="info-value" id="mineHandler">张敏</span></div>
+            <div class="info-row">
+              <span class="info-label">PC端地址</span>
+              <span class="info-value pc-url">https://ai.3mencn.com/rag/admin/login</span>
+              <button class="copy-btn" onclick="copyPcUrl()" title="复制PC端地址">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="5.5" y="5.5" width="8" height="8" rx="1"/>
+                  <path d="M10.5 3.5v-1a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h1"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- 未登录 -->
+        <div id="settingsLoggedOut" style="display:none">
+          <div class="info-card">
+            <div class="info-row"><span class="info-label">状态</span><span class="info-value" style="color:#c9403f">未登录</span></div>
+          </div>
+          <button class="login-btn" onclick="openLogin()">登录</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast"></div>
+  </div>
+
+  <!-- 历史对话记录面板 -->
+  <div class="hist-overlay" id="histOverlay" onclick="if(event.target===this)closeHistory()">
+    <div class="hist-panel">
+      <div class="hist-head"><span id="histTitle">历史对话</span><button class="hist-close" onclick="closeHistory()">✕</button></div>
+      <div class="hist-body" id="histBody"></div>
+    </div>
+  </div>
+
+  <!-- 底部标签栏 -->
+  <div class="tab-bar">
+    <div class="tab-item active" data-page="ai" onclick="switchTab('ai', this)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="4" y="7" width="16" height="12" rx="2"/><path d="M12 3v4M8 11h.01M16 11h.01M9 15h6"/>
+      </svg>
+      <span>AI工作窗口</span>
+    </div>
+    <div class="tab-item" data-page="consult" onclick="switchTab('consult', this)">
+      <span class="tab-badge" id="tabBadgeConsult">6</span>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3-.4-4.2-1.1L3 20l1.1-5.3A8.5 8.5 0 1 1 21 11.5z"/>
+      </svg>
+      <span>在线咨询</span>
+    </div>
+    <div class="tab-item" data-page="files" onclick="switchTab('files', this)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/>
+      </svg>
+      <span>文件下载</span>
+    </div>
+    <div class="tab-item" data-page="mine" onclick="switchTab('mine', this)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+      <span>我的</span>
+    </div>
+  </div>
+
+  <!-- 微信授权抽屉（底部向上滑出） -->
+  <div class="drawer-overlay" id="loginDrawer">
+    <div class="drawer">
+      <div class="drawer-handle"></div>
+      <div class="drawer-title">微信授权登录</div>
+      <div class="drawer-desc">「智能操作助手」申请获取你的微信手机号，用于登录和验证身份。</div>
+      <div class="modal-field">
+        <label>微信授权手机号</label>
+        <input type="text" id="wechatPhone" maxlength="11" value="13812348888">
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn default" onclick="closeMini()">取消</button>
+        <button class="modal-btn primary" onclick="verifyPhone()">允许</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 区域 / 单位选择抽屉（微信授权后，区域与单位联动） -->
+  <div class="drawer-overlay" id="regionDrawer">
+    <div class="drawer">
+      <div class="drawer-handle"></div>
+      <div class="drawer-title">选择区域和单位</div>
+      <div class="drawer-desc drawer-desc-left">手机号未注册，请先注册，注册后账号密码也可用于pc端登录</div>
+      <div class="pc-line">
+        <span>PC端地址：https://ai.3mencn.com/rag/admin/login</span>
+        <button class="copy-btn" onclick="copyPcUrl()" title="复制PC端地址">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+            <rect x="5.5" y="5.5" width="8" height="8" rx="1"/>
+            <path d="M10.5 3.5v-1a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h1"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-field">
+        <label><span class="req">*</span>手机号</label>
+        <input type="text" id="regPhone" disabled>
+      </div>
+      <div class="modal-field">
+        <label><span class="req">*</span>选择区域（单位隶属管辖区域）</label>
+        <select id="regRegion" onchange="onRegionChange()"></select>
+      </div>
+      <div class="modal-field">
+        <label><span class="req">*</span>综审单位</label>
+        <div class="dept-group" id="regDeptGroup">
+          <label class="dept-item"><input type="radio" name="regDept" value="人社部" onchange="onDeptChange()">人社部</label>
+          <label class="dept-item"><input type="radio" name="regDept" value="组织部" onchange="onDeptChange()">组织部</label>
+          <label class="dept-item"><input type="radio" name="regDept" value="公安" onchange="onDeptChange()">公安</label>
+        </div>
+      </div>
+      <div class="modal-field">
+        <label><span class="req">*</span>选择单位（可下拉选择或手动输入）</label>
+        <input type="text" id="regUnit" list="regUnitOptions" placeholder="请先选择区域和部门" disabled>
+        <datalist id="regUnitOptions"></datalist>
+      </div>
+      <div class="modal-field">
+        <label><span class="req">*</span>经办人</label>
+        <input type="text" id="regHandler" placeholder="请输入经办人姓名">
+      </div>
+      <div class="modal-field">
+        <label><span class="req">*</span>设置登录密码</label>
+        <div class="pwd-wrap">
+          <input type="password" id="regPwd" placeholder="请设置登录密码">
+          <button type="button" class="pwd-toggle" onclick="togglePwd('regPwd', this)" title="显示/隐藏密码">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+              <path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/>
+              <circle cx="8" cy="8" r="2.2"/>
+            </svg>
+          </button>
+        </div>
+        <div class="pwd-hint">密码要求：至少8位字符、不包含中文、包含大写字母(A-Z)、包含小写字母(a-z)、包含数字(0-9)、包含特殊字符(!@#$%...)</div>
+      </div>
+      <div class="modal-field">
+        <label><span class="req">*</span>再次确认密码</label>
+        <div class="pwd-wrap">
+          <input type="password" id="regPwd2" placeholder="请再次输入登录密码">
+          <button type="button" class="pwd-toggle" onclick="togglePwd('regPwd2', this)" title="显示/隐藏密码">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+              <path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/>
+              <circle cx="8" cy="8" r="2.2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn default" onclick="closeMini()">取消</button>
+        <button class="modal-btn app" id="regionBtn" onclick="submitRegionUnit()">下一步</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 免责声明勾选弹窗（每次进入小程序均需勾选同意） -->
+  <div class="modal-overlay" id="disclaimerModal">
+    <div class="modal-box">
+      <div class="modal-title">免责声明</div>
+      <div class="modal-desc">为保障您的信息安全与合法使用，使用本小程序前请阅读并同意以下声明：</div>
+      <label class="agree-row">
+        <input type="checkbox" id="agreeDisclaimer">
+        <span>勾选后代表你同意<a href="javascript:void(0)" onclick="openDisclaimer()">《免责声明及用户保密责任提示》</a> 请仔细阅读文件内容</span>
+      </label>
+      <div class="modal-btns">
+        <button class="modal-btn default" onclick="cancelDisclaimer()">取消</button>
+        <button class="modal-btn app" id="disclaimerConfirmBtn" onclick="confirmDisclaimer()">确认登录</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 免责声明及用户保密责任提示（登录前可点击查看） -->
+  <div class="disclaimer-view" id="disclaimerView">
+    <div class="disclaimer-head">
+      <button class="disclaimer-close" onclick="closeDisclaimer()" title="返回">✕</button>
+      <span>免责声明及用户保密责任提示</span>
+    </div>
+    <div class="disclaimer-body">
+      <h2>免责声明及用户保密责任提示</h2>
+      <div class="meta">版本：V1.0　生效日期：2026年8月14日</div>
+      <p>请您在登录、注册、使用本系统及在线咨询功能前仔细阅读本免责声明及用户保密责任提示。您登录或完成注册，并继续使用系统，即视为您已充分理解并同意以下内容。</p>
+      <h2>一、用户信息上传责任</h2>
+      <p>您在使用在线咨询功能与客服沟通时，可能通过文字消息、截图、本地图片、文件、视频、音频或其他形式发送信息。您应自行审查并确认所发送内容不含国家秘密、工作秘密、商业秘密、内部敏感信息、个人隐私或其他依法、依约不得披露的信息。</p>
+      <p>因您主动、故意或重大过失发送、上传、展示或提供上述信息，导致您本人、所在单位或第三方的涉密信息、保密信息、商业秘密、内部资料或其他敏感信息被披露、传播、使用、留存或产生其他不利后果的，相应责任由您依法承担。</p>
+      <h2>二、禁止上传涉密及敏感信息</h2>
+      <p>您不得通过本系统上传、发送或提交任何国家秘密、依法受保护的工作秘密、商业秘密、未公开经营信息、内部管理资料、个人敏感信息，或其他您无权披露的信息。确因业务需要咨询的，您应先完成脱敏、匿名化或取得合法授权。</p>
+      <p>国家秘密绝对禁止通过任何形式提供给本平台。根据《中华人民共和国保守国家秘密法》及其实施条例的规定，任何组织和个人不得违反有关规定使用非涉密信息系统、信息设备存储、处理、传输国家秘密。您向本平台上传、发送或提交国家秘密的行为，均属严重违法行为，与平台提供的技术服务目的相悖，由此产生的法律责任由违法行为人依法承担。本平台如发现涉嫌国家秘密的信息，依法保留向国家有关部门报告的权利并履行相应的法定义务。</p>
+      <h2>三、平台责任边界</h2>
+      <p>本平台仅提供系统登录、在线咨询及相关技术服务，并不主动要求您提供涉密或保密信息。您自行决定发送内容并对其合法性、真实性、授权来源及保密合规性负责。因您违反保密义务、单位管理制度、法律法规或第三方约定而产生的争议、索赔、损失、行政责任、纪律责任或其他后果，均由您自行承担。本平台作为中立的技术服务提供者，对您主动上传的信息内容不进行实质审查，亦无法通过技术手段自动识别相关信息是否属于国家秘密、商业秘密或受法律保护的其他信息。本平台在发现法律禁止传输的信息时，将依法采取停止传输、消除等必要措施，并依法履行报告义务。本平台处理用户个人信息的行为，适用《中华人民共和国个人信息保护法》等相关法律法规的规定，具体处理规则以平台另行公布的隐私政策为准。</p>
+      <p>本免责声明不排除或限制法律法规规定不得免除的平台责任；如因本平台故意、重大过失或依法应由本平台承担责任的情形造成损害，本平台将依法承担相应责任。</p>
+      <h2>四、法律依据</h2>
+      <p>本免责声明依据《中华人民共和国民法典》关于民事主体依法享有民事权利、承担民事责任，以及合同约定、过错责任、公平诚信原则等规定制定；同时结合《中华人民共和国保守国家秘密法》《中华人民共和国网络安全法》《中华人民共和国数据安全法》《中华人民共和国个人信息保护法》及有关商业秘密、单位保密管理制度等要求，提示用户履行信息审查、保密和合法授权义务。</p>
+      <h2>五、确认与承诺</h2>
+      <p>您确认：已阅读、理解并同意本免责声明；您将自行识别、筛查并避免发送涉密、保密、敏感或无权披露的信息；因您自身发送行为导致的信息泄露及相关后果，由您依法承担相应责任。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= 基础状态 ================= */
+var loggedIn = false;
+var currentPage = 'ai';
+var lastTab = 'ai';
+var currentGroup = -1;
+var titles = {
+  ai: 'AI工作窗口',
+  consult: '在线咨询',
+  files: '文件下载',
+  direct: '在线客服',
+  mine: '我的'
+};
+var TAB_KEYS = ['ai', 'consult', 'files', 'mine'];
+
+/* ================= 状态栏时间 ================= */
+function updateTime() {
+  var d = new Date();
+  var t = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  var s1 = document.getElementById('statusTime');
+  var s2 = document.getElementById('statusTime2');
+  if (s1) s1.textContent = t;
+  if (s2) s2.textContent = t;
+}
+updateTime();
+setInterval(updateTime, 10000);
+
+/* ================= Toast ================= */
+var toastTimer = null;
+function toast(msg) {
+  document.querySelectorAll('.toast').forEach(function (t) {
+    t.textContent = msg;
+    t.style.display = 'block';
+  });
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () {
+    document.querySelectorAll('.toast').forEach(function (t) { t.style.display = 'none'; });
+  }, 1800);
+}
+
+/* =========================================================
+   公众号主页：底部菜单
+   ========================================================= */
+/* 公开信息：展开 / 收起二级菜单 */
+function closeSub() {
+  document.getElementById('submenu').classList.remove('open');
+  document.getElementById('menuPub').classList.remove('active');
+}
+function toggleSub() {
+  var s = document.getElementById('submenu');
+  var m = document.getElementById('menuPub');
+  var open = s.classList.toggle('open');
+  m.classList.toggle('active', open);
+}
+
+/* 二级菜单项：招聘信息只做菜单不跳转，其余为占位提示 */
+function subAction(name) {
+  if (name === '招聘信息') {
+    toast('招聘信息（仅菜单展示）');
+  } else {
+    toast('「' + name + '」页面制作中');
+  }
+  closeSub();
+}
+
+/* 智能操作助手：切换到小程序屏幕（同一文件内） */
+function enterApp() {
+  document.getElementById('phoneHome').style.display = 'none';
+  document.getElementById('phoneMini').style.display = 'flex';
+  if (!loggedIn) {
+    // 第一次进入：直接打开微信授权弹窗
+    document.getElementById('loginDrawer').classList.add('open');
+  } else {
+    // 已登录：每次进入都需先弹免责声明勾选同意
+    openDisclaimerModal();
+  }
+}
+
+/* 小程序关闭：返回公众号主页 */
+function closeMini() {
+  closeChat('directChat');
+  closeChat('groupChat');
+  closeDrawers();
+  document.getElementById('loginDrawer').classList.remove('open');
+  document.getElementById('regionDrawer').classList.remove('open');
+  document.getElementById('disclaimerModal').classList.remove('open');
+  pendingReg = null;
+  document.getElementById('phoneMini').style.display = 'none';
+  document.getElementById('phoneHome').style.display = 'flex';
+  closeSub();
+}
+
+/* 点击公众号聊天区空白处收起二级菜单 */
+document.getElementById('chat').addEventListener('click', closeSub);
+
+/* =========================================================
+   小程序：导航栏
+   ========================================================= */
+function renderNav() {
+  var back = document.getElementById('btnBack');
+  var title = document.getElementById('navTitle');
+  var isTab = TAB_KEYS.indexOf(currentPage) >= 0;
+  back.style.display = isTab ? 'none' : 'block';
+  if (currentPage === 'group' && currentGroup >= 0) {
+    title.textContent = groups[currentGroup].name;
+  } else {
+    title.textContent = titles[currentPage] || 'AI工作窗口';
+  }
+}
+function goBack() {
+  if (currentPage === 'direct' || currentPage === 'group') {
+    closeChat(currentPage === 'direct' ? 'directChat' : 'groupChat');
+    closeDrawers();
+    currentPage = 'consult';
+    renderNav();
+  }
+}
+
+/* ================= 标签切换 ================= */
+function switchTab(key, el) {
+  if (!loggedIn && key !== 'mine') {
+    toast('未登录，暂无法使用该功能');
+    return;
+  }
+  document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+  document.getElementById('page-' + key).classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(function (t) { t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  currentPage = key;
+  lastTab = key;
+  // 关闭咨询内部页面
+  closeChat('directChat');
+  closeChat('groupChat');
+  closeDrawers();
+  renderNav();
+}
+
+/* ================= 聊天通用 ================= */
+function addMsg(containerId, role, name, text, avatarText, avatarColor) {
+  var box = document.getElementById(containerId);
+  var row = document.createElement('div');
+  row.className = 'msg-row ' + role;
+  var av = document.createElement('div');
+  av.className = 'avatar ' + (role === 'user' ? 'me' : 'ai');
+  if (avatarColor) av.style.background = avatarColor;
+  av.textContent = avatarText || (role === 'user' ? '我' : '助');
+  var body = document.createElement('div');
+  body.className = 'msg-body';
+  var nameEl = document.createElement('div');
+  nameEl.className = 'msg-name';
+  nameEl.textContent = name;
+  var bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  body.appendChild(nameEl);
+  body.appendChild(bubble);
+  row.appendChild(av);
+  row.appendChild(body);
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ================= 多轮对话（会话 / 历史记录） ================= */
+var chatSessions = { ai: [] };   // 历史对话列表（每个元素为一轮完整对话）
+var activeSession = { ai: null }; // 当前激活会话
+
+function nowHM() {
+  var d = new Date();
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+function nowLabel() {
+  var d = new Date();
+  var p = function (n) { return String(n).padStart(2, '0'); };
+  return (d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+/* 新建一个会话对象（含系统欢迎语） */
+function newSessionObj(type) {
+  return {
+    id: 's_' + type + '_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+    type: type,
+    title: '新对话',
+    time: nowLabel(),
+    messages: [{ role: 'ai', name: '工资系统AI助手', text: '您好！我是工资系统AI助手，请问有什么可以帮您？您可以直接输入问题，例如"如何查询上月工资条"。', avatar: '助', color: '#2b5db8' }]
+  };
+}
+function renderMsg(containerId, m) {
+  addMsg(containerId, m.role, m.name, m.text, m.avatar, m.color);
+}
+/* 将当前激活会话渲染进聊天区 */
+function renderActiveSession(type) {
+  var containerId = 'chatAI';
+  var box = document.getElementById(containerId);
+  box.innerHTML = '';
+  var d = document.createElement('div');
+  d.className = 'chat-date';
+  d.textContent = activeSession[type] ? activeSession[type].time : '';
+  box.appendChild(d);
+  (activeSession[type].messages || []).forEach(function (m) { renderMsg(containerId, m); });
+}
+/* 初始化页面空会话 */
+function initSessions() {
+  activeSession.ai = newSessionObj('ai');
+  renderActiveSession('ai');
+}
+/* 新建对话：当前会话若有内容则存入历史，再开新会话 */
+function newChat(type) {
+  if (!loggedIn) { toast('未登录，暂无法使用该功能'); return; }
+  var cur = activeSession[type];
+  var hasUser = cur.messages.some(function (m) { return m.role === 'user'; });
+  if (hasUser) chatSessions[type].unshift(cur);
+  activeSession[type] = newSessionObj(type);
+  renderActiveSession(type);
+  toast('已新建对话，原对话已存入历史');
+}
+/* 打开历史面板 */
+function openHistory(type) {
+  if (!loggedIn) { toast('未登录，暂无法使用该功能'); return; }
+  renderHistoryList(type);
+  document.getElementById('histOverlay').classList.add('active');
+}
+function closeHistory() {
+  document.getElementById('histOverlay').classList.remove('active');
+}
+/* 渲染历史列表 */
+function renderHistoryList(type) {
+  var body = document.getElementById('histBody');
+  body.innerHTML = '';
+  document.getElementById('histTitle').textContent = '历史对话';
+  var list = chatSessions[type];
+  if (!list.length) {
+    var empty = document.createElement('div');
+    empty.className = 'nologin-tip';
+    empty.innerHTML = '<div class="icon">🗒️</div><div>暂无历史对话记录</div>';
+    body.appendChild(empty);
+    return;
+  }
+  list.forEach(function (sess) {
+    var card = document.createElement('div');
+    card.className = 'hist-item';
+    card.onclick = function () { loadSession(type, sess.id); };
+    var main = document.createElement('div');
+    main.className = 'hist-item-main';
+    var t = document.createElement('div');
+    t.className = 'hist-item-title';
+    t.textContent = truncateTitle(sess.title || '对话记录', 15);
+    var time = document.createElement('div');
+    time.className = 'hist-item-time';
+    time.textContent = sess.time;
+    main.appendChild(t); main.appendChild(time);
+    var delBtn = document.createElement('button');
+    delBtn.className = 'hist-del-btn';
+    delBtn.textContent = '删除';
+    delBtn.onclick = function (e) {
+      e.stopPropagation();
+      deleteSession(type, sess.id);
+    };
+    card.appendChild(main); card.appendChild(delBtn);
+    body.appendChild(card);
+  });
+}
+/* 标题超长截断：最多 max 字，超出以 … 结尾 */
+function truncateTitle(s, max) {
+  var chars = Array.from(s);
+  if (chars.length <= max) return s;
+  return chars.slice(0, max).join('') + '...';
+}
+/* 载入某条历史会话（当前会话若有内容先存回历史） */
+function loadSession(type, id) {
+  var sess = null;
+  for (var i = 0; i < chatSessions[type].length; i++) {
+    if (chatSessions[type][i].id === id) { sess = chatSessions[type][i]; break; }
+  }
+  if (!sess) return;
+  var cur = activeSession[type];
+  var hasUser = cur.messages.some(function (m) { return m.role === 'user'; });
+  if (hasUser) chatSessions[type].unshift(cur);
+  chatSessions[type] = chatSessions[type].filter(function (s) { return s.id !== id; });
+  activeSession[type] = sess;
+  renderActiveSession(type);
+  closeHistory();
+  toast('已载入历史对话');
+}
+/* 删除某条历史会话 */
+function deleteSession(type, id) {
+  chatSessions[type] = chatSessions[type].filter(function (s) { return s.id !== id; });
+  renderHistoryList(type);
+  toast('已删除该历史对话');
+}
+
+/* ================= AI工作窗口 ================= */
+var aiReplies = [
+  '您可以在系统首页点击【工资查询】，选择所属月份后即可查询并下载工资条；如查询结果有疑问，可在核实后提交复核申请。',
+  '工资条导出功能位于【个人中心-工资条导出】，支持导出为 PDF 或 Excel 格式，导出记录保留 90 天。',
+  '如需修改工资卡绑定银行账户，请携带本人身份证至单位人事处办理变更登记，变更将于次月生效。',
+  '系统登录密码连续输错 5 次将锁定 30 分钟。如忘记密码，可在登录页点击"忘记密码"通过预留手机号重置。'
+];
+function sendAI() {
+  if (!loggedIn) { toast('未登录，无法发送消息'); return; }
+  var input = document.getElementById('inputAI');
+  var text = input.value.trim();
+  if (!text) return;
+  var sess = activeSession.ai;
+  sess.messages.push({ role: 'user', name: '我', text: text, avatar: '我', color: '' });
+  renderMsg('chatAI', sess.messages[sess.messages.length - 1]);
+  input.value = '';
+  if (sess.title === '新对话') sess.title = text.length > 12 ? text.slice(0, 12) + '…' : text;
+  setTimeout(function () {
+    var r = aiReplies[Math.floor(Math.random() * aiReplies.length)];
+    var m = { role: 'ai', name: '工资系统AI助手', text: r, avatar: '助', color: '#2b5db8' };
+    sess.messages.push(m);
+    renderMsg('chatAI', m);
+  }, 600);
+}
+
+/* ================= 在线咨询数据 ================= */
+var groups = [
+  {
+    name: '工资系统运维群',
+    members: [
+      { name: '张工（运维）', role: 'admin', color: '#2b5db8' },
+      { name: '刘工（数据库）', role: 'admin', color: '#2b5db8' },
+      { name: '市财政局-张敏', role: '', color: '#5a8f5a' },
+      { name: '人社局-李伟', role: '', color: '#5a8f5a' },
+      { name: '教育局-王芳', role: '', color: '#5a8f5a' },
+      { name: '卫健委-赵强', role: '', color: '#5a8f5a' }
+    ],
+    files: [
+      { name: '工资系统操作手册V3.2.pdf', size: '2.4 MB', time: '2025-09-12 14:30:00', by: '张工（运维）' },
+      { name: '系统升级说明-0914.docx', size: '356 KB', time: '2025-09-14 22:10:00', by: '张工（运维）' },
+      { name: '常见报错处理指引.xlsx', size: '88 KB', time: '2025-09-10 09:45:00', by: '刘工（数据库）' }
+    ],
+    announcements: [
+      { current: true, date: '09-14', title: '关于系统升级完成的通知', text: '系统已于 9 月 14 日 22:00 完成升级，请各单位及时验证工资数据查询与导出功能，如有异常请在群内反馈。' },
+      { current: false, date: '09-05', title: '中秋假期运维值班安排', text: '中秋假期（9 月 15 日—17 日）运维值班已排定，紧急问题可联系值班手机 138****0000。' },
+      { current: false, date: '08-28', title: '工资数据报送时间调整', text: '自 9 月起，工资数据报送截止日由每月 8 日提前至每月 5 日，请各单位留意。' }
+    ],
+    msgs: [
+      { name: '张工（运维）', color: '#2b5db8', text: '系统已于昨晚 22:00 完成升级，请各单位及时验证工资数据查询功能。' },
+      { name: '人社局-李伟', color: '#5a8f5a', text: '收到，已验证正常。' },
+      { name: '教育局-王芳', color: '#5a8f5a', text: '请问导出工资条功能有变化吗？' },
+      { name: '张工（运维）', color: '#2b5db8', text: '导出功能不变，新增了批量导出，详见群文件《系统升级说明》。' }
+    ]
+  },
+  {
+    name: '政策答疑交流群',
+    members: [
+      { name: '李老师（政策科）', role: 'admin', color: '#7a5fb0' },
+      { name: '财政局-陈静', role: '', color: '#5a8f5a' },
+      { name: '税务局-周明', role: '', color: '#5a8f5a' },
+      { name: '公积金中心-吴倩', role: '', color: '#5a8f5a' }
+    ],
+    files: [
+      { name: '2025年社保基数调整通知.pdf', size: '1.1 MB', time: '2025-09-13 16:20:00', by: '李老师（政策科）' },
+      { name: '津贴补贴政策问答汇编.docx', size: '620 KB', time: '2025-09-08 11:05:00', by: '李老师（政策科）' }
+    ],
+    announcements: [
+      { current: true, date: '09-13', title: '社保缴费基数调整说明', text: '本月起社保缴费基数按新标准执行，请各单位核对 9 月工资代扣情况，如有差异请于 20 日前反馈。' },
+      { current: false, date: '09-01', title: '第三季度政策宣讲会', text: '本季度政策宣讲会定于 9 月 20 日线上召开，请各单位联络员组织参加。' }
+    ],
+    msgs: [
+      { name: '李老师（政策科）', color: '#7a5fb0', text: '本月社保基数调整通知已发布，请各单位注意 9 月工资代扣基数变化。' },
+      { name: '财政局-陈静', color: '#5a8f5a', text: '好的，请问补缴部分系统会自动计算吗？' },
+      { name: '李老师（政策科）', color: '#7a5fb0', text: '会自动计算，无需手工调整。' }
+    ]
+  },
+  {
+    name: '市直单位联络群',
+    members: [
+      { name: '王科员（联络员）', role: 'admin', color: '#3a7d9c' },
+      { name: '发改局-孙涛', role: '', color: '#5a8f5a' },
+      { name: '住建局-郑丽', role: '', color: '#5a8f5a' }
+    ],
+    files: [
+      { name: '月度报表模板-9月.xlsx', size: '45 KB', time: '2025-09-09 10:15:00', by: '王科员（联络员）' }
+    ],
+    announcements: [
+      { current: true, date: '09-09', title: '报表模板更新通知', text: '月度报表模板已更新至群文件区，请各单位按新模板报送，旧模板 9 月起停用。' },
+      { current: false, date: '08-20', title: '上半年联络工作会议纪要', text: '上半年市直单位联络工作会议纪要已归档，详见群文件。' }
+    ],
+    msgs: [
+      { name: '王科员（联络员）', color: '#3a7d9c', text: '报表模板已更新至群文件区，请各单位按新模板报送。' }
+    ]
+  }
+];
+
+function openDirectChat() {
+  if (!loggedIn) { toast('未登录，暂无法使用该功能'); return; }
+  clearBadge('badgeKefu');
+  document.getElementById('directChat').classList.add('active');
+  currentPage = 'direct';
+  renderNav();
+}
+function openGroup(i) {
+  if (!loggedIn) { toast('未登录，暂无法使用该功能'); return; }
+  currentGroup = i;
+  clearBadge('badgeGroup' + i);
+  var box = document.getElementById('chatGroup');
+  box.innerHTML = '';
+  groups[i].msgs.forEach(function (m) {
+    addGroupMsg('other', m.name, m.text, m.color);
+  });
+  renderMembers2();
+  renderGfiles2();
+  renderNotices();
+  switchGroupTab('chat');
+  document.getElementById('groupChat').classList.add('active');
+  currentPage = 'group';
+  renderNav();
+}
+function closeChat(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('active');
+}
+function addGroupMsg(role, name, text, color) {
+  var row = document.createElement('div');
+  row.className = 'msg-row ' + (role === 'user' ? 'user' : 'ai');
+  var av = document.createElement('div');
+  av.className = 'avatar';
+  av.style.background = role === 'user' ? '#5a8f5a' : color;
+  av.textContent = name.charAt(0);
+  var body = document.createElement('div');
+  body.className = 'msg-body';
+  var nameEl = document.createElement('div');
+  nameEl.className = 'msg-name';
+  nameEl.textContent = name;
+  var bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  body.appendChild(nameEl);
+  body.appendChild(bubble);
+  row.appendChild(av);
+  row.appendChild(body);
+  var box = document.getElementById('chatGroup');
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendDirect() {
+  if (!loggedIn) { toast('未登录，无法发送消息'); return; }
+  var input = document.getElementById('inputDirect');
+  var text = input.value.trim();
+  if (!text) return;
+  addMsg('chatDirect', 'user', '我', text, '我');
+  input.value = '';
+  setTimeout(function () {
+    addMsg('chatDirect', 'ai', '在线客服', '收到您的问题，正在为您核实处理，请稍候。', '客', '#3a7d44');
+  }, 600);
+}
+function sendGroup() {
+  if (!loggedIn) { toast('未登录，无法发送消息'); return; }
+  if (currentGroup < 0) return;
+  var input = document.getElementById('inputGroup');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addGroupMsg('user', '我', text, '');
+  var g = groups[currentGroup];
+  var responder = g.members[Math.floor(Math.random() * g.members.length)];
+  setTimeout(function () {
+    var m = { name: responder.name, color: responder.color, text: '收到，已记录您反馈的问题。' };
+    g.msgs.push(m);
+    addGroupMsg('other', m.name, m.text, m.color);
+  }, 800);
+}
+
+/* 群内子标签切换 */
+function switchGroupTab(which) {
+  ['chat', 'notice', 'members', 'files'].forEach(function (k) {
+    var pane = document.getElementById('gt-' + k);
+    if (pane) pane.classList.toggle('active', k === which);
+  });
+  document.querySelectorAll('#groupChat .group-tab').forEach(function (t) {
+    t.classList.toggle('active', t.getAttribute('data-gt') === which);
+  });
+}
+
+/* 群成员（仅姓名 + 管理员标签，含多管理员；不显示单位/科室） */
+function cleanMemberName(n) {
+  // 去掉括号中的单位/科室描述
+  var s = n.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '');
+  // 去掉“单位-姓名”中的单位部分
+  if (s.indexOf('-') >= 0) { s = s.split('-').pop(); }
+  return s;
+}
+function renderMembers2() {
+  var box = document.getElementById('memberList2');
+  box.innerHTML = '';
+  groups[currentGroup].members.forEach(function (m) {
+    var row = document.createElement('div');
+    row.className = 'member-row2';
+    var nm = document.createElement('span');
+    nm.textContent = cleanMemberName(m.name);
+    row.appendChild(nm);
+    if (m.role === 'admin') {
+      var tag = document.createElement('span');
+      tag.className = 'member-tag2';
+      tag.textContent = '管理员';
+      row.appendChild(tag);
+    }
+    box.appendChild(row);
+  });
+}
+
+/* 群文件（名称/大小/上传人/上传时间/下载） */
+function renderGfiles2() {
+  var box = document.getElementById('gfileList2');
+  box.innerHTML = '';
+  groups[currentGroup].files.forEach(function (f) {
+    var card = document.createElement('div');
+    card.className = 'gfile-card2';
+    var ext = (f.name.split('.').pop() || '').toUpperCase();
+    var icon = document.createElement('div');
+    icon.className = 'gfile-icon2';
+    icon.style.background = typeColors[ext] || '#6b7280';
+    icon.textContent = ext;
+    var info = document.createElement('div');
+    info.className = 'gfile-info2';
+    var n = document.createElement('div');
+    n.className = 'gfile-name2';
+    n.textContent = f.name;
+    var s = document.createElement('div');
+    s.className = 'gfile-sub2';
+    s.textContent = f.size + ' · 上传人：' + f.by + ' · ' + f.time;
+    info.appendChild(n);
+    info.appendChild(s);
+    var btn = document.createElement('button');
+    btn.className = 'file-dl';
+    btn.textContent = '下载';
+    btn.onclick = function () {
+      if (!loggedIn) { toast('未登录，无法下载文件'); return; }
+      toast('已开始下载：' + f.name);
+    };
+    card.appendChild(icon);
+    card.appendChild(info);
+    card.appendChild(btn);
+    box.appendChild(card);
+  });
+}
+
+/* 群公告（当前 + 历史） */
+function renderNotices() {
+  var box = document.getElementById('noticeList');
+  box.innerHTML = '';
+  groups[currentGroup].announcements.forEach(function (a) {
+    var card = document.createElement('div');
+    card.className = 'notice-card' + (a.current ? ' current' : '');
+    var head = document.createElement('div');
+    head.className = 'notice-head';
+    if (a.current) {
+      var flag = document.createElement('span');
+      flag.className = 'notice-flag';
+      flag.textContent = '当前';
+      head.appendChild(flag);
+    }
+    var date = document.createElement('span');
+    date.className = 'notice-date';
+    date.textContent = a.date;
+    head.appendChild(date);
+    var title = document.createElement('div');
+    title.className = 'notice-title';
+    title.textContent = a.title;
+    var text = document.createElement('div');
+    text.className = 'notice-text';
+    text.textContent = a.text;
+    card.appendChild(head);
+    card.appendChild(title);
+    card.appendChild(text);
+    box.appendChild(card);
+  });
+}
+
+/* 语音消息气泡 */
+function addVoiceMsg(containerId, role, name, dur, color) {
+  var box = document.getElementById(containerId);
+  var row = document.createElement('div');
+  row.className = 'msg-row ' + (role === 'user' ? 'user' : 'ai');
+  var av = document.createElement('div');
+  av.className = 'avatar ' + (role === 'user' ? 'me' : 'ai');
+  if (color) av.style.background = color;
+  av.textContent = role === 'user' ? '我' : (name ? name.charAt(0) : '助');
+  var body = document.createElement('div');
+  body.className = 'msg-body';
+  var nameEl = document.createElement('div');
+  nameEl.className = 'msg-name';
+  nameEl.textContent = name;
+  var bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  var vb = document.createElement('div');
+  vb.className = 'voice-box';
+  vb.innerHTML = '<span class="vplay">▶</span><span class="vdur">' + dur + '″</span>';
+  bubble.appendChild(vb);
+  body.appendChild(nameEl);
+  body.appendChild(bubble);
+  row.appendChild(av);
+  row.appendChild(body);
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+}
+function randDur() { return Math.floor(Math.random() * 4) + 2; }
+function sendVoiceDirect() {
+  if (!loggedIn) { toast('未登录，无法发送消息'); return; }
+  addVoiceMsg('chatDirect', 'user', '我', randDur());
+  setTimeout(function () {
+    addVoiceMsg('chatDirect', 'ai', '在线客服', randDur(), '#3a7d44');
+  }, 700);
+}
+function sendVoiceGroup() {
+  if (!loggedIn) { toast('未登录，无法发送消息'); return; }
+  if (currentGroup < 0) return;
+  addVoiceMsg('chatGroup', 'user', '我', randDur());
+  var g = groups[currentGroup];
+  var responder = g.members[Math.floor(Math.random() * g.members.length)];
+  setTimeout(function () {
+    addVoiceMsg('chatGroup', 'other', responder.name, randDur(), responder.color);
+  }, 800);
+}
+
+function closeDrawers() {
+  /* 群成员/群文件已改为群内子标签，不再使用抽屉，此处留作兼容调用 */
+}
+
+/* 未读徽标处理 */
+var tabConsultUnread = 6;
+function clearBadge(id) {
+  var b = document.getElementById(id);
+  if (!b) return;
+  var n = parseInt(b.textContent, 10) || 0;
+  if (n > 0 && tabConsultUnread > 0) tabConsultUnread = Math.max(0, tabConsultUnread - n);
+  b.remove();
+  var tabB = document.getElementById('tabBadgeConsult');
+  if (tabB) {
+    if (tabConsultUnread > 0) tabB.textContent = tabConsultUnread;
+    else tabB.remove();
+  }
+}
+
+/* ================= 文件下载 ================= */
+var files = [
+  { name: '工资系统操作手册（2025版）', type: 'PDF', desc: '系统各模块功能操作说明及常见问题解答', size: '3.2 MB', time: '2025-09-12 10:20' },
+  { name: '工资条批量导出模板', type: 'XLSX', desc: '单位批量导出工资条的标准模板格式', size: '56 KB', time: '2025-09-10 15:42' },
+  { name: '工资统发数据报送规范', type: 'PDF', desc: '每月工资数据报送口径、格式及时间要求', size: '1.8 MB', time: '2025-09-08 09:15' },
+  { name: '系统升级公告（9月）', type: 'DOCX', desc: '9月系统升级内容说明及功能变化清单', size: '348 KB', time: '2025-09-14 18:05' },
+  { name: '工资卡变更申请表', type: 'DOCX', desc: '个人工资卡账户变更登记申请表', size: '72 KB', time: '2025-09-05 11:30' },
+  { name: '政策文件汇编（第三季度）', type: 'PDF', desc: '本季度工资相关政策文件汇总', size: '5.6 MB', time: '2025-09-01 14:00' }
+];
+var typeColors = { PDF: '#c9403f', XLSX: '#3a7d44', DOCX: '#2b5db8', ZIP: '#8a6d3b' };
+function renderFiles() {
+  var box = document.getElementById('fileList');
+  box.innerHTML = '';
+  files.forEach(function (f) {
+    var item = document.createElement('div');
+    item.className = 'file-item';
+    var icon = document.createElement('div');
+    icon.className = 'file-icon';
+    icon.style.background = typeColors[f.type] || '#6b7280';
+    icon.textContent = f.type;
+    var info = document.createElement('div');
+    info.className = 'file-info';
+    var nameRow = document.createElement('div');
+    nameRow.className = 'file-name';
+    var nameText = document.createElement('span');
+    var fExt = (f.type ? f.type.toLowerCase() : '');
+    nameText.textContent = f.name + (fExt ? '.' + fExt : '');
+    nameRow.appendChild(nameText);
+    var desc = document.createElement('div');
+    desc.className = 'file-desc';
+    desc.textContent = f.desc;
+    var meta = document.createElement('div');
+    meta.className = 'file-meta';
+    meta.textContent = f.size + ' · 上传时间：' + f.time;
+    info.appendChild(nameRow);
+    info.appendChild(desc);
+    info.appendChild(meta);
+    var btn = document.createElement('button');
+    btn.className = 'file-dl';
+    btn.textContent = '下载';
+    btn.onclick = function () {
+      if (!loggedIn) { toast('未登录，无法下载文件'); return; }
+      toast('已开始下载：' + f.name);
+    };
+    item.appendChild(icon);
+    item.appendChild(info);
+    item.appendChild(btn);
+    box.appendChild(item);
+  });
+}
+renderFiles();
+
+/* ================= 我的 ================= */
+function logout() {
+  loggedIn = false;
+  document.getElementById('settingsLoggedIn').style.display = 'none';
+  document.getElementById('settingsLoggedOut').style.display = 'block';
+  // 回到AI工作窗口
+  document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+  document.getElementById('page-ai').classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(function (t) { t.classList.remove('active'); });
+  document.querySelector('.tab-item[data-page="ai"]').classList.add('active');
+  currentPage = 'ai';
+  lastTab = 'ai';
+  currentGroup = -1;
+  closeChat('directChat');
+  closeChat('groupChat');
+  closeDrawers();
+  renderNav();
+  // 禁止发送消息：输入框与发送按钮全部禁用
+  ['inputAI', 'inputDirect', 'inputGroup'].forEach(function (id) {
+    var el = document.getElementById(id);
+    el.value = '';
+    el.disabled = true;
+    el.placeholder = '未登录，无法发送消息';
+  });
+  ['sendAI', 'sendDirect', 'sendGroup', 'voiceDirect', 'voiceGroup'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.disabled = true;
+  });
+  // 禁用对话管理工具栏按钮
+  ['newChatAI', 'histAI'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.disabled = true;
+  });
+  // 聊天区清空并显示未登录提示
+  ['chatAI', 'chatDirect'].forEach(function (id) {
+    document.getElementById(id).innerHTML = '';
+  });
+  document.getElementById('chatGroup').innerHTML = '';
+  showNologinInChats();
+  // 禁止下载：所有下载按钮禁用
+  document.querySelectorAll('#fileList .file-dl').forEach(function (b) { b.disabled = true; });
+  document.querySelectorAll('#gfileList2 .file-dl').forEach(function (b) { b.disabled = true; });
+  // 清除未读徽标
+  tabConsultUnread = 0;
+  var tabB = document.getElementById('tabBadgeConsult');
+  if (tabB) tabB.remove();
+  document.querySelectorAll('.badge').forEach(function (b) { b.remove(); });
+  toast('已退出登录');
+}
+function showNologinInChats() {
+  ['chatAI', 'chatDirect'].forEach(function (id) {
+    var tip = document.createElement('div');
+    tip.className = 'nologin-tip';
+    tip.innerHTML = '<div class="icon">🔒</div><div>当前未登录，暂无法使用该功能</div>';
+    document.getElementById(id).appendChild(tip);
+  });
+}
+
+/* ================= 我的：登录 / 注册（微信授权） ================= */
+var userInfo = { phone: '13812348888', region: '成都市', unit: '成都市财政局', handler: '张敏' };
+var registeredPhones = ['13812348888'];
+var savedProfiles = {
+  '13812348888': { region: '成都市', unit: '成都市财政局' }
+};
+var pendingReg = null; // 首次登录待确认的注册信息（免责声明弹窗确认后生效）
+/* 四川省行政区划 → 各单位（区域与单位联动，不同区域有不同单位） */
+var regionUnits = {
+  '成都市': ['成都市财政局', '成都市人社局', '成都市教育局', '成都市卫健委'],
+  '自贡市': ['自贡市财政局', '自贡市人社局', '自贡市教育局'],
+  '攀枝花市': ['攀枝花市财政局', '攀枝花市人社局', '攀枝花市卫健委'],
+  '泸州市': ['泸州市财政局', '泸州市教育局', '泸州市卫健委'],
+  '德阳市': ['德阳市财政局', '德阳市人社局', '德阳市住建局'],
+  '绵阳市': ['绵阳市财政局', '绵阳市人社局', '绵阳市教育局'],
+  '广元市': ['广元市财政局', '广元市人社局', '广元市卫健委'],
+  '遂宁市': ['遂宁市财政局', '遂宁市教育局', '遂宁市人社局'],
+  '内江市': ['内江市财政局', '内江市卫健委', '内江市教育局'],
+  '乐山市': ['乐山市财政局', '乐山市人社局', '乐山市卫健委'],
+  '南充市': ['南充市财政局', '南充市教育局', '南充市人社局'],
+  '眉山市': ['眉山市财政局', '眉山市人社局', '眉山市教育局'],
+  '宜宾市': ['宜宾市财政局', '宜宾市人社局', '宜宾市卫健委'],
+  '广安市': ['广安市财政局', '广安市教育局', '广安市人社局'],
+  '达州市': ['达州市财政局', '达州市人社局', '达州市教育局'],
+  '雅安市': ['雅安市财政局', '雅安市卫健委', '雅安市人社局'],
+  '巴中市': ['巴中市财政局', '巴中市人社局', '巴中市教育局'],
+  '资阳市': ['资阳市财政局', '资阳市教育局', '资阳市人社局'],
+  '阿坝藏族羌族自治州': ['阿坝州财政局', '阿坝州人社局', '阿坝州教育局'],
+  '甘孜藏族自治州': ['甘孜州财政局', '甘孜州卫健委', '甘孜州人社局'],
+  '凉山彝族自治州': ['凉山州财政局', '凉山州教育局', '凉山州人社局']
+};
+
+function syncMine() {
+  document.getElementById('settingsLoggedIn').style.display = loggedIn ? 'block' : 'none';
+  document.getElementById('settingsLoggedOut').style.display = loggedIn ? 'none' : 'block';
+}
+function renderMine() {
+  syncMine();
+  document.getElementById('minePhone').textContent = userInfo.phone;
+  document.getElementById('mineRegion').textContent = userInfo.region;
+  document.getElementById('mineUnit').textContent = userInfo.unit;
+  document.getElementById('mineHandler').textContent = userInfo.handler || '—';
+}
+
+function openLogin() {
+  document.getElementById('loginDrawer').classList.add('open');
+}
+
+/* 免责声明勾选弹窗 */
+function openDisclaimerModal() {
+  document.getElementById('agreeDisclaimer').checked = false;
+  document.getElementById('disclaimerConfirmBtn').textContent = loggedIn ? '确认并进入' : '确认登录';
+  document.getElementById('disclaimerModal').classList.add('open');
+}
+function cancelDisclaimer() {
+  document.getElementById('disclaimerModal').classList.remove('open');
+  closeMini();
+}
+
+/* 复制PC端地址 */
+function copyPcUrl() {
+  var url = 'https://ai.3mencn.com/rag/admin/login';
+  function fallback() {
+    var ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    toast('PC端地址已复制');
+  }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(url).then(function () { toast('PC端地址已复制'); }, fallback);
+  } else {
+    fallback();
+  }
+}
+
+/* 密码显示/隐藏切换 */
+var PWD_EYE_ON = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2.2"/></svg>';
+var PWD_EYE_OFF = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><line x1="2" y1="2" x2="14" y2="14"/></svg>';
+function togglePwd(id, btn) {
+  var input = document.getElementById(id);
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.innerHTML = PWD_EYE_OFF;
+  } else {
+    input.type = 'password';
+    btn.innerHTML = PWD_EYE_ON;
+  }
+}
+function confirmDisclaimer() {
+  if (!document.getElementById('agreeDisclaimer').checked) {
+    toast('请先勾选同意《免责声明及用户保密责任提示》');
+    return;
+  }
+  document.getElementById('disclaimerModal').classList.remove('open');
+  if (!loggedIn && pendingReg) {
+    var p = pendingReg;
+    pendingReg = null;
+    var isNew = registeredPhones.indexOf(p.phone) < 0;
+    if (isNew) registeredPhones.push(p.phone);
+    doLogin(p.phone, p.region, p.unit, p.handler, p.password);
+    toast(isNew ? '注册成功，已自动登录' : '登录成功');
+  }
+}
+function closeLoginDrawer() {
+  document.getElementById('loginDrawer').classList.remove('open');
+}
+
+/* 免责声明及用户保密责任提示 */
+function openDisclaimer() {
+  document.getElementById('disclaimerView').classList.add('open');
+}
+function closeDisclaimer() {
+  document.getElementById('disclaimerView').classList.remove('open');
+}
+
+/* 微信授权（抽屉）→ 验证手机号 → 打开区域/单位选择抽屉 */
+function verifyPhone() {
+  var phone = document.getElementById('wechatPhone').value.trim();
+  if (!/^1\d{10}$/.test(phone)) { toast('请输入正确的手机号'); return; }
+  closeLoginDrawer();
+  document.getElementById('regPhone').value = phone;
+  populateRegions();
+  // 已注册用户：预选保存过的区域和单位
+  var profile = savedProfiles[phone];
+  if (profile) {
+    document.getElementById('regRegion').value = profile.region;
+    onRegionChange();
+    if (profile.dept) {
+      var dr = document.querySelector('input[name="regDept"][value="' + profile.dept + '"]');
+      if (dr) { dr.checked = true; }
+    }
+    onDeptChange();
+    document.getElementById('regUnit').value = profile.unit;
+  }
+  document.getElementById('regionBtn').textContent = '下一步';
+  document.getElementById('regionDrawer').classList.add('open');
+}
+
+/* 区域 → 单位 联动 */
+function populateRegions() {
+  var sel = document.getElementById('regRegion');
+  sel.innerHTML = '<option value="">请选择区域</option>';
+  Object.keys(regionUnits).forEach(function (r) {
+    var o = document.createElement('option');
+    o.value = r;
+    o.textContent = r;
+    sel.appendChild(o);
+  });
+  var u = document.getElementById('regUnit');
+  u.value = '';
+  u.disabled = true;
+  u.placeholder = '请先选择区域和部门';
+  document.getElementById('regUnitOptions').innerHTML = '';
+  var radios = document.querySelectorAll('input[name="regDept"]');
+  for (var i = 0; i < radios.length; i++) radios[i].checked = false;
+}
+function onRegionChange() {
+  var region = document.getElementById('regRegion').value;
+  var u = document.getElementById('regUnit');
+  var dl = document.getElementById('regUnitOptions');
+  dl.innerHTML = '';
+  u.value = '';
+  u.disabled = true;
+  u.placeholder = '请先选择部门';
+  var radios = document.querySelectorAll('input[name="regDept"]');
+  for (var i = 0; i < radios.length; i++) radios[i].checked = false;
+  if (region) {
+    regionUnits[region].forEach(function (n) {
+      var o = document.createElement('option');
+      o.value = n;
+      o.textContent = n;
+      dl.appendChild(o);
+    });
+  }
+}
+function onDeptChange() {
+  var region = document.getElementById('regRegion').value;
+  var u = document.getElementById('regUnit');
+  var dept = document.querySelector('input[name="regDept"]:checked');
+  if (!region || !dept) return;
+  u.disabled = false;
+  u.placeholder = '可下拉选择或手动输入单位';
+}
+
+/* 确认区域和单位 → 登录（未注册则注册后自动登录） */
+function submitRegionUnit() {
+  var phone = document.getElementById('regPhone').value;
+  var region = document.getElementById('regRegion').value;
+  var unit = document.getElementById('regUnit').value.trim();
+  var handler = document.getElementById('regHandler').value.trim();
+  var pwd = document.getElementById('regPwd').value;
+  var pwd2 = document.getElementById('regPwd2').value;
+  var deptInput = document.querySelector('input[name="regDept"]:checked');
+  var dept = deptInput ? deptInput.value : '';
+  if (!region) { toast('请选择区域'); return; }
+  if (!dept) { toast('请选择部门'); return; }
+  if (!unit) { toast('请选择或输入单位'); return; }
+  if (!handler) { toast('请输入经办人姓名'); return; }
+  if (!pwd) { toast('请设置登录密码'); return; }
+  if (pwd.length < 8) { toast('密码需至少8位字符'); return; }
+  if (/[\u4e00-\u9fa5]/.test(pwd)) { toast('密码不能包含中文'); return; }
+  if (!/[A-Z]/.test(pwd)) { toast('密码需包含大写字母(A-Z)'); return; }
+  if (!/[a-z]/.test(pwd)) { toast('密码需包含小写字母(a-z)'); return; }
+  if (!/[0-9]/.test(pwd)) { toast('密码需包含数字(0-9)'); return; }
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) { toast('密码需包含特殊字符(!@#$%...)'); return; }
+  if (pwd !== pwd2) { toast('两次输入的密码不一致'); return; }
+  savedProfiles[phone] = { region: region, unit: unit, dept: dept };
+  pendingReg = { phone: phone, region: region, unit: unit, dept: dept, handler: handler, password: pwd };
+  closeRegionDrawer();
+  // 进入免责声明勾选弹窗，勾选同意后点击“确认登录”完成登录
+  openDisclaimerModal();
+}
+function closeRegionDrawer() {
+  document.getElementById('regionDrawer').classList.remove('open');
+}
+
+/* 登录成功：恢复账号信息与全部功能 */
+function doLogin(phone, region, unit, handler, password) {
+  loggedIn = true;
+  userInfo.phone = phone;
+  if (region) userInfo.region = region;
+  if (unit) userInfo.unit = unit;
+  if (handler) userInfo.handler = handler;
+  if (password) userInfo.password = password;
+  renderMine();
+  // 恢复输入框与发送按钮
+  [['inputAI', '请输入您的问题…'], ['inputDirect', '请输入…'], ['inputGroup', '发言…']].forEach(function (p) {
+    var el = document.getElementById(p[0]);
+    el.disabled = false;
+    el.value = '';
+    el.placeholder = p[1];
+  });
+  ['sendAI', 'sendDirect', 'sendGroup', 'voiceDirect', 'voiceGroup'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.disabled = false;
+  });
+  ['newChatAI', 'histAI'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.disabled = false;
+  });
+  // 恢复聊天区
+  document.getElementById('chatAI').innerHTML = '';
+  renderActiveSession('ai');
+  document.getElementById('chatDirect').innerHTML = '';
+  addMsg('chatDirect', 'ai', '在线客服', '您好，我是人工客服，请问有什么可以帮您？', '客', '#3a7d44');
+  document.getElementById('chatGroup').innerHTML = '';
+  // 恢复文件下载与未读徽标
+  renderFiles();
+  restoreBadges();
+}
+function restoreBadges() {
+  tabConsultUnread = 6;
+  [['metaKefu', 'badgeKefu', '2'], ['metaGroup0', 'badgeGroup0', '3'], ['metaGroup1', 'badgeGroup1', '1']].forEach(function (p) {
+    var parent = document.getElementById(p[0]);
+    if (!parent || document.getElementById(p[1])) return;
+    var b = document.createElement('span');
+    b.className = 'badge';
+    b.id = p[1];
+    b.textContent = p[2];
+    parent.appendChild(b);
+  });
+  var tabItem = document.querySelector('.tab-item[data-page="consult"]');
+  if (tabItem && !document.getElementById('tabBadgeConsult')) {
+    var tb = document.createElement('span');
+    tb.className = 'tab-badge';
+    tb.id = 'tabBadgeConsult';
+    tb.textContent = '6';
+    tabItem.insertBefore(tb, tabItem.firstChild);
+  }
+}
+
+/* ================= 事件绑定 ================= */
+document.getElementById('btnBack').addEventListener('click', goBack);
+document.getElementById('sendAI').addEventListener('click', sendAI);
+document.getElementById('sendDirect').addEventListener('click', sendDirect);
+document.getElementById('sendGroup').addEventListener('click', sendGroup);
+document.getElementById('voiceDirect').addEventListener('click', sendVoiceDirect);
+document.getElementById('voiceGroup').addEventListener('click', sendVoiceGroup);
+
+[['inputAI', sendAI], ['inputDirect', sendDirect], ['inputGroup', sendGroup]].forEach(function (pair) {
+  var el = document.getElementById(pair[0]);
+  if (el) el.addEventListener('keydown', function (e) { if (e.key === 'Enter') pair[1](); });
+});
+
+document.getElementById('btnShare').addEventListener('click', function () { toast('转发给朋友'); });
+/* 关闭胶囊：返回公众号主页 */
+document.getElementById('btnClose').addEventListener('click', closeMini);
+
+/* 初始化导航栏 */
+renderNav();
+/* 初始化 AI 会话 */
+initSessions();
+/* 初始化我的页面登录状态 */
+syncMine();
+</script>
+</body>
+</html>

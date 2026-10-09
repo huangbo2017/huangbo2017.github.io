@@ -1,0 +1,2340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>四川省事业单位工资管理系统 — AI智能经办</title>
+<style>
+  :root{
+    --c-primary:#1890FF;
+    --c-primary-h:#40A9FF;
+    --c-header:#389AF0;
+    --c-page-bg:#F0F2F5;
+    --c-line:#F0F0F0;
+    --c-text:#303030;
+    --c-text-strong:#262626;
+    --c-text-muted:#8B8B8B;
+    --c-crumb:#595959;
+    --c-danger:#FF4D4F;
+    --c-menu-active:#D7EBFC;
+    --c-row-selected:#E6F7FF;
+    --c-thead-left:#F5F5F5;
+    --c-thead-right:#FAFAFA;
+    --c-foot:#4CA4F1;
+    --sb-w:224px;
+    --scroll:#8B8B8B;
+    --font:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);
+    color:var(--c-text);
+    background:#fff;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ---- 画布尺寸：改这两行即可整体调整页面大小 ---- */
+  .app{
+    position:relative;
+    width:1900px;height:950px;
+    display:flex;flex-direction:column;
+    overflow:hidden;background:#fff;
+  }
+
+  /* ============ 1. 顶栏 ============ */
+  .topbar{
+    flex:0 0 63px;height:63px;background:var(--c-header);
+    display:flex;align-items:center;justify-content:space-between;
+    position:relative;z-index:5;
+  }
+  .brand{margin-left:-1px;color:#fff;font-size:20px;line-height:1;white-space:nowrap}
+  .brand em{font-style:normal;font-size:14px;margin-left:5px}
+  .topbar-links{display:flex;align-items:baseline;gap:13px;padding-right:46px}
+  .topbar-links a{color:#fff;text-decoration:none;font-size:15px;line-height:22px;white-space:nowrap}
+  .topbar-links a:last-child{font-size:17px}
+  .topbar-links a:hover{text-decoration:underline}
+  .topbar-shadow{
+    position:absolute;left:0;top:63px;width:100%;height:13px;z-index:6;pointer-events:none;
+    background:linear-gradient(to bottom,#C5C6C9 0%,#D5D7DA 25%,#E4E6E9 55%,#F7F7F8 85%,#FFFFFF 100%);
+  }
+
+  /* ============ 2. 主体 ============ */
+  .body{flex:1;display:flex;min-height:0}
+
+  /* ---------- 左侧栏 ---------- */
+  .sidebar{
+    flex:0 0 var(--sb-w);width:var(--sb-w);
+    background:#fff;position:relative;display:flex;flex-direction:column;
+    overflow:visible;z-index:20;
+  }
+  .sb-id{
+    flex:0 0 41px;height:41px;display:flex;align-items:center;
+    padding-left:27px;padding-bottom:6px;gap:3px;
+  }
+  .sb-id span{font-size:16px;line-height:20px;color:var(--c-text-strong);letter-spacing:0}
+  .sb-copy{width:17px;height:15px;flex:0 0 17px;color:var(--c-primary);cursor:pointer}
+  .sb-plan{
+    flex:0 0 32px;height:32px;display:flex;align-items:center;justify-content:center;
+    font-size:20px;line-height:24px;color:var(--c-text-strong);
+  }
+
+  .menu{list-style:none;margin:0;padding:0;position:relative}
+  .menu li{
+    height:45px;display:flex;align-items:center;
+    padding-left:20px;position:relative;cursor:pointer;
+  }
+  .menu li::before{
+    content:"";position:absolute;left:0;right:19px;top:2px;bottom:3px;
+    background:transparent;pointer-events:none;
+  }
+  .menu li.active::before{background:var(--c-menu-active)}
+  .menu li:hover:not(.active)::before{background:#F2F7FD}
+  .menu .ico{
+    width:24px;height:24px;flex:0 0 24px;position:relative;z-index:1;
+    color:#303030;transform:scale(1.16);
+  }
+  .menu .txt{
+    margin-left:12px;position:relative;z-index:1;
+    font-size:17px;line-height:22px;color:#333;white-space:nowrap;
+  }
+  /* 原图中「AI智能经办」这一行没有图标，文字单独内缩 */
+  .menu li.active{padding-left:33px}
+  .menu li.active .ico{display:none}
+  .menu li.active .txt{margin-left:0;color:#1F1F1F}
+  .record-menu-arrow{position:absolute;right:25px;top:50%;z-index:2;transform:translateY(-52%);font-size:23px;line-height:1;color:#666;transition:transform .16s ease}
+  #recordMenu.active .record-menu-arrow{color:#333}
+  #recordMenu.submenu-open .record-menu-arrow{transform:translateY(-52%) rotate(180deg)}
+  .record-submenu{position:absolute;left:calc(100% + 2px);top:0;z-index:80;width:252px;padding:0;background:#fff;border:1px solid #D9D9D9;box-shadow:0 4px 14px rgba(0,0,0,.16);display:none;cursor:default}
+  #recordMenu.submenu-open>.record-submenu,.record-submenu.open{display:block}
+  .record-submenu::before{content:"";position:absolute;left:-8px;top:0;width:10px;height:92px;background:transparent}
+  .record-submenu button{width:100%;height:46px;padding:0 18px;border:0;background:#fff;display:flex;align-items:center;gap:12px;color:#333;font:16px var(--font);white-space:nowrap;cursor:pointer;text-align:left}
+  .record-submenu button:hover,.record-submenu button.active{background:#D7EBFC}
+  .record-submenu svg{width:23px;height:23px;flex:0 0 23px;color:#333}
+
+  /* 侧栏底部：滚动条（按原图 1:1 绘制）+ 版本号 + 返回条 */
+  /* 侧栏底部：滚动条（按原图 1:1 绘制）+ 版本号 + 返回条 —— 全部贴底，页面变高时自动下移 */
+  .sb-vscroll{
+    position:absolute;left:210px;top:78px;bottom:122px;width:11px;
+    display:flex;flex-direction:column;pointer-events:none;
+  }
+  .sb-vscroll i{display:block;width:11px;background:var(--scroll);flex:0 0 auto}
+  .sb-vscroll .arw{height:10px;border-radius:2px}
+  .sb-vscroll .thumb{height:555px;border-radius:1px;margin-top:7px}
+  .sb-vscroll .arw.down{margin-top:auto}
+  .sb-hscroll{position:absolute;left:7px;bottom:101px;width:198px;height:12px;pointer-events:none}
+  .sb-hscroll i{display:block;background:var(--scroll)}
+  .sb-hscroll .arw{position:absolute;top:0;width:10px;height:12px;border-radius:50%}
+  .sb-hscroll .arw.l{left:0}
+  .sb-hscroll .arw.r{left:184px}
+  .sb-hscroll .thumb{position:absolute;left:15px;top:0;width:148px;height:12px;border-radius:6px}
+  .sb-version{
+    position:absolute;left:0;right:0;bottom:47px;height:27px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;line-height:17px;color:var(--c-text-strong);
+  }
+  .sb-back{
+    position:absolute;left:0;right:0;bottom:0;height:48px;background:var(--c-foot);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:20px;line-height:24px;cursor:pointer;
+  }
+  .sb-back:hover{background:#3E97E8}
+
+  /* ---------- 右侧主区 ---------- */
+  .main{
+    flex:1;min-width:0;background:var(--c-page-bg);
+    padding:0 6px 4px 6px;display:flex;flex-direction:column;
+  }
+  .crumb{
+    flex:0 0 41px;height:41px;background:#fff;position:relative;
+    display:flex;align-items:center;
+  }
+  .crumb .loc{margin-left:15px;position:relative;top:2px;font-size:15px;line-height:20px;color:#595959;white-space:nowrap}
+  .crumb .loc b{font-weight:400;color:#4A4A4A}
+  .btn-primary{
+    position:absolute;right:13px;top:6px;z-index:7;
+    height:35px;padding:0 12px;background:var(--c-primary);color:#fff;
+    border:0;border-radius:4px;font-family:var(--font);font-size:16px;line-height:35px;
+    cursor:pointer;white-space:nowrap;
+  }
+  .btn-primary:hover{background:var(--c-primary-h)}
+
+  .content{flex:1;min-height:0;background:#fff;margin-top:7px;position:relative}
+
+  /* 左卡片：选择经办业务 */
+  .biz-card{position:absolute;left:0;top:0;width:300px}
+  .biz-card h3{
+    margin:0;padding-left:1px;height:20px;line-height:20px;
+    font-size:15px;font-weight:400;color:var(--c-text-strong);
+  }
+  .biz-table{
+    margin-top:19px;border:1px solid var(--c-line);border-bottom:0;
+    width:100%;border-collapse:collapse;table-layout:fixed;
+  }
+  .biz-table th,.biz-table td{
+    height:44px;padding:0 0 3px 16px;text-align:left;
+    font-size:15px;line-height:20px;font-weight:400;color:var(--c-text-strong);
+    border-bottom:1px solid var(--c-line);background:#fff;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .biz-table th{height:45px;background:var(--c-thead-left);color:#1F1F1F}
+  .biz-table td{height:42px}
+  .biz-table col.c1{width:178px}
+  .biz-table tbody tr{cursor:pointer}
+  .biz-table tbody tr.selected td{background:var(--c-row-selected)}
+
+  /* 右卡片：任务列表 */
+  .task-card{
+    position:absolute;left:320px;right:0;top:0;bottom:0;
+    border:1px solid var(--c-line);background:#fff;
+  }
+  /* 左侧独立业务页：不再经过任务列表，直接呈现完整经办工作区 */
+  .content.standalone-page .biz-card,.content.standalone-page .task-card{display:none}
+  .standalone-workbench{display:none;position:absolute;inset:0;border:1px solid var(--c-line);background:#fff;overflow:hidden}
+  .content.standalone-page .standalone-workbench{display:flex;flex-direction:column}
+  .standalone-workbench-hd{flex:0 0 48px;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid #E8E8E8;background:#fff}
+  .standalone-workbench-hd h3{margin:0;font-size:16px;font-weight:600;color:#262626}
+  .standalone-workbench-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .standalone-workbench-bd{flex:1;min-height:0;overflow:auto;padding:14px 26px 32px}
+  .standalone-workbench-bd>.person-fill-view,.standalone-workbench-bd>.change-fill-view{min-height:100%}
+  .standalone-workbench-bd .change-flow-row{display:none}
+
+  /* ===================== 变动记录调整页面 ===================== */
+  .content.record-page .biz-card,.content.record-page .task-card,.content.record-page .standalone-workbench{display:none}
+  .record-workspace{display:none;position:absolute;inset:0;background:#fff;overflow:hidden}
+  .content.record-page .record-workspace{display:block}
+  .record-view{display:none;width:100%;height:100%;min-height:0;background:#fff}
+  .record-view.active{display:flex}
+  .record-person-view{min-height:0}
+  .rp-people{flex:0 0 378px;width:378px;border-right:1px solid #E5E5E5;display:flex;flex-direction:column;min-width:0}
+  .rp-filter{flex:0 0 84px;padding:10px 8px 7px;border-bottom:1px solid #E8E8E8;display:grid;grid-template-columns:1fr 1fr;gap:7px 8px}
+  .rp-field{display:flex;align-items:center;gap:6px;min-width:0;font-size:13px;color:#333}.rp-field label{white-space:nowrap}.rp-field .inp,.rp-field .sel{height:30px;min-width:0;font-size:13px}.rp-search{grid-column:1/-1;display:flex;gap:7px}.rp-search .inp{flex:1}.rp-search button{height:30px;padding:0 12px;border:1px solid #D9D9D9;background:#fff;color:#595959;cursor:pointer}
+  .rp-table-wrap{flex:1;min-height:0;overflow:auto}.rp-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}.rp-table th,.rp-table td{height:42px;padding:0 9px;border-right:1px solid #ECECEC;border-bottom:1px solid #ECECEC;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rp-table th{height:38px;background:#FAFAFA;font-weight:500}.rp-table tr{cursor:pointer}.rp-table tr.active td{background:#79BDF2;color:#fff}
+  .rp-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}.rp-history{flex:0 0 230px;display:flex;flex-direction:column;padding:8px 10px 0;min-height:0}.rp-history-filter{display:flex;align-items:center;gap:14px;margin-bottom:8px}.rp-history-filter .rp-field{min-width:370px}.rp-history-table-wrap{flex:1;min-height:0;overflow:auto;border:1px solid #E8E8E8}.rp-history-table{width:1440px;border-collapse:collapse;table-layout:fixed;font-size:12px}.rp-history-table th,.rp-history-table td{height:43px;padding:0 10px;border-right:1px solid #ECECEC;border-bottom:1px solid #ECECEC;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rp-history-table th{height:37px;background:#FAFAFA;font-weight:600}.rp-history-table tr.active td{background:#79BDF2}.rp-record-actions{height:48px;display:flex;align-items:center;gap:10px}.rp-check{display:flex;align-items:center;gap:6px;font-size:13px}.record-btn{height:30px;padding:0 14px;border:1px solid #D9D9D9;background:#fff;color:#595959;font:13px var(--font);cursor:pointer}.record-btn.primary{background:#1890FF;border-color:#1890FF;color:#fff}.record-btn.danger{background:#FF4D4F;border-color:#FF4D4F;color:#fff}.record-btn.ai-result{border-color:#91CAFF;color:#1677FF;background:#F0F8FF}.record-btn.ai-result:hover{border-color:#1677FF;background:#E6F4FF}.record-btn:disabled{background:#F5F5F5;color:#BFBFBF;cursor:not-allowed}
+  .rp-detail{flex:1;min-height:0;border-top:1px solid #E8E8E8;display:flex;flex-direction:column;padding:0 10px 18px}.rp-detail-title{height:44px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#333}.rp-detail-bar{display:flex;align-items:center;gap:22px;padding:0 10px 10px}.rp-detail-bar .rp-field{flex:1}.rp-detail-tabs{height:40px;display:flex;align-items:flex-end;border-top:3px solid #E9F4FC;border-bottom:1px solid #E8E8E8}.rp-detail-tabs span{height:36px;padding:0 12px;line-height:36px;border-right:1px solid #E8E8E8;font-size:12px;white-space:nowrap}.rp-detail-tabs span.active{color:#1890FF;background:#F3FAFF}.rp-form-scroll{flex:1;min-height:0;overflow:auto;padding:18px 12px}.rp-form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 28px}.rp-form-section{min-width:0}.rp-form-section h4{margin:0 0 14px;padding-left:9px;border-left:4px solid #D90F28;font-size:14px;color:#111}.rp-form-row{display:flex;align-items:center;margin-bottom:13px;gap:8px;font-size:12px}.rp-form-row label{flex:0 0 92px;text-align:right;color:#333}.rp-form-row label.req:before{content:'*';color:#FF4D4F;margin-right:3px}.rp-form-row .inp,.rp-form-row .sel{height:32px;font-size:12px;background:#F7F7F7}.rp-form-row .ta{min-height:78px;font-size:12px;background:#F7F7F7}
+  .record-unit-view{flex-direction:column;padding:12px 14px 10px}.ru-filter-title,.ru-list-title{height:28px;margin:0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:7px}.ru-filter-title:before,.ru-list-title:before{content:'';width:4px;height:18px;background:#4169E1}.ru-filters{display:grid;grid-template-columns:1.15fr 1.8fr .8fr;gap:8px 30px;margin:4px 0 10px}.ru-field{display:flex;align-items:center;gap:8px;min-width:0;font-size:13px}.ru-field label{flex:0 0 auto;white-space:nowrap}.ru-field .inp,.ru-field .sel{height:32px;font-size:13px}.ru-tags{height:32px;flex:1;border:1px solid #D9D9D9;padding:3px 6px;display:flex;align-items:center;gap:5px;overflow:hidden}.ru-tags span{height:24px;padding:0 7px;background:#F5F5F5;line-height:24px;white-space:nowrap}.ru-reset{height:32px;padding:0 14px;border:1px solid #D9D9D9;background:#fff;cursor:pointer}.ru-toolbar{height:44px;display:flex;align-items:center;gap:12px}.ru-table-shell{flex:1;min-height:0;border:1px solid #E8E8E8;overflow:auto;position:relative}.ru-table{width:3973px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:12px}.ru-table th,.ru-table td{height:44px;padding:0 9px;border-right:1px solid #ECECEC;border-bottom:1px solid #ECECEC;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#fff}.ru-table th{height:38px;background:#FAFAFA;font-weight:600;position:sticky;top:0;z-index:5}.ru-table .sticky-check,.ru-table .sticky-code,.ru-table .sticky-name,.ru-table .sticky-operation{position:sticky;background:#fff}.ru-table .sticky-check{left:0;z-index:7}.ru-table .sticky-code{left:38px;z-index:6}.ru-table .sticky-name{left:128px;z-index:6;box-shadow:7px 0 9px -8px rgba(0,0,0,.38)}.ru-table .sticky-operation{right:0;z-index:6;text-align:center;box-shadow:-7px 0 9px -8px rgba(0,0,0,.38)}.ru-table th.sticky-check,.ru-table th.sticky-code,.ru-table th.sticky-name,.ru-table th.sticky-operation{background:#FAFAFA;z-index:9}.ru-table .link{color:#1890FF}.ru-result-link{border:0;background:transparent;color:#1677FF;font:12px var(--font);cursor:pointer;padding:4px 6px}.ru-result-link:hover{text-decoration:underline}.ru-footer{height:46px;display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:12px}.ru-footer a{color:#1890FF;text-decoration:none}.ru-page{width:28px;height:28px;border:1px solid #91CAFF;color:#1890FF;background:#fff}
+  .record-ai-mask{position:absolute;inset:0;z-index:92;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease}
+  .record-ai-mask.open{opacity:1;visibility:visible}
+  .record-ai-dialog{width:1180px;max-width:94%;height:760px;max-height:90%;display:flex;flex-direction:column;background:#fff;border-radius:4px;box-shadow:0 14px 44px rgba(0,0,0,.24);overflow:hidden;transform:translateY(8px);transition:transform .2s ease}
+  .record-ai-mask.open .record-ai-dialog{transform:translateY(0)}
+  .record-ai-hd{flex:0 0 52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E8E8E8;background:#FAFBFC}
+  .record-ai-hd h3{margin:0;font-size:17px;font-weight:600;color:#262626}.record-ai-close{width:30px;height:30px;border:0;background:transparent;color:#8C8C8C;font-size:22px;cursor:pointer}
+  .record-ai-bd{flex:1;min-height:0;overflow:auto;padding:18px 20px;background:#fff}
+  .record-ai-ft{flex:0 0 56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-top:1px solid #E8E8E8;background:#fff}.record-ai-ft .hint{color:#8C8C8C;font-size:12px}.record-ai-ft button{height:32px;padding:0 18px;border:1px solid #1677FF;background:#1677FF;color:#fff;cursor:pointer}
+
+  .task-card h3{ 
+    position:absolute;left:17px;top:12px;margin:0;
+    height:20px;line-height:20px;font-size:15px;font-weight:400;color:var(--c-text-strong);
+  }
+  .task-card .btn-primary{right:31px;top:19px;height:35px;line-height:35px}
+
+  .task-table{
+    position:absolute;left:16px;top:60px;
+    width:1309px;border-collapse:collapse;table-layout:fixed;
+  }
+  .task-table th,.task-table td{
+    border:1px solid var(--c-line);text-align:left;
+    padding:0 0 3px 12px;font-size:15px;line-height:20px;font-weight:400;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    color:var(--c-text-strong);background:#fff;
+  }
+  .task-table th{height:46px;background:var(--c-thead-right);color:#1F1F1F}
+  .task-table td{height:42px}
+  .task-table col.c1{width:83px}
+  .task-table col.c2{width:107px}
+  .task-table col.c3{width:180px}
+  .task-table col.c4{width:200px}
+  .task-table col.c5{width:132px}
+  .task-table col.c6{width:131px}
+  .task-table col.c7{width:224px}
+  .task-table col.c8{width:243px}
+  .task-pagination{
+    position:absolute;left:16px;right:31px;bottom:18px;height:34px;
+    display:flex;align-items:center;justify-content:flex-end;gap:8px;
+    color:#595959;font-size:13px;
+  }
+  .page-size{height:30px;min-width:92px;padding:0 28px 0 9px;border:1px solid #D9D9D9;border-radius:2px;background-color:#fff;color:#595959;font:13px var(--font)}
+  .page-btn{min-width:30px;height:30px;padding:0 9px;border:1px solid #D9D9D9;border-radius:2px;background:#fff;color:#595959;font:13px var(--font);cursor:pointer}
+  .page-btn:hover:not(:disabled),.page-btn.active{border-color:#1890FF;color:#1890FF;background:#F0F8FF}
+  .page-btn.active{background:#1890FF;color:#fff}
+  .page-btn:disabled{color:#BFBFBF;background:#FAFAFA;cursor:not-allowed}
+  .page-pages{display:flex;align-items:center;gap:6px}
+  .page-summary{margin-right:4px;color:#8C8C8C}
+
+  .link-blue{color:var(--c-primary);text-decoration:none;cursor:pointer}
+  .link-blue:hover{text-decoration:underline}
+  .link-red{color:var(--c-danger);text-decoration:none;cursor:pointer;margin-left:18px}
+  .link-red:hover{text-decoration:underline}
+  .delete-popconfirm{position:absolute;z-index:95;width:250px;padding:12px;border:1px solid #E8E8E8;border-radius:4px;background:#fff;box-shadow:0 6px 22px rgba(0,0,0,.16);display:none}
+  .delete-popconfirm.open{display:block}
+  .delete-popconfirm:after{content:'';position:absolute;right:24px;bottom:-6px;width:10px;height:10px;border-right:1px solid #E8E8E8;border-bottom:1px solid #E8E8E8;background:#fff;transform:rotate(45deg)}
+  .delete-popconfirm p{margin:0 0 10px;color:#595959;font-size:13px;line-height:20px}
+  .delete-popconfirm p:before{content:'!';display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;margin-right:6px;border-radius:50%;background:#FAAD14;color:#fff;font-size:11px;font-weight:700}
+  .delete-popconfirm-actions{display:flex;justify-content:flex-end;gap:8px}
+  .delete-popconfirm-actions button{height:26px;padding:0 10px;border:1px solid #D9D9D9;border-radius:2px;background:#fff;color:#595959;font:12px var(--font);cursor:pointer}
+  .delete-popconfirm-actions .confirm{border-color:#FF4D4F;background:#FF4D4F;color:#fff}
+
+  /* ===================== 回填系统 · 右侧抽屉 ===================== */
+  .drawer-mask{
+    position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.45);
+    opacity:0;visibility:hidden;transition:opacity .28s ease,visibility .28s ease;z-index:50;
+  }
+  .app.drawer-open .drawer-mask{opacity:1;visibility:visible}
+  .drawer{
+    position:absolute;top:0;right:0;bottom:0;width:1700px;max-width:100%;
+    background:#fff;z-index:51;display:flex;flex-direction:column;
+    transform:translateX(100%);transition:transform .28s ease,box-shadow .28s ease;
+  }
+  .app.drawer-open .drawer{transform:translateX(0);box-shadow:-8px 0 28px rgba(0,0,0,.14)}
+  .drawer-hd{
+    flex:0 0 48px;height:48px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 18px;border-bottom:1px solid #E8E8E8;
+  }
+  .drawer-hd h3{margin:0;font-size:16px;font-weight:600;color:#262626}
+  .drawer-close{
+    width:30px;height:30px;border:0;background:transparent;cursor:pointer;border-radius:4px;
+    font-size:22px;line-height:1;color:#8C8C8C;display:flex;align-items:center;justify-content:center;
+  }
+  .drawer-close:hover{background:#F5F5F5;color:#262626}
+  .drawer-bd{flex:1;min-height:0;overflow:auto;padding:14px 26px 32px}
+  .drawer-bd.ai-mode{padding:0;overflow:hidden}
+  .drawer-bd.ai-mode .fill-view,.drawer-bd.ai-mode .change-fill-view{display:none}
+  .ai-view{display:none;height:100%;min-height:0;flex-direction:column;background:#fff}
+  .drawer-bd.ai-mode .ai-view{display:flex}
+  .ai-view-hd{flex:0 0 54px;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid #E8E8E8;background:#FAFBFC}
+  .ai-view-hd h4{margin:0;font-size:17px;font-weight:600;color:#262626}
+  .ai-back{height:32px;padding:0 14px;border:1px solid #91CAFF;border-radius:3px;background:#fff;color:#1677FF;font:14px var(--font);cursor:pointer}
+  .ai-back:hover{border-color:#1677FF;background:#F0F8FF}
+  .ai-view-body{flex:1;min-height:0;overflow:auto;padding:18px 20px}
+  .ai-view-ft{flex:0 0 62px;height:62px;display:none;align-items:center;justify-content:flex-end;gap:10px;padding:0 20px;border-top:1px solid #F0F0F0;background:#fff}
+  .ai-view-ft .hint{margin-right:auto;font-size:13px;line-height:18px;color:#8C8C8C}
+  .ai-view-ft .ghost{background:#fff;color:#1677FF;border:1px solid #91CAFF}
+  .ai-view-ft .danger{background:#fff;color:#FF4D4F;border:1px solid #FF7875}
+
+  /* --- 顶部操作条 --- */
+  .fill-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;padding-bottom:14px;border-bottom:1px solid #F0F0F0}
+  .fb-item{display:flex;align-items:center;min-width:0}
+  .fb-item>label{flex:0 0 auto;font-size:14px;line-height:20px;color:#262626;white-space:nowrap}
+  .fb-item .ctrl{flex:0 0 150px;width:150px}
+  .attach-count{font-size:14px;line-height:20px;color:#262626;white-space:nowrap;margin-left:12px}
+
+  /* --- 页签 --- */
+  .tab-row{display:flex;align-items:flex-end;border-bottom:1px solid #F0F0F0;padding-top:14px}
+  .tab{position:relative;padding-bottom:10px;margin-right:26px;font-size:15px;line-height:22px;color:#262626;cursor:pointer;white-space:nowrap}
+  .tab.active{color:var(--c-primary)}
+  .tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--c-primary)}
+  .subtabs{margin-left:auto;display:flex;align-items:center;flex-wrap:wrap;gap:2px 20px;padding-bottom:6px}
+  .subtab{font-size:14px;line-height:20px;color:#262626;cursor:pointer;white-space:nowrap}
+  .subtab:hover{color:var(--c-primary)}
+
+  /* --- 表单 --- */
+  .form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0 30px;margin-top:22px}.fill-panel{display:none}.fill-panel.active{display:block}.panel-toolbar{display:flex;justify-content:flex-end;gap:8px;margin:18px 0 10px}.panel-card{border:1px solid #ECEFF2;border-radius:4px;overflow:auto;background:#fff}.data-grid{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}.data-grid th{height:36px;background:#FAFAFA;color:#595959;font-weight:600;border-bottom:1px solid #F0F0F0;padding:0 10px;text-align:left;white-space:nowrap}.data-grid td{height:42px;border-bottom:1px solid #F0F0F0;padding:6px 8px;color:#595959;white-space:nowrap}.data-grid tr:last-child td{border-bottom:0}.data-grid .inp,.data-grid .sel{height:30px;font-size:13px}.data-grid .mini{width:100%;height:30px;border:1px solid #D9D9D9;border-radius:2px;padding:0 8px;box-sizing:border-box;font:13px var(--font);color:#262626}.data-grid .del{color:#FF4D4F;cursor:pointer}.info-layout{margin-top:18px}.info-title{font-size:15px;font-weight:600;margin:0 0 12px;color:#262626}.info-fields{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 24px;margin-bottom:20px}.info-field{display:flex;align-items:center;gap:8px}.info-field label{flex:0 0 130px;text-align:right;font-size:13px;color:#595959}.info-field .inp,.info-field .sel{height:32px}  .fcol{min-width:0}
+  .sec{display:flex;align-items:center;gap:8px;margin:0 0 18px;font-size:15px;font-weight:700;line-height:20px;color:#000}
+  .fcol .sec:not(:first-child){margin-top:28px}
+  .sec i{flex:0 0 4px;width:4px;height:15px;background:#D90F28;border-radius:1px}
+  .frow{display:flex;align-items:flex-start;margin-bottom:26px}
+  .frow:last-child{margin-bottom:0}
+  .lb{
+    flex:0 0 100px;width:100px;padding:8px 8px 0 0;
+    font-size:14px;line-height:20px;color:#262626;text-align:right;
+  }
+  .lb .req{color:#FF4D4F;margin-right:1px}
+  .ctrl{position:relative;flex:1;min-width:0}
+
+  .inp,.sel,.ta{
+    display:block;width:100%;height:34px;box-sizing:border-box;
+    border:1px solid #D9D9D9;border-radius:2px;background:#fff;
+    font-family:var(--font);font-size:14px;color:#262626;padding:0 10px;outline:none;
+    transition:border-color .2s,box-shadow .2s;
+  }
+  .inp::placeholder,.ta::placeholder{color:#BFBFBF}
+  .inp:focus,.sel:focus,.ta:focus{border-color:#40A9FF;box-shadow:0 0 0 2px rgba(24,144,255,.12)}
+  .sel{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;padding-right:28px;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%238C8C8C' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 10px center;
+  }
+  .sel.empty{color:#BFBFBF}
+  .ctrl .cal{
+    position:absolute;right:9px;top:50%;width:14px;height:14px;margin-top:-7px;pointer-events:none;
+    background:no-repeat center/14px url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'><rect x='1' y='2.6' width='12' height='10' rx='1.4' fill='none' stroke='%23BFBFBF' stroke-width='1.2'/><path d='M1 5.6h12M4.5 1.4v2.2M9.5 1.4v2.2' stroke='%23BFBFBF' stroke-width='1.2' stroke-linecap='round'/></svg>");
+  }
+  .ta{height:auto;min-height:84px;padding:6px 10px;line-height:20px;resize:vertical}
+  .ctrl .counter{position:absolute;right:9px;bottom:5px;font-size:12px;line-height:16px;color:#BFBFBF;pointer-events:none}
+
+  .radios{display:flex;align-items:center;height:34px}
+  .rd{display:inline-flex;align-items:center;gap:7px;font-size:14px;line-height:20px;color:#262626;cursor:pointer}
+  .rd input{position:absolute;opacity:0;width:0;height:0}
+  .rd .dot{position:relative;flex:0 0 16px;width:16px;height:16px;border:1px solid #D9D9D9;border-radius:50%;background:#fff;transition:border-color .2s}
+  .rd input:checked+.dot{border-color:var(--c-primary)}
+  .rd input:checked+.dot::after{content:"";position:absolute;left:3px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--c-primary)}
+  .rd input:focus-visible+.dot{box-shadow:0 0 0 2px rgba(24,144,255,.2)}
+
+  .dw-btn{
+    height:34px;padding:0 18px;border:0;border-radius:2px;background:var(--c-primary);color:#fff;
+    font-family:var(--font);font-size:14px;line-height:34px;cursor:pointer;white-space:nowrap;
+    transition:background .2s;
+  }
+  .dw-btn:hover{background:#40A9FF}
+  .dw-btn-sm{height:28px;padding:0 12px;line-height:28px}
+
+  /* --- 工资报审附件上传 --- */
+  .fb-item.wide .ctrl{flex:0 0 auto;width:auto;min-width:260px}
+  .attach-btn{
+    height:34px;padding:0 16px;border:1px solid var(--c-primary);border-radius:2px;
+    background:#fff;color:var(--c-primary);font-family:var(--font);font-size:14px;line-height:32px;
+    cursor:pointer;white-space:nowrap;transition:all .2s;display:inline-flex;align-items:center;
+  }
+  .attach-btn:hover{background:#E6F7FF}
+  .attach-btn svg{width:14px;height:14px;margin-right:5px}
+  .attach-inline{display:flex;align-items:center;gap:10px}
+  .attach-inline .attach-count{margin-left:0}
+
+  /* --- 附件上传弹窗 --- */
+  .attach-mask{position:absolute;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease}
+  .attach-mask.open{opacity:1;visibility:visible}
+  .attach-dialog{width:920px;max-width:92%;max-height:620px;display:flex;flex-direction:column;background:#fff;border-radius:4px;box-shadow:0 12px 42px rgba(0,0,0,.22);overflow:hidden;transform:translateY(8px);transition:transform .2s ease}
+  .attach-mask.open .attach-dialog{transform:translateY(0)}
+  .attach-hd{flex:0 0 52px;height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F0F0F0}
+  .attach-hd h3{margin:0;font-size:16px;font-weight:600;color:#262626}
+  .attach-close{width:30px;height:30px;border:0;background:transparent;color:#8C8C8C;font-size:22px;line-height:1;cursor:pointer}
+  .attach-close:hover{color:#262626}
+  .attach-bd{flex:1;min-height:0;overflow:auto;padding:0 20px 2px}
+  .attach-fields{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr;gap:12px 28px;padding:20px 20px 0;margin-bottom:16px}
+  .attach-fields[hidden]{display:none}
+  .attach-field{display:flex;align-items:center;gap:10px}
+  .attach-field .lb{flex:0 0 auto;color:#595959;font-size:14px}
+  .attach-field .lb .req{color:#FF4D4F;margin-right:2px}
+  .attach-field .ctrl{flex:1;min-width:0}
+  .attach-field .sel{width:100%;height:34px;font-size:14px}
+  .attach-cats{display:flex;flex-direction:column;gap:14px}
+  .attach-cat{border:1px solid #E8E8E8}
+  .attach-cat-hd{display:flex;align-items:center;gap:14px;padding:7px 14px}
+  .attach-cat-hd .nm{flex:1;min-width:0;font-size:14px;font-weight:500;line-height:24px;color:#262626}
+  .attach-cat-hd .acts{flex:0 0 auto;display:flex;align-items:center;gap:10px}
+  .attach-cat-btn{height:32px;padding:0 14px;border:1px solid #D9D9D9;border-radius:2px;background:#fff;color:#262626;font-family:var(--font);font-size:13px;line-height:30px;cursor:pointer;white-space:nowrap;transition:all .2s}
+  .attach-cat-btn:hover{border-color:#1890FF;color:#1890FF}
+  .attach-cat-list{border-top:1px solid #F0F0F0;min-height:44px;padding:4px 14px;display:flex;flex-direction:column;justify-content:center}
+  .attach-cat-list .none{text-align:center;color:#BFBFBF;font-size:13px;line-height:36px}
+  .attach-cat-list .af{display:flex;align-items:center;gap:8px;height:32px;font-size:13px;color:#262626}
+  .attach-cat-list .af .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .attach-cat-list .af .rm{flex:0 0 auto;border:0;background:none;color:#BFBFBF;font-size:15px;line-height:1;padding:2px 5px;cursor:pointer}
+  .attach-cat-list .af .rm:hover{color:#FF4D4F}
+  .attach-hint{flex:0 0 auto;padding:2px 20px 12px;color:#FF4D4F;font-size:13px;line-height:20px}
+  .attach-ft{flex:0 0 60px;height:60px;padding:0 20px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px solid #F0F0F0}
+
+  /* --- 轻提示 --- */
+  .toast{position:absolute;left:50%;bottom:40px;z-index:120;padding:9px 18px;border-radius:2px;background:rgba(0,0,0,.78);color:#fff;font-size:13px;line-height:18px;opacity:0;visibility:hidden;transform:translate(-50%,10px);transition:opacity .22s ease,transform .22s ease,visibility .22s ease;pointer-events:none}
+  .toast.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+
+  /* ===================== 岗位变动：人员确认穿梭框 ===================== */
+  .people-mask{position:absolute;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease}
+  .people-mask.open{opacity:1;visibility:visible}
+  .people-dialog{width:1120px;max-width:94%;height:700px;max-height:88%;display:flex;flex-direction:column;background:#fff;border-radius:4px;box-shadow:0 12px 42px rgba(0,0,0,.22);overflow:hidden;transform:translateY(8px);transition:transform .2s ease}
+  .people-mask.open .people-dialog{transform:translateY(0)}
+  .people-hd{flex:0 0 48px;height:48px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;background:#389AF0;color:#fff}
+  .people-hd h3{margin:0;font-size:16px;font-weight:500}.people-close{width:30px;height:30px;border:0;background:transparent;color:#fff;font-size:22px;cursor:pointer}
+  .people-bd{flex:1;min-height:0;padding:18px 22px;display:grid;grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr);gap:12px;background:#F7F9FC}
+  .transfer-panel{min-width:0;display:flex;flex-direction:column;border:1px solid #D9D9D9;background:#fff}
+  .transfer-title{flex:0 0 42px;height:42px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E8E8E8;font-size:14px;font-weight:600;color:#262626}.transfer-title span{font-weight:400;color:#8C8C8C}
+  .people-filter{padding:12px;border-bottom:1px solid #F0F0F0;display:grid;grid-template-columns:1fr 1fr;gap:8px}.people-filter .inp,.people-filter .sel{height:30px;font-size:13px}.people-search-row{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}.people-search-row .inp{width:100%;min-width:0}.people-reset{height:30px;padding:0 14px;border:1px solid #D9D9D9;border-radius:2px;background:#fff;color:#595959;font:13px var(--font);cursor:pointer;white-space:nowrap}.people-reset:hover{border-color:#1890FF;color:#1890FF;background:#F5FAFF}
+  .people-list{flex:1;min-height:0;overflow:auto}.person-item{height:42px;padding:0 13px;display:flex;align-items:center;gap:9px;border-bottom:1px solid #F5F5F5;font-size:13px;color:#262626;cursor:pointer}.person-item:hover{background:#F5FAFF}.person-item.active{background:#E6F7FF}.person-item input{accent-color:#1890FF}.person-item .meta{margin-left:auto;color:#8C8C8C;font-size:12px}
+  .transfer-actions{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}.transfer-btn{width:36px;height:30px;border:1px solid #D9D9D9;border-radius:2px;background:#fff;color:#595959;cursor:pointer}.transfer-btn:hover{border-color:#1890FF;color:#1890FF}.transfer-btn.primary{background:#1890FF;border-color:#1890FF;color:#fff}
+  .people-shared-attach{flex:0 0 auto;padding:12px 13px;border-bottom:1px solid #F0F0F0;background:#FAFCFF}.people-shared-attach-row{display:flex;align-items:center;gap:10px}.people-shared-attach .attach-btn{height:30px;padding:0 13px;line-height:28px;font-size:13px}.people-shared-attach .attach-count{margin-left:0;font-size:13px}.people-attach-note{margin-top:8px;color:#FF4D4F;font-size:12px;line-height:18px}.selected-note{padding:10px 13px;border-top:1px solid #F0F0F0;background:#FAFAFA;color:#8C8C8C;font-size:12px;line-height:18px}
+  .people-ft{flex:0 0 58px;height:58px;padding:0 20px;display:flex;align-items:center;justify-content:flex-end;gap:10px;border-top:1px solid #E8E8E8}.ghost-btn{height:34px;padding:0 18px;border:1px solid #D9D9D9;border-radius:2px;background:#fff;color:#595959;cursor:pointer}
+
+  /* ===================== 岗位变动专用回填视图 ===================== */
+  .person-fill-view.hidden,.change-fill-view.hidden{display:none}.change-fill-view{min-height:100%;font-size:14px}.change-flow-row{display:flex;align-items:center;justify-content:flex-end;margin-bottom:16px;border-bottom:1px solid #E8E8E8;padding:2px 0 16px}.change-flow-actions{display:flex;align-items:center;gap:8px}
+  .change-section{margin-bottom:18px}.change-section-title{height:34px;display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:15px;font-weight:600;color:#262626}.change-section-title:before{content:'';width:4px;height:16px;border-radius:1px;background:#1677FF}.selected-summary{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #E8E8E8;background:#FAFCFF}.selected-summary strong{color:#1677FF;font-size:18px}.change-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;padding:12px 14px;border:1px solid #E8E8E8;border-bottom:0;background:#FAFAFA}.change-toolbar label{color:#595959}.change-toolbar .inp,.change-toolbar .sel{width:150px;height:32px}.change-toolbar .date-range{width:210px}.change-table-wrap{border:1px solid #E8E8E8;overflow:auto}.change-table{width:2038px;border-collapse:collapse;table-layout:fixed;font-size:13px}.change-table th{height:44px;padding:0 8px;background:#F5F7FA;color:#595959;border-right:1px solid #E8E8E8;border-bottom:1px solid #E8E8E8;text-align:center;font-weight:500;white-space:normal;line-height:18px}.change-table td{height:48px;padding:6px 8px;border-right:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0;text-align:center;color:#595959;white-space:nowrap;vertical-align:middle}.change-table .before{background:#FFFBEF}.change-table .after{background:#F0F8FF}.change-table .mini{width:100%;height:30px;border:1px solid #D9D9D9;border-radius:2px;padding:0 6px;font:13px var(--font);color:#262626}
+  .change-table .mini::placeholder{color:#BFBFBF}
+  .change-table .mini.empty{color:#BFBFBF}
+  .change-table th .req{color:#FF4D4F;margin-right:1px;font-weight:400}
+  .change-table .cell-ctrl{position:relative;display:block}
+  .change-table .cell-ctrl .cal{position:absolute;right:7px;top:50%;width:14px;height:14px;margin-top:-7px;pointer-events:none;background:no-repeat center/14px url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'><rect x='1' y='2.6' width='12' height='10' rx='1.4' fill='none' stroke='%23BFBFBF' stroke-width='1.2'/><path d='M1 5.6h12M4.5 1.4v2.2M9.5 1.4v2.2' stroke='%23BFBFBF' stroke-width='1.2' stroke-linecap='round'/></svg>")}
+  .change-table .dt-native{position:absolute;right:0;top:0;width:26px;height:100%;padding:0;border:0;opacity:0;cursor:pointer}
+  .change-table .cell-ctrl.err .mini{border-color:#FF4D4F}
+  .change-table .mini-err{display:block;margin-top:4px;color:#FF4D4F;font-size:12px;line-height:16px;text-align:center;white-space:normal}
+  .change-table .mini-err[hidden]{display:none}
+  .change-table .row-del{color:#FF4D4F;font-size:13px;text-decoration:none}
+  .change-table .row-del:hover{text-decoration:underline}
+  .change-table .sticky-l1,.change-table .sticky-l2,.change-table .sticky-r{position:sticky;z-index:2;background:#fff}
+  .change-table th.sticky-l1,.change-table th.sticky-l2,.change-table th.sticky-r{background:#F5F7FA;z-index:4}
+  .change-table .sticky-l1{left:0}
+  .change-table .sticky-l2{left:56px;box-shadow:6px 0 8px -6px rgba(0,0,0,.16)}
+  .change-table .sticky-r{right:0;box-shadow:-6px 0 8px -6px rgba(0,0,0,.16)}.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;padding:14px;border:1px solid #E8E8E8}.doc-field{display:flex;align-items:flex-start;gap:10px}.doc-field>label{flex:0 0 112px;padding-top:7px;text-align:right;color:#595959}.doc-field.full{grid-column:1/-1}.doc-field .ctrl{max-width:520px}.change-actions{display:flex;align-items:center;justify-content:flex-end;padding:14px 0 4px}.change-actions .hint{margin-right:auto;color:#8C8C8C;font-size:13px}
+
+  /* ===================== AI校验等待 / 校验结果大弹窗 ===================== */
+  .vmodal-mask{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:60;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease}
+  .vmodal-mask.open{opacity:1;visibility:visible}
+  .vmodal{width:1600px;max-width:96%;height:840px;max-height:92%;background:#fff;border-radius:3px;box-shadow:0 12px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;overflow:hidden;transform:translateY(8px) scale(.99);transition:transform .2s ease}
+  .vmodal-mask.open .vmodal{transform:translateY(0) scale(1)}
+  .vm-hd{flex:0 0 50px;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid #F0F0F0;background:#FAFBFC}
+  .vm-hd h3{margin:0;font-size:18px;font-weight:600;color:#1F1F1F;display:flex;align-items:center;gap:9px}
+  .vm-hd h3:before{content:'▣';font-size:17px;color:#D99B62}
+  .vm-subtitle{font-size:14px;color:#A6A6A6;font-weight:400;margin-left:2px}
+  .vm-close{width:30px;height:30px;border:0;background:transparent;cursor:pointer;border-radius:3px;font-size:22px;line-height:1;color:#8C8C8C;display:flex;align-items:center;justify-content:center}
+  .vm-close:hover{background:#F5F5F5;color:#262626}
+  .vm-bd{flex:1;min-height:0;overflow:auto;padding:18px 15px 12px}
+  .vm-alert{min-height:92px;border:1px solid #FF9C9C;border-radius:6px;background:#FFF2F0;display:grid;grid-template-columns:42px minmax(320px,1fr) repeat(4,118px);gap:12px;align-items:center;padding:14px 20px;margin-bottom:20px}
+  .vm-alert-icon{font-size:42px;line-height:1;color:#F54764;font-weight:300}
+  .vm-alert-text{font-size:15px;line-height:24px;color:#F0444D;font-weight:500}
+  .vm-stat{height:62px;min-width:118px;border:1px solid #EDF0F2;border-radius:7px;background:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .vm-stat b{font-size:22px;line-height:26px}.vm-stat span{font-size:13px;line-height:18px;color:#999;white-space:nowrap}
+  .vm-stat.blue b{color:#287DE5}.vm-stat.green b{color:#18A85B}.vm-stat.orange b{color:#FA8C16}.vm-stat.red b{color:#F0444D}
+  .vm-sec{margin-bottom:24px}.vm-sec h4{margin:0 0 12px;font-size:16px;font-weight:600;color:#262626;display:flex;align-items:center;gap:9px}.vm-sec h4 i{flex:0 0 4px;width:4px;height:18px;background:#1677FF;border-radius:2px}.vm-sec h4 .cnt{font-size:13px;font-weight:400;color:#999}
+  .result-tabs{height:44px;display:flex;align-items:flex-end;gap:0;border-bottom:1px solid #E8E8E8;margin:2px 0 14px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}.result-tab{position:relative;flex:0 0 auto;height:43px;padding:0 13px;border:0;background:#fff;color:#595959;font-family:var(--font);font-size:13px;line-height:43px;cursor:pointer;white-space:nowrap}.result-tab:hover{color:#1677FF}.result-tab.active{color:#1677FF;font-weight:500}.result-tab.active:after{content:'';position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:#1677FF}.result-tab .badge{display:inline-flex;min-width:16px;height:16px;align-items:center;justify-content:center;margin-left:5px;padding:0 4px;border-radius:8px;background:#FFF1F0;color:#FF4D4F;font-size:11px;line-height:16px}.result-tab:not(.has-error) .badge{display:none}.result-panel{display:none}.result-panel.active{display:block}.result-empty{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px dashed #D9D9D9;border-radius:6px;background:#FAFAFA;color:#8C8C8C;text-align:center}.result-empty .empty-icon{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:#F0F5FF;color:#8C8C8C;font-size:25px}.result-empty strong{margin-bottom:6px;color:#595959;font-size:15px;font-weight:500}.result-pass{min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.result-pass .pass-icon{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:18px;background:#F0FFF6;color:#18A85B;font-size:38px}.result-pass h4{margin:0 0 9px;color:#262626;font-size:20px}.result-pass p{margin:0;color:#8C8C8C;font-size:14px;line-height:24px}
+  .attach-check-list{border:1px solid #ECEFF2;border-radius:7px;overflow:hidden}.attach-check{min-height:48px;display:grid;grid-template-columns:34px minmax(220px,1fr) minmax(640px,auto);align-items:center;padding:0 16px;border-bottom:1px solid #F0F0F0;font-size:14px}.attach-check:last-child{border-bottom:0}.attach-check .file{color:#595959;white-space:nowrap}.attach-check .must{font-size:12px;color:#AAA;margin-left:8px}.attach-check .desc{text-align:right;color:#999;white-space:nowrap}.attach-check.error .desc{color:#FF4D4F}.attach-check.warn .desc{color:#FA8C16}
+  .check-icon{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600}.check-icon.ok{background:#19AF60}.check-icon.err{background:#FF3B45}.check-icon.warn{background:#FA8C16}
+  .vm-tip{font-size:13px;color:#A0A0A0;line-height:22px;margin-top:10px}
+  .compare-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px}.compare-table th{height:40px;background:#F6F8FB;color:#555;text-align:left;font-weight:400;padding:0 14px;white-space:nowrap}.compare-table td{height:44px;border-bottom:1px solid #F0F0F0;padding:8px 14px;color:#595959;line-height:20px;white-space:nowrap}.compare-table tr.bad{background:#FFF1F0}.compare-table tr.confirm{background:#FFFBE6}.compare-table tr.adopted{background:#F6FFED}.compare-table .system-value{color:#595959}.compare-table .source-file{color:#1677FF}.compare-table .new{color:#FF3B45;font-weight:600}.compare-table .extract-value{display:flex;align-items:center;gap:10px;min-width:0}.compare-table .extract-value .new{min-width:0;overflow:hidden;text-overflow:ellipsis}.adopt-btn{flex:0 0 auto;height:24px;padding:0 9px;border:1px solid #91CAFF;border-radius:3px;background:#E6F4FF;color:#1677FF;font-family:var(--font);font-size:12px;line-height:22px;cursor:pointer}.adopt-btn:hover{border-color:#1677FF;background:#BAE0FF}.adopt-btn.adopted,.adopt-btn:disabled{border-color:transparent;background:transparent;color:#389E0D;cursor:default;padding:0}.adopt-reminder{flex:0 0 auto;color:#8C8C8C;font-size:12px;font-weight:400;white-space:nowrap}.result-tag{display:inline-block;border:1px solid;border-radius:12px;padding:1px 10px;font-size:13px;line-height:20px}.result-tag.ok{color:#18A85B;border-color:#B7EBCB;background:#F0FFF6}.result-tag.bad{color:#FF4D4F;border-color:#FFAAA7;background:#FFF5F5}.result-tag.confirm{color:#FA8C16;border-color:#FFD591;background:#FFFBE6}.result-tag.adopted{color:#389E0D;border-color:#B7EB8F;background:#F6FFED}.result-note{display:inline-block;margin-left:10px;font-size:12px;color:#FF6B6B;white-space:nowrap}.result-note.adopted{color:#389E0D}
+  .backfill-result{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid #ECEFF2;border-right:0;border-bottom:0;border-radius:7px;overflow:hidden;background:#fff}.backfill-item{min-height:52px;display:grid;grid-template-columns:118px minmax(0,1fr);align-items:center;border-right:1px solid #ECEFF2;border-bottom:1px solid #ECEFF2;font-size:14px}.backfill-item .label{height:100%;display:flex;align-items:center;padding:0 12px;background:#F6F8FB;color:#666;white-space:nowrap}.backfill-item .value{padding:8px 12px;color:#262626;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.backfill-item.wide{grid-column:span 2}.backfill-item.full{grid-column:1/-1}
+  .vm-ft{flex:0 0 62px;height:62px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 20px;border-top:1px solid #F0F0F0;background:#fff}.vm-ft .hint{margin-right:auto;font-size:13px;line-height:18px;color:#999}.vm-ft .ghost{background:#fff;color:#FF4D4F;border:1px solid #FF7875}.vm-ft .ghost:hover{background:#FFF1F0;color:#FF4D4F;border-color:#FF4D4F}
+  .validation-wait{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#595959}.validation-spinner{width:64px;height:64px;border:5px solid #E6F4FF;border-top-color:#1677FF;border-radius:50%;animation:spin .9s linear infinite;margin-bottom:24px}.validation-wait h4{font-size:20px;margin:0 0 12px;color:#262626}.validation-wait p{font-size:14px;color:#8C8C8C;line-height:24px;margin:0}.validation-progress{width:360px;height:6px;background:#EDF2F7;border-radius:3px;overflow:hidden;margin:24px 0 12px}.validation-progress i{display:block;width:42%;height:100%;background:#1677FF;border-radius:3px;animation:progress 3.2s ease forwards}.wait-note{font-size:13px;color:#A6A6A6}.status-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border:1px solid #D9D9D9;border-radius:11px;background:#FAFAFA;color:#8C8C8C;font-size:13px;line-height:18px}.status-pill:before{content:'';width:7px;height:7px;border-radius:50%;background:#8C8C8C}.status-pill.idle{color:#8C8C8C;border-color:#D9D9D9;background:#FAFAFA}.status-pill.completed{color:#389E0D;border-color:#B7EB8F;background:#F6FFED}.status-pill.completed:before{background:#52C41A}.op-link{color:#1677FF;text-decoration:none;cursor:pointer;margin-right:12px}.op-link:hover{text-decoration:underline}.op-link.disabled{color:#BFBFBF;cursor:not-allowed;text-decoration:none}
+  @keyframes spin{to{transform:rotate(360deg)}}@keyframes progress{from{width:8%}to{width:94%}}
+  @media (prefers-reduced-motion:reduce){.validation-spinner,.validation-progress i{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== 顶栏 ===== -->
+  <header class="topbar">
+    <div class="brand">四川省事业单位工资管理系统<em>（在职）</em></div>
+    <nav class="topbar-links">
+      <a href="javascript:;">问题解答</a>
+      <a href="javascript:;">操作手册</a>
+    </nav>
+  </header>
+  <div class="topbar-shadow"></div>
+
+  <div class="body">
+
+    <!-- ===== 左侧导航 ===== -->
+    <aside class="sidebar">
+      <div class="sb-id">
+        <span>912113024641206411</span>
+        <svg class="sb-copy" viewBox="0 0 17 15" fill="none" stroke="currentColor" stroke-width="1.7">
+          <rect x="5.6" y="5.9" width="10.6" height="8.4"/>
+          <path d="M11.1 5.9V3.4A1.8 1.8 0 0 0 9.3 1.6H1.8A1.8 1.8 0 0 0 0 3.4v6.7a1.8 1.8 0 0 0 1.8 1.8h2.1"/>
+        </svg>
+      </div>
+      <div class="sb-plan">奖励性绩效-凉山</div>
+
+      <ul class="menu" id="menu">
+        <li data-k="home">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 10.5 12 3.5l9 7"/><path d="M5.5 9.2V20h13V9.2"/><path d="M10 20v-5.5h4V20"/></svg>
+          <span class="txt">首页</span>
+        </li>
+        <li data-k="guide">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M9.7 9.4a2.4 2.4 0 1 1 3.1 2.3c-.7.3-1.1.9-1.1 1.7v.4"/><circle cx="11.9" cy="16.6" r=".9" fill="currentColor" stroke="none"/></svg>
+          <span class="txt">操作指南</span>
+        </li>
+        <li data-k="ai" class="active">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="4" y="7.5" width="16" height="12"/><path d="M12 3.5v4"/><circle cx="9.2" cy="12.6" r="1.2"/><circle cx="14.8" cy="12.6" r="1.2"/><path d="M9.6 16.3h4.8"/><path d="M4 12H1.8M22.2 12H20"/></svg>
+          <span class="txt">AI智能经办</span>
+        </li>
+        <li data-k="org">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 20.5V6.2L12 3l8 3.2v14.3"/><path d="M2.5 20.5h19"/><path d="M8.5 9.5h1.6M13.9 9.5h1.6M8.5 13h1.6M13.9 13h1.6"/><path d="M10.2 20.5v-3.8h3.6v3.8"/></svg>
+          <span class="txt">单位信息管理</span>
+        </li>
+        <li data-k="add">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><circle cx="9.5" cy="8" r="3.4"/><path d="M3.2 20c.6-3.3 3.2-5.2 6.3-5.2 1 0 1.9.2 2.7.5"/><path d="M17.5 13v7M14 16.5h7"/></svg>
+          <span class="txt">人员新增减少</span>
+        </li>
+        <li data-k="wage">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="2.6" y="6.5" width="18.8" height="12.5" rx="1.5"/><path d="M2.6 10.6h18.8"/><circle cx="16.8" cy="15.2" r="1.4"/></svg>
+          <span class="txt">基本工资业务</span>
+        </li>
+        <li data-k="allow">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><ellipse cx="12" cy="6.6" rx="7.2" ry="3"/><path d="M4.8 6.6v5c0 1.7 3.2 3 7.2 3s7.2-1.3 7.2-3v-5"/><path d="M4.8 11.6v5c0 1.7 3.2 3 7.2 3s7.2-1.3 7.2-3v-5"/></svg>
+          <span class="txt">津贴补贴调整</span>
+        </li>
+        <li data-k="special">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><circle cx="12" cy="7.6" r="3.4"/><path d="M5 20.4c.7-3.6 3.6-5.6 7-5.6s6.3 2 7 5.6"/><circle cx="18.4" cy="17.6" r="2.4"/><path d="M18.4 14.9v1.1M18.4 19.2v1.1M15.7 17.6h1.1M20 17.6h1.1"/></svg>
+          <span class="txt">人员特殊业务</span>
+        </li>
+        <li data-k="record" id="recordMenu" aria-haspopup="true" aria-expanded="false">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3.4" y="3.6" width="17.2" height="16.8" rx="1.4"/><path d="M11 8.6h7.4M11 12h7.4M11 15.4h7.4"/><path d="M6.6 8.6h1.3M6.6 12h1.3M6.6 15.4h1.3"/></svg>
+          <span class="txt">变动记录调整</span>
+          <span class="record-menu-arrow" aria-hidden="true">›</span>
+          <div class="record-submenu" id="recordSubmenu" role="menu" aria-label="变动记录调整二级菜单">
+            <button type="button" role="menuitem" data-record-page="record-person"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3.2"/><path d="M3.8 19.8c.6-3.5 3-5.4 6.2-5.4 1.3 0 2.5.3 3.5.9"/><circle cx="18" cy="17" r="3.2"/><path d="M18 14.8v2.4l1.6 1"/></svg><span>变动记录调整（人员）</span></button>
+            <button type="button" role="menuitem" data-record-page="record-unit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V5.5L11 3v17M11 8h8v12M2.5 20h19"/><path d="M6.8 8h1.4M6.8 11.5h1.4M6.8 15h1.4M14 11h2M14 14.5h2"/><circle cx="18.5" cy="17.5" r="2.7"/></svg><span>变动记录调整（单位）</span></button>
+          </div>
+        </li>
+        <li data-k="once">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="4.4" y="3" width="15.2" height="18" rx="1.4"/><path d="M8 7.4h8"/><path d="M8.4 12h1.4M11.3 12h1.4M14.2 12h1.4M8.4 15.6h1.4M11.3 15.6h1.4M14.2 15.6h1.4"/></svg>
+          <span class="txt">一次性补扣发</span>
+        </li>
+        <li data-k="bonus">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M7 3.6h10v6.2a5 5 0 0 1-10 0z"/><path d="M7 5.2H4.2v1.6a3.2 3.2 0 0 0 3.2 3.2M17 5.2h2.8v1.6a3.2 3.2 0 0 1-3.2 3.2"/><path d="M12 14.9v3.4M8.6 20.4h6.8"/></svg>
+          <span class="txt">奖励绩效管理</span>
+        </li>
+        <li data-k="fund">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6.6 16.4a4.2 4.2 0 0 1-.4-8.4 5.4 5.4 0 0 1 10.3-1.2 3.9 3.9 0 0 1 .9 7.7"/><path d="M12 16.6v4.4M9.4 18.6 12 21l2.6-2.4"/></svg>
+          <span class="txt">基金生成上报</span>
+        </li>
+        <li data-k="perf">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3.2 20.4h17.6"/><rect x="4.8" y="12.6" width="3.5" height="6"/><rect x="10.2" y="8.4" width="3.5" height="10.2"/><rect x="15.6" y="4.6" width="3.5" height="14"/></svg>
+          <span class="txt">绩效工资管理</span>
+        </li>
+        <li data-k="query">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><circle cx="10.6" cy="10.4" r="6.4"/><path d="M15.4 15.2 20.6 20.4"/></svg>
+          <span class="txt">信息查询</span>
+        </li>
+        <li data-k="report">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6 3.2h8.4L19 7.8V20a.8.8 0 0 1-.8.8H6a.8.8 0 0 1-.8-.8V4a.8.8 0 0 1 .8-.8z"/><path d="M14.2 3.2v4.8H19"/><path d="M9 17.2v-3M12 17.2v-5.4M15 17.2v-2"/></svg>
+          <span class="txt">统计报表</span>
+        </li>
+      </ul>
+      <!-- 侧栏装饰性滚动条（按原图还原） -->
+      <div class="sb-vscroll">
+        <i class="arw up"></i>
+        <i class="thumb"></i>
+        <i class="arw down"></i>
+      </div>
+      <div class="sb-hscroll">
+        <i class="arw l"></i>
+        <i class="thumb"></i>
+        <i class="arw r"></i>
+      </div>
+
+      <div class="sb-version">1.26.0-ygg.10011</div>
+      <div class="sb-back">返回</div>
+    </aside>
+
+    <!-- ===== 右侧主区 ===== -->
+    <div class="main">
+      <div class="crumb">
+        <span class="loc">当前位置：<b id="crumbTitle">AI智能经办</b></span>
+        <button class="btn-primary" type="button">操作指南</button>
+      </div>
+
+      <div class="content" id="mainContent">
+        <!-- 左：选择经办业务 -->
+        <div class="biz-card">
+          <h3>选择经办业务</h3>
+          <table class="biz-table">
+            <colgroup><col class="c1"><col></colgroup>
+            <thead>
+              <tr><th>经办业务</th><th>待办数量</th></tr>
+            </thead>
+            <tbody id="bizBody">
+              <tr class="selected" data-biz="人员新增" data-biz-key="person"><td>人员新增</td><td>1</td></tr>
+              <tr data-biz="岗位/职员等级变动" data-biz-key="change"><td>岗位/职员等级变动</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 右：任务列表 -->
+        <div class="task-card">
+          <h3 id="taskTitle">人员新增任务</h3>
+          <button class="btn-primary" id="addPersonBtn" type="button">新增人员</button>
+          <table class="task-table" id="taskTable">
+            <colgroup id="taskCols">
+              <col class="c1"><col class="c2"><col class="c3"><col class="c4">
+              <col class="c5"><col class="c6"><col class="c7"><col class="c8">
+            </colgroup>
+            <thead id="taskHead">
+              <tr>
+                <th>序号</th><th>姓名</th><th>身份</th><th>来源</th>
+                <th>附件数量</th><th>处理状态</th><th>处理完成时间</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="personTaskBody">
+              <tr data-state="idle">
+                <td>1</td><td>王德发</td><td>专业技术人员</td><td>其他</td>
+                <td>1</td><td data-role="status"><span class="status-pill idle">待回填</span></td><td>2026-09-20 13:26:31</td>
+                <td data-role="operation"><a class="op-link" data-action="backfill" href="javascript:;">回填系统</a><a class="link-red" data-action="delete" href="javascript:;">删除</a></td>
+              </tr>
+              <tr data-state="idle">
+                <td>2</td><td>王德发</td><td>专业技术人员</td><td>公招(技校毕业生)</td>
+                <td></td><td data-role="status"><span class="status-pill idle">待回填</span></td><td>2026-09-20 13:19:07</td>
+                <td data-role="operation"><a class="op-link" data-action="backfill" href="javascript:;">回填系统</a><a class="link-red" data-action="delete" href="javascript:;">删除</a></td>
+              </tr>
+              <tr data-state="idle">
+                <td>3</td><td>王德发</td><td>专业技术人员</td><td>公招(考核招聘)</td>
+                <td></td><td data-role="status"><span class="status-pill idle">待回填</span></td><td>2026-09-20 11:01:21</td>
+                <td data-role="operation"><a class="op-link" data-action="backfill" href="javascript:;">回填系统</a><a class="link-red" data-action="delete" href="javascript:;">删除</a></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="task-pagination" id="taskPagination" aria-label="任务列表分页">
+            <span class="page-summary" id="pageSummary">共 0 条</span>
+            <select class="page-size" id="pageSize" aria-label="每页显示条数">
+              <option value="10">10 条/页</option>
+              <option value="15" selected>15 条/页</option>
+              <option value="20">20 条/页</option>
+              <option value="50">50 条/页</option>
+            </select>
+            <button class="page-btn" id="pagePrev" type="button" aria-label="上一页">上一页</button>
+            <div class="page-pages" id="pagePages"></div>
+            <button class="page-btn" id="pageNext" type="button" aria-label="下一页">下一页</button>
+          </div>
+        </div>
+
+        <!-- 左侧独立业务直接经办工作区：复用抽屉中的完整回填视图 -->
+        <section class="standalone-workbench" id="standaloneWorkbench" aria-label="独立业务经办">
+          <div class="standalone-workbench-hd"><h3 id="standaloneWorkbenchTitle">人员新增减少</h3><div class="standalone-workbench-actions" id="standaloneWorkbenchActions"></div></div>
+          <div class="standalone-workbench-bd" id="standaloneWorkbenchBody"></div>
+        </section>
+
+        <section class="record-workspace" id="recordWorkspace" aria-label="变动记录调整">
+          <div class="record-view record-person-view" id="recordPersonView">
+            <aside class="rp-people">
+              <div class="rp-filter">
+                <div class="rp-field"><label>人员类型：</label><select class="sel"><option>在职人员</option></select></div>
+                <div class="rp-field"><label>变动类型：</label><select class="sel empty"><option>请选择变动类型</option></select></div>
+                <div class="rp-search"><input class="inp" placeholder="按姓名、人员编号、身份证号进行查询"><button type="button">查询</button></div>
+              </div>
+              <div class="rp-table-wrap"><table class="rp-table"><colgroup><col style="width:78px"><col style="width:142px"><col style="width:90px"></colgroup><thead><tr><th>人员编号</th><th>人员姓名</th><th>排序号</th></tr></thead><tbody><tr class="active"><td>00091</td><td>调出州外凉</td><td>00100</td></tr><tr><td>00067</td><td>普通凉工二</td><td>100</td></tr><tr><td>00068</td><td>普通凉工三</td><td>101</td></tr><tr><td>00069</td><td>来调计凉</td><td>102</td></tr><tr><td>00070</td><td>转岗领导不变凉</td><td>103</td></tr><tr><td>00071</td><td>转岗领导变凉</td><td>104</td></tr><tr><td>00072</td><td>转岗升领导凉</td><td>105</td></tr><tr><td>00073</td><td>转升非领导凉</td><td>106</td></tr><tr><td>00074</td><td>转不升领凉</td><td>107</td></tr><tr><td>00075</td><td>否是升岗凉</td><td>108</td></tr><tr><td>00076</td><td>升岗否是凉一</td><td>109</td></tr><tr><td>00077</td><td>是否岗凉一</td><td>110</td></tr><tr><td>00078</td><td>岗是否凉一</td><td>111</td></tr></tbody></table></div>
+            </aside>
+            <div class="rp-main">
+              <section class="rp-history">
+                <div class="rp-history-filter"><div class="rp-field"><label>基金审核状态：</label><select class="sel"><option>全部</option></select></div><button class="record-btn" type="button">导出人员所有变动</button></div>
+                <div class="rp-history-table-wrap"><table class="rp-history-table"><colgroup><col style="width:135px"><col style="width:120px"><col style="width:130px"><col style="width:245px"><col style="width:230px"><col style="width:250px"><col style="width:170px"><col style="width:160px"></colgroup><thead><tr><th>基金审核状态</th><th>基金月份</th><th>起薪时间</th><th>变动类型</th><th>变动时间</th><th>实际职级(岗位/技术等级/基础...)</th><th>工资级别/成绩</th><th>操作</th></tr></thead><tbody><tr><td>已通过</td><td>2025年12月</td><td>2024年11月</td><td>重新确定工资（原填报有误）</td><td>2026年08月31日20:12:07</td><td>九级专业技术岗位</td><td>九级</td><td></td></tr><tr><td>已通过</td><td>2026年10月</td><td>2026年10月</td><td>重新确定工资（原填报有误）</td><td>2026年09月23日09:25:23</td><td>九级专业技术岗位</td><td>九级</td><td></td></tr><tr class="active"><td>未生成</td><td></td><td>2026年11月</td><td>专业技术人员岗级变动</td><td>2026年10月08日18:00:05</td><td>八级专业技术岗位</td><td>八级</td><td></td></tr></tbody></table></div>
+                <div class="rp-record-actions"><label class="rp-check"><input type="checkbox"> 编辑</label><button class="record-btn" type="button" disabled>保存</button><button class="record-btn danger" type="button">删除</button><button class="record-btn ai-result" id="recordPersonAiResult" type="button">AI校验结果</button></div>
+              </section>
+              <section class="rp-detail">
+                <div class="rp-detail-title">变动详情</div>
+                <div class="rp-detail-bar"><div class="rp-field"><label><span style="color:#FF4D4F">*</span>人员身份：</label><select class="sel"><option>专业技术人员</option></select></div><div class="rp-field"><label><span style="color:#FF4D4F">*</span>起薪时间：</label><input class="inp" value="2026年11月"></div><div class="rp-field"><label>依据文号：</label><input class="inp"></div><div class="rp-field"><label>变动备注：</label><input class="inp"></div></div>
+                <div class="rp-detail-tabs"><span class="active">人事信息</span><span>工资信息</span><span>学习简历</span><span>任职简历</span><span>工龄信息</span><span>年度考核</span><span>高低定信息</span><span>试用期信息</span><span>艰边简历</span><span>教护情况</span><span>测算工资</span><span>06套改结果</span><span>工资台账</span></div>
+                <div class="rp-form-scroll"><div class="rp-form-grid">
+                  <div class="rp-form-section"><h4>人员基础信息</h4><div class="rp-form-row"><label class="req">姓名：</label><input class="inp" value="调出州外凉"></div><div class="rp-form-row"><label class="req">身份证号：</label><input class="inp" value="513401198712222240"></div><div class="rp-form-row"><label class="req">民族：</label><select class="sel"><option>德昂</option></select></div><div class="rp-form-row"><label class="req">性别：</label><select class="sel"><option>女</option></select></div><div class="rp-form-row"><label class="req">档案出生日期：</label><input class="inp" value="1987年12月22日"></div><div class="rp-form-row"><label class="req">政治面貌：</label><select class="sel"><option>共青团员</option></select></div><div class="rp-form-row"><label>初始人员身份：</label><select class="sel"><option>专业技术人员</option></select></div><div class="rp-form-row"><label>籍贯：</label><input class="inp" value="四川凉山"></div><div class="rp-form-row"><label>住址：</label><input class="inp" value="昭觉县"></div></div>
+                  <div class="rp-form-section"><h4>进入单位信息</h4><div class="rp-form-row"><label class="req">人员来源：</label><select class="sel"><option>公招(高等院校毕业生)</option></select></div><div class="rp-form-row"><label class="req">进入本单位时间：</label><input class="inp" value="2024年07月01日"></div><div class="rp-form-row"><label>所属内设机构：</label><select class="sel empty"><option>请选择所属内设机构</option></select></div><div class="rp-form-row"><label>人员备注：</label><textarea class="ta">调出单位:奖励性绩效-凉山
+调出单位:九寨接收奖励
+调出单位:调出单位三-奖励绩效</textarea></div></div>
+                  <div class="rp-form-section"><h4>工龄信息</h4><div class="rp-form-row"><label class="req">参加工作时间：</label><input class="inp" value="1986年07月03日"></div><h4>财政相关信息</h4><div class="rp-form-row"><label class="req">财政统发：</label><span>○ 是</span></div><div class="rp-form-row"><label class="req">财政供养：</label><span>○ 是</span></div><div class="rp-form-row"><label>人员财政编码：</label><input class="inp" placeholder="请输入人员财政编码"></div></div>
+                  <div class="rp-form-section"><h4>学历信息</h4><div class="rp-form-row"><label class="req">学历：</label><select class="sel"><option>双学士学位本科毕业</option></select></div><div class="rp-form-row"><label>学位：</label><select class="sel"><option>双学士</option></select></div><div class="rp-form-row"><label class="req">毕业时间：</label><input class="inp" value="1986年02月07日"></div><h4>其它信息</h4><div class="rp-form-row"><label>社会保障号：</label><input class="inp" value="513401198712222240"></div><div class="rp-form-row"><label>排序号：</label><input class="inp" value="00100"></div></div>
+                </div></div>
+              </section>
+            </div>
+          </div>
+
+          <div class="record-view record-unit-view" id="recordUnitView">
+            <h3 class="ru-filter-title">查询筛选</h3>
+            <div class="ru-filters"><div class="ru-field"><label>变动类型：</label><select class="sel empty"><option>请选择变动类型</option></select></div><div class="ru-field"><label>基金审核状态：</label><div class="ru-tags"><span>未生成 ×</span><span>生成未上报 ×</span><span>审核中 ×</span><span>驳回 ×</span><span>撤回 ×</span></div></div><div class="ru-field"><label>基金月份：</label><input class="inp" placeholder="请选择月份"></div><div class="ru-field"><label>人员编号：</label><input class="inp" placeholder="请输入人员编号"></div><div class="ru-field"><label>姓名：</label><input class="inp" placeholder="请输入姓名"><label>身份证号：</label><input class="inp" placeholder="请输入身份证号"></div><div class="ru-field"><button class="ru-reset" type="button">重置</button></div></div>
+            <h3 class="ru-list-title">变动记录列表</h3>
+            <div class="ru-toolbar"><button class="record-btn">附件替换</button><button class="record-btn">附件补录</button><button class="record-btn">附件删除</button><button class="record-btn">删除变动记录</button><button class="record-btn">导出查询结果</button></div>
+            <div class="ru-table-shell" id="recordUnitTableShell"><table class="ru-table"><colgroup><col style="width:38px"><col style="width:90px"><col style="width:120px"><col style="width:170px"><col style="width:115px"><col style="width:105px"><col style="width:120px"><col style="width:230px"><col style="width:215px"><col style="width:210px"><col style="width:190px"><col style="width:150px"><col style="width:145px"><col style="width:135px"><col style="width:210px"><col style="width:210px"><col style="width:215px"><col style="width:130px"><col style="width:130px"><col style="width:100px"><col style="width:100px"><col style="width:95px"><col style="width:110px"><col style="width:120px"><col style="width:170px"><col style="width:120px"></colgroup><thead><tr><th class="sticky-check"><input type="checkbox"></th><th class="sticky-code">人员编号</th><th class="sticky-name">人员姓名</th><th>身份证号</th><th>基金审核状态</th><th>基金月份</th><th>起薪时间</th><th>变动类型</th><th>变动时间</th><th>实际职级(岗位/技术等级/基础...)</th><th>基本工资对应职级(岗位/职员...)</th><th>工资级别/成绩津贴层次</th><th>级别起考年限</th><th>档次(薪级/成绩津贴名次)</th><th>档次/薪级起考年限</th><th>职务/岗位/职员等级/技术等级...</th><th>级别/薪级/岗位工资或成绩津贴</th><th>中小学教师或护士提高10%</th><th>特殊教育提高15%</th><th>保留原特殊岗位活工资比例提高部分</th><th>退役运动员保留工资额度</th><th>津补贴小计</th><th>工资合计</th><th>排序号</th><th>附件数量</th><th>操作人</th><th>操作时间</th><th class="sticky-operation">操作</th></tr></thead><tbody id="recordUnitBody"></tbody></table></div>
+            <div class="ru-footer"><a href="javascript:;">统计所有变动记录详情</a><span>共4条数据</span><button class="ru-page">1</button><span>〉</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="record-ai-mask" id="recordAiMask">
+    <div class="record-ai-dialog" role="dialog" aria-modal="true" aria-labelledby="recordAiTitle">
+      <div class="record-ai-hd"><h3 id="recordAiTitle">AI校验结果</h3><button class="record-ai-close" id="recordAiClose" type="button" aria-label="关闭">&#215;</button></div>
+      <div class="record-ai-bd" id="recordAiBody" aria-live="polite"></div>
+      <div class="record-ai-ft"><span class="hint">查看结果不会改变任务状态</span><button id="recordAiConfirm" type="button">关闭</button></div>
+    </div>
+  </div>
+
+  <div class="delete-popconfirm" id="deletePopconfirm" role="dialog" aria-modal="false" aria-label="删除确认">
+    <p id="deletePopconfirmText">删除后数据不可恢复，确定删除该任务吗？</p>
+    <div class="delete-popconfirm-actions"><button id="deleteCancel" type="button">取消</button><button class="confirm" id="deleteConfirm" type="button">确定删除</button></div>
+  </div>
+
+  <!-- ===== 附件上传弹窗（人员新增 / 岗位职员等级变动 共用） ===== -->
+  <div class="attach-mask" id="attachMask">
+    <div class="attach-dialog" role="dialog" aria-modal="true" aria-labelledby="attachDialogTitle">
+      <div class="attach-hd"><h3 id="attachDialogTitle">附件</h3><button class="attach-close" id="attachDialogClose" type="button" aria-label="关闭">&#215;</button></div>
+      <div class="attach-fields" id="attachFields">
+          <div class="attach-field"><label class="lb" for="attachIdentity"><span class="req">*</span>人员身份：</label><div class="ctrl"><select class="sel" id="attachIdentity"><option>专业技术人员</option><option>管理人员</option><option>工勤人员</option></select></div></div>
+          <div class="attach-field"><label class="lb" for="attachSource"><span class="req">*</span>人员来源：</label><div class="ctrl"><select class="sel" id="attachSource"><option>公招(中等学校毕业生)</option><option>公招(技校毕业生)</option><option>公招(考核招聘)</option><option>其他</option></select></div></div>
+        </div>
+      <div class="attach-bd">
+        <div class="attach-cats" id="attachCats"></div>
+      </div>
+      <div class="attach-hint">只能上传后缀名为doc,docx,xls,xlsx,pdf,jpg,png,jpeg格式的文件上传！ 大小不超过5M！</div>
+      <div class="attach-ft"><button class="ghost-btn" id="attachDialogCancel" type="button">取消</button><button class="dw-btn" id="attachDialogConfirm" type="button">确定</button></div>
+    </div>
+  </div>
+  <input id="attachDialogInput" type="file" multiple hidden>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ===== 岗位变动：人员姓名确认 ===== -->
+  <div class="people-mask" id="peopleMask">
+    <div class="people-dialog" role="dialog" aria-modal="true" aria-labelledby="peopleTitle">
+      <div class="people-hd"><h3 id="peopleTitle">请选择人员</h3><button class="people-close" id="peopleClose" type="button" aria-label="关闭">&#215;</button></div>
+      <div class="people-bd">
+        <section class="transfer-panel" aria-label="系统可选人员">
+          <div class="transfer-title">系统可选人员 <span id="availableCount">0人</span></div>
+          <div class="people-filter">
+            <select class="sel" id="peopleIdentityFilter"><option>全部人员身份</option><option>专业技术人员</option><option>管理人员</option><option>工勤人员</option></select>
+            <select class="sel" id="peoplePostFilter"><option>全部岗位/职员等级</option><option>专业技术十级</option><option>管理七级</option><option>工勤三级</option></select>
+            <div class="people-search-row">
+              <input class="inp" id="peopleSearch" type="text" placeholder="请输入人员编号/姓名查询">
+              <button class="people-reset" id="peopleReset" type="button">重置</button>
+            </div>
+          </div>
+          <div class="people-list" id="availableList"></div>
+        </section>
+        <div class="transfer-actions" aria-label="移动人员">
+          <button class="transfer-btn primary" id="moveRight" type="button" title="移入已选">&#8250;</button>
+          <button class="transfer-btn" id="moveLeft" type="button" title="移回可选">&#8249;</button>
+          <button class="transfer-btn" id="moveAllRight" type="button" title="全部移入">&#187;</button>
+          <button class="transfer-btn" id="moveAllLeft" type="button" title="全部移回">&#171;</button>
+        </div>
+        <section class="transfer-panel" aria-label="已确认人员">
+          <div class="transfer-title">附件提取 / 已选人员 <span id="selectedCount">0人</span></div>
+          <div class="people-shared-attach">
+            <div class="people-shared-attach-row"><button class="attach-btn" id="peopleAttachBtn" type="button">工资报审附件</button><input id="peopleAttachInput" type="file" multiple hidden><span class="attach-count" id="peopleAttachCount">附件数量：0个</span></div>
+            <div class="people-attach-note">说明：多个人员的变动共用附件，统一上传共用附件，避免重复上传。</div>
+          </div>
+          <div class="people-list" id="selectedList"></div>
+          <div class="selected-note">AI 已从附件提取人员姓名，确认后进入批量变动信息回填。</div>
+        </section>
+      </div>
+      <div class="people-ft"><button class="ghost-btn" id="peopleCancel" type="button">取消</button><button class="dw-btn" id="peopleConfirm" type="button">确定</button></div>
+    </div>
+  </div>
+
+  <!-- ===== 回填系统抽屉 ===== -->
+  <div class="drawer-mask" id="drawerMask"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true" aria-label="回填系统">
+    <div class="drawer-hd">
+      <h3 id="drawerTitle">回填系统</h3>
+      <button class="drawer-close" id="drawerClose" type="button" aria-label="关闭">&#215;</button>
+    </div>
+
+    <div class="drawer-bd">
+      <div class="fill-view person-fill-view" id="personFillView">
+      <!-- 顶部操作条 -->
+      <div class="fill-bar">
+        <div class="fb-item">
+          <label><span class="req">*</span>人员身份：</label>
+          <div class="ctrl"><select class="sel empty" data-field="pstatus"><option value="">请选择人员身份</option><option>专业技术人员</option><option>管理人员</option><option>工勤人员</option></select></div>
+        </div>
+        <div class="fb-item">
+          <label><span class="req">*</span>起薪时间：</label>
+          <div class="ctrl"><input class="inp" type="text" placeholder="请选择起薪时间" data-field="saldate"><i class="cal"></i></div>
+        </div>
+        <div class="fb-item">
+          <label>依据文号：</label>
+          <div class="ctrl"><input class="inp" type="text" placeholder="请输入依据文号" data-field="docno"></div>
+        </div>
+        <div class="fb-item">
+          <label>变动备注：</label>
+          <div class="ctrl"><input class="inp" type="text" placeholder="请输入变动备注" data-field="chgremark"></div>
+        </div>
+        <div class="fb-item wide">
+          <label>工资报审附件：</label>
+          <div class="ctrl">
+            <div class="attach-inline">
+              <button class="attach-btn" type="button" id="attachBtn">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2.5v9M2.5 7h9"/></svg>
+                上传附件
+              </button>
+              <span class="attach-count" id="attachCount">附件数量：0个</span>
+            </div>
+            <input id="attachInput" type="file" multiple hidden>
+          </div>
+        </div>
+        <button class="attach-btn" id="viewAiResult" type="button" style="display:none;margin-left:auto">查看AI校验结果</button>
+        <button class="dw-btn" id="aiValidateBtn" type="button">AI校验</button>
+        <button class="attach-btn" id="personSaveBtn" type="button">保存</button>
+      </div>
+
+      <!-- 页签 -->
+      <div class="tab-row">
+        <span class="tab active" data-panel="person">人事信息</span>
+        <span class="tab" data-panel="salary">工资信息</span>
+        <div class="subtabs">
+          <span class="subtab" data-panel="study">学习简历</span>
+          <span class="subtab" data-panel="career">任职简历</span>
+          <span class="subtab" data-panel="seniority">工龄信息</span>
+          <span class="subtab" data-panel="assessment">年度考核</span>
+          <span class="subtab" data-panel="highlow">高低定信息</span>
+          <span class="subtab" data-panel="probation">试用期信息</span>
+          <span class="subtab" data-panel="hardship">艰边简历</span>
+          <span class="subtab" data-panel="nursing">救护情况</span>
+          <button class="dw-btn dw-btn-sm" type="button">测算工资</button>
+          <span class="subtab">06套改结果</span>
+          <span class="subtab">工资台账</span>
+        </div>
+      </div>
+
+      <!-- 表单：四列 -->
+      <div class="form-grid fill-panel active" id="personPanel">
+
+        <!-- 第 1 列 -->
+        <div class="fcol">
+          <h4 class="sec"><i></i>人员基础信息</h4>
+          <div class="frow"><label class="lb"><span class="req">*</span>姓名：</label><div class="ctrl"><input class="inp" type="text" placeholder="请输入姓名" data-field="name"></div></div>
+          <div class="frow"><label class="lb"><span class="req">*</span>身份证号：</label><div class="ctrl"><input class="inp" type="text" placeholder="输入身份证号" data-field="idcard"></div></div>
+          <div class="frow"><label class="lb"><span class="req">*</span>民族：</label><div class="ctrl"><select class="sel empty" data-field="nation"><option value="">请选择民族</option><option>汉族</option><option>彝族</option><option>藏族</option><option>羌族</option></select></div></div>
+          <div class="frow"><label class="lb"><span class="req">*</span>性别：</label><div class="ctrl"><select class="sel empty" data-field="gender"><option value="">请选择性别</option><option>男</option><option>女</option></select></div></div>
+          <div class="frow"><label class="lb"><span class="req">*</span>档案出生日期：</label><div class="ctrl"><input class="inp" type="text" placeholder="请选择日期" data-field="birth"><i class="cal"></i></div></div>
+          <div class="frow"><label class="lb"><span class="req">*</span>政治面貌：</label><div class="ctrl"><select class="sel empty" data-field="polity"><option value="">请选择政治面貌</option><option>中共党员</option><option>共青团员</option><option>群众</option></select></div></div>
+          <div class="frow"><label class="lb">初始人员身份：</label><div class="ctrl"><select class="sel empty" data-field="initstatus"><option value="">请选择初始人员身份</option><option>专业技术人员</option><option>管理人员</option></select></div></div>
+          <div class="frow"><label class="lb">籍贯：</label><div class="ctrl"><input class="inp" type="text" placeholder="请输入籍贯" data-field="native"></div></div>
+          <div class="frow"><label class="lb">住址：</label><div class="ctrl"><textarea class="ta" placeholder="请输入住址" data-field="addr"></textarea></div></div>
+        </div>
+
+        <!-- 第 2 列 -->
+        <div class="fcol">
+          <h4 class="sec"><i></i>进入单位信息</h4>
+          <div class="frow"><label class="lb"><span class="req">*</span>人员来源：</label><div class="ctrl"><select class="sel empty" data-field="source"><option value="">请选择人员来源</option><option>公招(技校毕业生)</option><option>公招(考核招聘)</option><option>其他</option></select></div></div>
+          <div class="frow"><label class="lb"><span class="req">*</span>进入本单位时间：</label><div class="ctrl"><input class="inp" type="text" placeholder="请选择日期" data-field="entrydate"><i class="cal"></i></div></div>
+          <div class="frow"><label class="lb">所属内设机构：</label><div class="ctrl"><select class="sel empty" data-field="org"><option value="">请选择所属内设机构</option></select></div></div>
+          <div class="frow"><label class="lb">人员备注：</label><div class="ctrl"><textarea class="ta" maxlength="255" placeholder="请输入备注信息" data-field="remark"></textarea><span class="counter">0/255</span></div></div>
+        </div>
+
+        <!-- 第 3 列 -->
+        <div class="fcol">
+          <h4 class="sec"><i></i>工龄信息</h4>
+          <div class="frow"><label class="lb"><span class="req">*</span>参加工作时间：</label><div class="ctrl"><input class="inp" type="text" placeholder="请选择日期" data-field="workdate"><i class="cal"></i></div></div>
+
+          <h4 class="sec"><i></i>财政相关信息</h4>
+          <div class="frow"><label class="lb"><span class="req">*</span>财政统发：</label><div class="ctrl"><div class="radios"><label class="rd"><input type="radio" name="cztf" checked><span class="dot"></span>是</label></div></div></div>
+          <div class="frow"><label class="lb"><span class="req">*</span>财政供养：</label><div class="ctrl"><div class="radios"><label class="rd"><input type="radio" name="czgy" checked><span class="dot"></span>是</label></div></div></div>
+          <div class="frow"><label class="lb">人员财政编码：</label><div class="ctrl"><input class="inp" type="text" placeholder="请输入人员财政编码" data-field="fincode"></div></div>
+        </div>
+
+        <!-- 第 4 列 -->
+        <div class="fcol">
+          <h4 class="sec"><i></i>学历信息</h4>
+          <div class="frow"><label class="lb"><span class="req">*</span>学历：</label><div class="ctrl"><select class="sel empty" data-field="edu"><option value="">请选择学历</option><option>大学专科</option><option>大学本科</option><option>硕士研究生</option><option>博士研究生</option></select></div></div>
+          <div class="frow"><label class="lb">学位：</label><div class="ctrl"><select class="sel empty" data-field="degree"><option value="">请选择学位</option><option>学士</option><option>硕士</option><option>博士</option></select></div></div>
+          <div class="frow"><label class="lb">毕业时间：</label><div class="ctrl"><input class="inp" type="text" placeholder="请选择日期" data-field="grad"><i class="cal"></i></div></div>
+
+          <h4 class="sec"><i></i>其它信息</h4>
+          <div class="frow"><label class="lb">社会保障号：</label><div class="ctrl"><input class="inp" type="text" placeholder="请输入社会保障号" data-field="sscode"></div></div>
+          <div class="frow"><label class="lb">排序号：</label><div class="ctrl"><input class="inp" type="text" value="100" data-field="sortno"></div></div>
+        </div>
+
+      </div>
+
+      <section class="fill-panel info-layout" id="salaryPanel"><h4 class="info-title">工资信息</h4><h4 class="sec"><i></i>津补贴执行设置</h4><div class="info-fields">
+        <div class="info-field"><label><span class="req">*</span>是否执行边地标准：</label><select class="sel"><option>否</option><option>是</option></select></div><div class="info-field"><label><span class="req">*</span>是否义务教育教师：</label><select class="sel"><option>否</option><option>是</option></select></div>
+        <div class="info-field"><label><span class="req">*</span>现任职务：</label><input class="inp" placeholder="请输入职务"></div><div class="info-field"><label><span class="req">*</span>现任职务时间：</label><input class="inp" placeholder="请选择日期"></div>
+        <div class="info-field"><label><span class="req">*</span>实际岗位：</label><select class="sel"><option>专业技术岗位</option></select></div><div class="info-field"><label><span class="req">*</span>基本工资对应岗位：</label><select class="sel"><option>专业技术岗位</option></select></div>
+        <div class="info-field"><label><span class="req">*</span>任现岗位时间：</label><input class="inp" placeholder="请选择日期"></div><div class="info-field"><label>警衔/监狱官等级：</label><select class="sel"><option>请选择</option></select></div>
+        <div class="info-field"><label><span class="req">*</span>艰边高套标准：</label><select class="sel"><option>请选择</option></select></div><div class="info-field"><label><span class="req">*</span>薪级：</label><select class="sel"><option>请选择薪级</option></select></div>
+        <div class="info-field"><label><span class="req">*</span>薪级起考年限：</label><input class="inp" placeholder="请输入年限"></div><div class="info-field"><label>是否中小学教师：</label><select class="sel"><option>否</option><option>是</option></select></div>
+        <div class="info-field"><label>是否护士：</label><select class="sel"><option>否</option><option>是</option></select></div><div class="info-field"><label><span class="req">*</span>是否行政村艰津贴：</label><select class="sel"><option>是</option><option>否</option></select></div>
+        <div class="info-field"><label>是否提高10%工资：</label><select class="sel"><option>否</option><option>是</option></select></div><div class="info-field"><label><span class="req">*</span>艰边津贴执行类区：</label><select class="sel"><option>六类区</option></select></div>
+        <div class="info-field"><label>教护龄起始：</label><input class="inp"></div><div class="info-field"><label>教护龄：</label><input class="inp" value="0 年"></div>
+      </div><h4 class="info-title">工资金额</h4><div class="panel-card"><table class="data-grid"><thead><tr><th>保留原特殊岗位工资</th><th>退役运动员保留工资</th><th>中小学教师提高10%工资</th><th>原职员等级保留绝对额</th><th>岗位/职员等级工资</th><th>薪级工资</th><th>艰边津贴</th><th>工资合计</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table></div></section>
+
+      <section class="fill-panel info-layout" id="studyPanel"><h4 class="info-title">学习简历</h4><div class="panel-toolbar"><button class="dw-btn dw-btn-sm" type="button">新增</button></div><div class="panel-card"><table class="data-grid"><thead><tr><th style="width:60px">序号</th><th>学历</th><th>取得学历时间</th><th>所学专业</th><th>就读学校</th><th>备注</th><th style="width:70px">操作</th></tr></thead><tbody><tr><td>1</td><td><select class="sel"><option>大学本科</option></select></td><td><input class="mini" value="2014-06-30"></td><td><input class="mini" value="汉语言文学"></td><td><input class="mini" value="西昌学院"></td><td><input class="mini" placeholder="请输入备注"></td><td><span class="del">删除</span></td></tr></tbody></table></div></section>
+
+      <section class="fill-panel info-layout" id="careerPanel"><h4 class="info-title">任职简历</h4><div class="panel-toolbar"><button class="dw-btn dw-btn-sm" type="button">新增</button></div><div class="panel-card"><table class="data-grid" style="min-width:1450px"><thead><tr><th style="width:55px">序号</th><th>工作单位</th><th>担任职务</th><th>担任职务时间</th><th>人员身份</th><th>实际岗位</th><th>职员等级</th><th>任职等级时间</th><th>基本工资对应岗位/职员等级</th><th style="width:70px">操作</th></tr></thead><tbody><tr><td>1</td><td><input class="mini" value="凉山州教育局"></td><td><input class="mini" value="教师"></td><td><input class="mini" value="2020-09"></td><td><select class="sel"><option>专业技术人员</option></select></td><td><select class="sel"><option>专业技术岗位</option></select></td><td><input class="mini" value="十二级"></td><td><input class="mini" value="2020-09"></td><td><select class="sel"><option>专业技术十二级</option></select></td><td><span class="del">删除</span></td></tr></tbody></table></div></section>
+
+      <section class="fill-panel info-layout" id="seniorityPanel"><h4 class="info-title">最新工龄信息</h4><div class="info-fields"><div class="info-field"><label>参加工作时间：</label><input class="inp" value="2015-07-01"></div><div class="info-field"><label>正式参加工作前可计算工龄时间：</label><input class="inp" value="0年，0月"></div><div class="info-field"><label>连续工龄/工作年限：</label><input class="inp" value="11年，3月"></div><div class="info-field"><label>工龄间断年限时间：</label><input class="inp" value="0年，0月"></div><div class="info-field"><label>未计算工龄学习时间：</label><input class="inp" value="0年，0月"></div><div class="info-field"><label>任职间断年限时间：</label><input class="inp" value="0年，0月"></div></div><h4 class="info-title">工龄间断明细</h4><div class="panel-toolbar"><button class="dw-btn dw-btn-sm" type="button">新增</button></div><div class="panel-card"><table class="data-grid"><thead><tr><th>序号</th><th>起始时间</th><th>终止时间</th><th>累计时长</th><th>备注</th></tr></thead><tbody><tr><td colspan="5" style="text-align:center;color:#BFBFBF">暂无工龄间断记录</td></tr></tbody></table></div></section>
+
+      <section class="fill-panel info-layout" id="assessmentPanel"><h4 class="info-title">年度考核</h4><div class="panel-toolbar"><button class="dw-btn dw-btn-sm" type="button">新增</button></div><div class="panel-card"><table class="data-grid"><thead><tr><th>序号</th><th>考核年度</th><th>考核结果</th><th>是否影响薪级</th><th>备注</th></tr></thead><tbody><tr><td>1</td><td>2025</td><td>合格</td><td>否</td><td>—</td></tr></tbody></table></div></section>
+
+      <section class="fill-panel info-layout" id="highlowPanel"><h4 class="info-title">高低定信息</h4><div class="panel-card"><table class="data-grid"><thead><tr><th style="width:55px">序号</th><th>高低定类型</th><th>高低定起始时间</th><th>高低定级别/薪级</th><th>高低定档次/薪级</th><th>高低定备注</th><th style="width:75px">操作</th><th>高定级别/薪级</th><th>低定级别/薪级</th></tr></thead><tbody><tr><td>1</td><td><select class="sel"><option>浮动情况</option></select></td><td><input class="mini" placeholder="请选择日期"></td><td><select class="sel"><option>请选择</option></select></td><td><select class="sel"><option>请选择</option></select></td><td><input class="mini"></td><td><span class="del">删除</span></td><td>0</td><td>0</td></tr></tbody></table></div></section>
+
+      <section class="fill-panel info-layout" id="probationPanel"><h4 class="info-title">试用期信息</h4><div class="info-fields" style="max-width:700px;grid-template-columns:1fr"><div class="info-field"><label>试用期时长：</label><input class="inp" value="1年，0月"></div><div class="info-field"><label>试用期待遇：</label><select class="sel"><option>领定级工资</option></select></div><div class="info-field"><label>试用期起始时间：</label><input class="inp" placeholder="请填写试用期起始时间"></div><div class="info-field"><label>是否已转正：</label><select class="sel"><option>否</option><option>是</option></select></div><div class="info-field"><label>试用期是否晋升：</label><select class="sel"><option>否</option><option>是</option></select></div></div></section>
+
+      <section class="fill-panel info-layout" id="hardshipPanel"><h4 class="info-title">艰边简历</h4><div class="info-fields"><div class="info-field"><label><span class="req">*</span>截止核定时间：</label><input class="inp" value="2026年06月"></div></div><div class="panel-toolbar"><button class="dw-btn dw-btn-sm" type="button">新增</button></div><div class="panel-card"><table class="data-grid"><thead><tr><th style="width:60px">序号</th><th>起始时间</th><th>终止时间</th><th>艰边类区</th><th>累计时长（月）</th><th>备注</th></tr></thead><tbody><tr><td colspan="6" style="text-align:center;color:#BFBFBF">暂无艰边简历记录</td></tr></tbody></table></div></section>
+
+      <section class="fill-panel info-layout" id="nursingPanel"><h4 class="info-title">救护情况</h4><div class="info-fields"><div class="info-field"><label><span class="req">*</span>截止核定时间：</label><input class="inp" value="2026年10月"></div></div><div class="panel-toolbar"><button class="dw-btn dw-btn-sm" type="button">新增</button></div><div class="panel-card"><table class="data-grid"><thead><tr><th style="width:60px">序号</th><th>起始时间</th><th>终止时间</th><th>累计时长（月）</th><th>备注</th></tr></thead><tbody><tr><td colspan="5" style="text-align:center;color:#BFBFBF">暂无救护经历记录</td></tr></tbody></table></div></section>
+      </div>
+
+      <div class="change-fill-view hidden" id="changeFillView">
+        <div class="change-flow-row">
+          <div class="change-flow-actions"><button class="attach-btn" id="changeViewAiResult" type="button" style="display:none">查看AI校验结果</button><button class="dw-btn" id="changeAiValidateBtn" type="button">AI校验</button><button class="attach-btn" id="changeSaveBtn" type="button">保存</button></div>
+        </div>
+        <section class="change-section">
+          <h4 class="change-section-title">一、选择批量变动人员</h4>
+          <div class="selected-summary"><span>当前已选择</span><strong id="changeSelectedCount">0</strong><span>人</span><button class="attach-btn" id="reselectPeople" type="button">选择人员</button><span id="changeSelectedNames" style="color:#8C8C8C"></span></div>
+        </section>
+        <section class="change-section">
+          <h4 class="change-section-title">二、生成批量变动结果</h4>
+          <div class="change-generate-row"><button class="dw-btn" id="generateChangeResult" type="button">生成结果</button></div>
+        </section>
+        <section class="change-section">
+          <h4 class="change-section-title">三、确认批量变动信息</h4>
+          <div class="change-toolbar"><label>姓名：</label><input class="inp" id="changeNameQuery" placeholder="请输入姓名"><button class="attach-btn" id="changeQueryBtn" type="button">查询</button><label>任职岗位/职员等级时间：</label><input class="inp date-range" value="2020-09 至 2026-09"><label>日期：</label><input class="inp" value="2026-09-20"><button class="attach-btn" id="changeBatchSetBtn" type="button">批量设置列表数据</button></div>
+          <div class="change-table-wrap"><table class="change-table"><colgroup><col style="width:56px"><col style="width:108px"><col style="width:128px"><col style="width:78px"><col style="width:108px"><col style="width:116px"><col style="width:148px"><col style="width:146px"><col style="width:108px"><col style="width:138px"><col style="width:158px"><col style="width:186px"><col style="width:148px"><col style="width:78px"><col style="width:108px"><col style="width:148px"><col style="width:78px"></colgroup><thead><tr><th rowspan="2" class="sticky-l1">序号</th><th>基础信息</th><th colspan="8" class="before">变动前</th><th colspan="6" class="after">变动后</th><th rowspan="2" class="sticky-r">操作</th></tr><tr><th class="sticky-l2">姓名</th><th class="before">基本工资对应岗位</th><th class="before">薪级</th><th class="before">薪级起考年限</th><th class="before"><span class="req">*</span>现任职务</th><th class="before"><span class="req">*</span>任职务时间</th><th class="before">实际岗位</th><th class="before">职员等级</th><th class="before">任职员等级时间</th><th class="after"><span class="req">*</span>基本工资对应岗位/职级</th><th class="after"><span class="req">*</span>任现岗位/职员等级时间</th><th class="after">基础性绩效层次</th><th class="after">薪级</th><th class="after">薪级起考年限</th><th class="after"><span class="req">*</span>起薪时间</th></tr></thead><tbody id="changeResultBody"></tbody></table></div>
+        </section>
+        <section class="change-section">
+          <h4 class="change-section-title">四、确认文号附件信息</h4>
+          <div class="doc-grid">
+            <div class="doc-field"><label>依据文号：</label><div class="ctrl"><input class="inp" id="changeDocNo" value="凉人社薪〔2026〕88号"></div></div>
+            <div class="doc-field"><label>变动备注：</label><div class="ctrl"><input class="inp" id="changeRemark" placeholder="请输入变动备注"></div></div>
+            <div class="doc-field full"><label>工资报审附件：</label><div class="ctrl"><div class="attach-inline"><button class="attach-btn" id="changeAttachBtn" type="button">上传附件</button><span class="attach-count" id="changeAttachCount">附件数量：0个</span></div><input id="changeAttachInput" type="file" multiple hidden></div></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="ai-view" id="aiView" aria-label="AI校验">
+        <div class="ai-view-hd"><h4 id="aiViewTitle">AI校验</h4><button class="ai-back" id="aiBack" type="button">返回系统回填</button></div>
+        <div class="ai-view-body" id="aiViewBody" aria-live="polite"></div>
+        <div class="ai-view-ft" id="aiViewFooter">
+          <span class="hint" id="aiViewHint"></span>
+          <button class="dw-btn danger" id="aiRecheck" type="button">重新校验</button>
+          <button class="dw-btn" id="aiSubmit" type="button">忽略异常，继续保存提交</button>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+(function () {
+  // 左侧菜单：AI智能经办、人员新增减少、基本工资业务是三个独立页面入口
+  var menu = document.getElementById('menu');
+  var crumbTitle = document.getElementById('crumbTitle');
+  var mainContent = document.getElementById('mainContent');
+  var recordSubmenu = document.getElementById('recordSubmenu');
+  var recordPersonView = document.getElementById('recordPersonView');
+  var recordUnitView = document.getElementById('recordUnitView');
+  var recordUnitBody = document.getElementById('recordUnitBody');
+  var recordMenu = document.getElementById('recordMenu');
+  function setRecordSubmenuOpen(open) {
+    recordMenu.classList.toggle('submenu-open', open);
+    recordSubmenu.classList.toggle('open', open);
+    recordMenu.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function setActiveMenu(key) {
+    Array.prototype.forEach.call(menu.children, function (n) {
+      n.classList.toggle('active', n.getAttribute('data-k') === key);
+    });
+  }
+  function renderRecordUnitRows() {
+    if (recordUnitBody.innerHTML) return;
+    var rows = [
+      ['00091','调出州外凉','513401198712222240','未生成','','2026年11月','专业技术人员岗级变动','2026年10月08日18:00:05','八级专业技术岗位','八级专业技术岗位','','26级','2025年','2650','2075','473','0','0','0','0','6163','11361','00100','2个','法官','2026年10月08日18:00:05'],
+      ['00069','来调计凉','513401198712221619','未生成','','2026年11月','管理人员职务变动','2026年10月08日18:00:05','一级岗位','一级岗位','','48级','2027年','7430','4781','0','0','0','0','0','600','12811','102','2个','法官','2026年10月08日18:00:05'],
+      ['00093','逃之夭了个天','410423196607130013','生成未上报','2026年11月','2025年09月20日','录入新进入员','2026年09月30日13:57:01','五级专业技术岗位','五级专业技术岗位','','20级','2025年','4219','1677','0','0','0','0','0','4320','10216','187','1个','法官','2026年09月30日13:57:02'],
+      ['00094','任我行','510114198911192028','生成未上报','2026年11月','2024年09月13日','录入新进入员','2026年09月30日14:24:40','六级专业技术岗位','六级专业技术岗位','','21级','2024年','3610','1774','0','0','0','0','0','6449','11833','189','1个','法官','2026年09月30日14:24:40']
+    ];
+    recordUnitBody.innerHTML = rows.map(function (r) {
+      return '<tr><td class="sticky-check"><input type="checkbox"></td>' + r.map(function (v, i) {
+        var cls = '';
+        if (i === 0) cls = 'sticky-code link';
+        else if (i === 1) cls = 'sticky-name';
+        else if (i === 23) cls = 'link';
+        return '<td' + (cls ? ' class="' + cls + '"' : '') + '>' + v + '</td>';
+      }).join('') + '<td class="sticky-operation"><button class="ru-result-link" type="button" data-record-ai-result data-code="' + r[0] + '" data-name="' + r[1] + '" data-type="' + r[6] + '">AI校验结果</button></td></tr>';
+    }).join('');
+  }
+  var recordAiMask = document.getElementById('recordAiMask');
+  var recordAiBody = document.getElementById('recordAiBody');
+  function buildRecordAiResult(data) {
+    var compare = [
+      {field:'人员姓名',ext:data.name || '调出州外凉',back:data.name || '调出州外凉',sourceFile:'人员变动审批表.pdf',group:'person',type:'ok'},
+      {field:'人员编号',ext:data.code || '00091',back:data.code || '00091',sourceFile:'人员变动审批表.pdf',group:'person',type:'ok'},
+      {field:'变动后岗位等级',ext:'专业技术十级',back:'专业技术十二级',sourceFile:'人员变动审批表.pdf',group:'salary',type:'bad'},
+      {field:'起薪时间',ext:'2026年10月',back:'2026年11月',sourceFile:'工资审批表.pdf',group:'salary',type:'bad'},
+      {field:'最高学历',ext:'本科',back:'本科',sourceFile:'学历学位证书.pdf',group:'study',type:'ok'},
+      {field:'任职时间',ext:'2026年09月',back:'2026年09月',sourceFile:'任免通知.pdf',group:'career',type:'ok'}
+    ];
+    return {
+      total:10,passed:6,abnormal:4,missingAttachments:1,uploadErrors:1,contentAbnormal:2,
+      attachments:[
+        {type:'ok',name:'人员变动审批表.pdf',desc:'已上传，人员与变动信息识别正常'},
+        {type:'error',name:'任免通知',desc:'缺失必传附件，未检测到对应文件'},
+        {type:'error',name:'工资审批表.pdf',desc:'附件上传错误，文件类型与要求不符，请重新上传'}
+      ],
+      compare:compare,
+      compareGroups:{
+        person:compare.filter(function (r) { return r.group === 'person'; }),
+        salary:compare.filter(function (r) { return r.group === 'salary'; }),
+        study:compare.filter(function (r) { return r.group === 'study'; }),
+        career:compare.filter(function (r) { return r.group === 'career'; }),
+        hardship:[]
+      }
+    };
+  }
+  function openRecordAiResult(data) {
+    recordAiBody.innerHTML = buildAiResultHtml(buildRecordAiResult(data), false, false);
+    recordAiMask.classList.add('open');
+  }
+  function closeRecordAiResult() {
+    recordAiMask.classList.remove('open');
+  }
+  document.getElementById('recordPersonAiResult').addEventListener('click', function () {
+    openRecordAiResult({code:'00091', name:'调出州外凉', type:'专业技术人员岗级变动'});
+  });
+  recordUnitBody.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-record-ai-result]');
+    if (!btn) return;
+    openRecordAiResult({code:btn.getAttribute('data-code'), name:btn.getAttribute('data-name'), type:btn.getAttribute('data-type')});
+  });
+  document.getElementById('recordAiClose').addEventListener('click', closeRecordAiResult);
+  document.getElementById('recordAiConfirm').addEventListener('click', closeRecordAiResult);
+  recordAiMask.addEventListener('click', function (e) { if (e.target === recordAiMask) closeRecordAiResult(); });
+  function openRecordPage(pageKey) {
+    closeDrawer();
+    currentPageKey = pageKey;
+    setActiveMenu('record');
+    setRecordSubmenuOpen(false);
+    Array.prototype.forEach.call(recordSubmenu.querySelectorAll('button'), function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-record-page') === pageKey);
+    });
+    mainContent.classList.remove('standalone-page');
+    mainContent.classList.add('record-page');
+    restoreFillViewsToDrawer();
+    recordPersonView.classList.toggle('active', pageKey === 'record-person');
+    recordUnitView.classList.toggle('active', pageKey === 'record-unit');
+    crumbTitle.textContent = '变动记录调整　»　变动记录调整（' + (pageKey === 'record-person' ? '人员' : '单位') + '）';
+    if (pageKey === 'record-unit') renderRecordUnitRows();
+  }
+  var currentPageKey = 'ai';
+  var standaloneRowContext = {reduce:null, salary:null};
+  function openBusinessPage(pageKey, sourceRow) {
+    closeDrawer();
+    setRecordSubmenuOpen(false);
+    mainContent.classList.remove('record-page');
+    recordPersonView.classList.remove('active');
+    recordUnitView.classList.remove('active');
+    currentPageKey = pageKey;
+    if (pageKey === 'add') {
+      if (sourceRow) standaloneRowContext.reduce = sourceRow;
+      setActiveMenu('add');
+      crumbTitle.textContent = '人员新增减少';
+      mainContent.classList.add('standalone-page');
+      mountStandaloneBusiness('reduce', standaloneRowContext.reduce);
+    } else if (pageKey === 'wage') {
+      if (sourceRow) standaloneRowContext.salary = sourceRow;
+      setActiveMenu('wage');
+      crumbTitle.textContent = '基本工资业务';
+      mainContent.classList.add('standalone-page');
+      mountStandaloneBusiness('salary', standaloneRowContext.salary);
+    } else {
+      setActiveMenu('ai');
+      crumbTitle.textContent = 'AI智能经办';
+      mainContent.classList.remove('standalone-page');
+      restoreFillViewsToDrawer();
+      if (activeBizKey !== 'person' && activeBizKey !== 'change') switchTaskTable('person');
+    }
+  }
+  menu.addEventListener('click', function (e) {
+    var recordPageButton = e.target.closest('[data-record-page]');
+    if (recordPageButton) {
+      e.stopPropagation();
+      openRecordPage(recordPageButton.getAttribute('data-record-page'));
+      return;
+    }
+    var li = e.target.closest('li[data-k]');
+    if (!li || !menu.contains(li)) return;
+    var k = li.getAttribute('data-k');
+    if (k === 'record') {
+      setActiveMenu('record');
+      setRecordSubmenuOpen(!recordMenu.classList.contains('submenu-open'));
+      return;
+    }
+    setRecordSubmenuOpen(false);
+    if (k === 'ai' || k === 'add' || k === 'wage') {
+      openBusinessPage(k);
+      return;
+    }
+    setActiveMenu(k);
+  });
+  document.addEventListener('click', function (e) {
+    if (!recordMenu.contains(e.target)) setRecordSubmenuOpen(false);
+  });
+
+  // 经办业务行：点击切换选中，并联动右侧任务卡片标题与字段结构
+  var bizBody = document.getElementById('bizBody');
+  var taskTitle = document.getElementById('taskTitle');
+  var taskCols = document.getElementById('taskCols');
+  var taskHead = document.getElementById('taskHead');
+  var taskTable = document.getElementById('taskTable');
+  var personTaskBody = document.getElementById('personTaskBody');
+  var pageSummary = document.getElementById('pageSummary');
+  var pageSizeSelect = document.getElementById('pageSize');
+  var pagePrev = document.getElementById('pagePrev');
+  var pageNext = document.getElementById('pageNext');
+  var pagePages = document.getElementById('pagePages');
+  var paginationState = {
+    person:{page:1,pageSize:15},
+    reduce:{page:1,pageSize:15},
+    change:{page:1,pageSize:15},
+    salary:{page:1,pageSize:15}
+  };
+  var activeBizKey = 'person';
+  // 业务配置：person/reduce 复用人员新增回填视图与五类结果；change/salary 复用岗位变动五步视图（含人员穿梭框）与直接异常结果
+  var BIZ_META = {
+    person: {
+      key:'person', name:'人员新增', title:'人员新增', aiTitle:'人员新增 · AI校验',
+      fill:'person', attach:'person', addBtn:'新增人员', change:false,
+      cols:'<col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7"><col class="c8">',
+      head:'<tr><th>序号</th><th>姓名</th><th>身份</th><th>来源</th><th>附件数量</th><th>处理状态</th><th>处理完成时间</th><th>操作</th></tr>'
+    },
+    reduce: {
+      key:'reduce', name:'人员新增减少', title:'人员新增减少', aiTitle:'人员新增减少 · AI校验',
+      fill:'person', attach:'person', addBtn:'新增人员', change:false,
+      cols:'<col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7"><col class="c8">',
+      head:'<tr><th>序号</th><th>姓名</th><th>身份</th><th>来源</th><th>附件数量</th><th>处理状态</th><th>处理完成时间</th><th>操作</th></tr>'
+    },
+    change: {
+      key:'change', name:'岗位/职员等级变动', title:'岗位/职员等级变动', aiTitle:'岗位/职员等级变动 · AI校验',
+      fill:'change', attach:'change', addBtn:'人员选择', change:true,
+      cols:'<col style="width:83px"><col style="width:310px"><col style="width:130px"><col style="width:130px"><col style="width:155px"><col style="width:240px"><col style="width:261px">',
+      head:'<tr><th>序号</th><th>姓名</th><th>人员数量</th><th>附件数量</th><th>处理状态</th><th>处理完成时间</th><th>操作</th></tr>'
+    },
+    salary: {
+      key:'salary', name:'基本工资业务', title:'基本工资业务', aiTitle:'基本工资业务 · AI校验',
+      fill:'change', attach:'change', addBtn:'人员选择', change:true,
+      cols:'<col style="width:83px"><col style="width:310px"><col style="width:130px"><col style="width:130px"><col style="width:155px"><col style="width:240px"><col style="width:261px">',
+      head:'<tr><th>序号</th><th>姓名</th><th>人员数量</th><th>附件数量</th><th>处理状态</th><th>处理完成时间</th><th>操作</th></tr>'
+    }
+  };
+  var changeTaskBody = document.createElement('tbody');
+  changeTaskBody.id = 'changeTaskBody';
+  changeTaskBody.innerHTML = '<tr data-state="idle" data-biz-type="change"><td>1</td><td title="王德发、李晓梅、张勇">王德发、李晓梅、张勇</td><td>3</td><td>4</td><td data-role="status"><span class="status-pill idle">待回填</span></td><td>2026-09-20 14:08:26</td><td data-role="operation"><a class="op-link" data-action="backfill" href="javascript:;">回填系统</a><a class="link-red" data-action="delete" href="javascript:;">删除</a></td></tr>' +
+    '<tr data-state="idle" data-biz-type="change"><td>2</td><td title="赵敏、刘洋、陈思远、周洁">赵敏、刘洋、陈思远、周洁</td><td>4</td><td>6</td><td data-role="status"><span class="status-pill idle">待回填</span></td><td>2026-09-20 12:42:15</td><td data-role="operation"><a class="op-link" data-action="backfill" href="javascript:;">回填系统</a><a class="link-red" data-action="delete" href="javascript:;">删除</a></td></tr>';
+  var reduceTaskBody = document.createElement('tbody');
+  reduceTaskBody.id = 'reduceTaskBody';
+  reduceTaskBody.innerHTML = '<tr data-state="idle" data-biz-type="person"><td>1</td><td>孙丽</td><td>工勤人员</td><td>其他</td><td>1</td><td data-role="status"><span class="status-pill idle">待回填</span></td><td>2026-09-21 09:12:33</td><td data-role="operation"><a class="op-link" data-action="backfill" href="javascript:;">回填系统</a><a class="link-red" data-action="delete" href="javascript:;">删除</a></td></tr>';
+  var salaryTaskBody = document.createElement('tbody');
+  salaryTaskBody.id = 'salaryTaskBody';
+  salaryTaskBody.innerHTML = '<tr data-state="idle" data-biz-type="change"><td>1</td><td title="王德发、李晓梅">王德发、李晓梅</td><td>2</td><td>4</td><td data-role="status"><span class="status-pill idle">待回填</span></td><td>2026-09-21 10:05:11</td><td data-role="operation"><a class="op-link" data-action="backfill" href="javascript:;">回填系统</a><a class="link-red" data-action="delete" href="javascript:;">删除</a></td></tr>';
+  var TASK_BODIES = {
+    person: personTaskBody,
+    reduce: reduceTaskBody,
+    change: changeTaskBody,
+    salary: salaryTaskBody
+  };
+
+  // 已上传附件初始数据：与任务列表「附件数量」列保持一致，供附件弹窗查看/续传
+  (function seedAttachments() {
+    var personSeed = ['事业单位新进人员工资套改表.pdf'];
+    var changeSeed1 = ['工资报审汇总表.xlsx', '变动人员明细.xlsx', '变动审批表.pdf', '编制核定文件.jpg'];
+    var changeSeed2 = ['工资报审汇总表.xlsx', '变动人员明细.xlsx', '变动审批表.pdf', '编制核定文件.jpg', '岗位设置方案.docx', '职级晋升批复.pdf'];
+    var reduceSeed = ['事业单位人员减少工资停发表.pdf'];
+    var salarySeed1 = ['工资报审汇总表.xlsx', '变动人员明细.xlsx', '变动审批表.pdf', '编制核定文件.jpg'];
+    function seed(row, files, mode) {
+      if (!row) return;
+      row._uploadedFiles = files.slice();
+      var store = {};
+      if (files.length) store[(mode === 'change' ? 'other' : 'taogai')] = files.slice();
+      row._attachStore = store;
+    }
+    if (personTaskBody.rows[0]) seed(personTaskBody.rows[0], personSeed, 'person');
+    if (reduceTaskBody.rows[0]) seed(reduceTaskBody.rows[0], reduceSeed, 'person');
+    if (changeTaskBody.rows[0]) seed(changeTaskBody.rows[0], changeSeed1, 'change');
+    if (changeTaskBody.rows[1]) seed(changeTaskBody.rows[1], changeSeed2, 'change');
+    if (salaryTaskBody.rows[0]) seed(salaryTaskBody.rows[0], salarySeed1, 'change');
+  })();
+
+  function getActiveTaskBody() {
+    return TASK_BODIES[activeBizKey];
+  }
+  function renderPagination() {
+    var body = getActiveTaskBody();
+    var state = paginationState[activeBizKey];
+    var rows = Array.prototype.slice.call(body.children);
+    var total = rows.length;
+    var totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+    if (state.page > totalPages) state.page = totalPages;
+    var start = (state.page - 1) * state.pageSize;
+    rows.forEach(function (row, index) {
+      row.style.display = index >= start && index < start + state.pageSize ? '' : 'none';
+      if (row.children[0]) row.children[0].textContent = index + 1;
+    });
+    pageSummary.textContent = '共 ' + total + ' 条';
+    pageSizeSelect.value = String(state.pageSize);
+    pagePrev.disabled = state.page <= 1;
+    pageNext.disabled = state.page >= totalPages;
+    pagePages.innerHTML = '';
+    for (var i = 1; i <= totalPages; i++) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'page-btn' + (i === state.page ? ' active' : '');
+      btn.textContent = i;
+      btn.setAttribute('data-page', i);
+      pagePages.appendChild(btn);
+    }
+  }
+  function switchTaskTable(key) {
+    var meta = BIZ_META[key] || BIZ_META.person;
+    activeBizKey = meta.key;
+    taskTitle.textContent = meta.name + '任务';
+    var activeBody = taskTable.tBodies[0];
+    var addBtn = document.getElementById('addPersonBtn');
+    addBtn.textContent = meta.addBtn;
+    taskCols.innerHTML = meta.cols;
+    taskHead.innerHTML = meta.head;
+    var target = TASK_BODIES[meta.key];
+    if (activeBody !== target) taskTable.replaceChild(target, activeBody);
+    Array.prototype.forEach.call(bizBody.children, function (n) {
+      n.classList.toggle('selected', n.getAttribute('data-biz-key') === meta.key);
+    });
+    renderPagination();
+  }
+  pageSizeSelect.addEventListener('change', function () {
+    var state = paginationState[activeBizKey];
+    state.pageSize = +pageSizeSelect.value;
+    state.page = 1;
+    renderPagination();
+  });
+  pagePrev.addEventListener('click', function () {
+    var state = paginationState[activeBizKey];
+    if (state.page > 1) { state.page--; renderPagination(); }
+  });
+  pageNext.addEventListener('click', function () {
+    var state = paginationState[activeBizKey];
+    var totalPages = Math.max(1, Math.ceil(getActiveTaskBody().children.length / state.pageSize));
+    if (state.page < totalPages) { state.page++; renderPagination(); }
+  });
+  pagePages.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-page]');
+    if (!btn) return;
+    paginationState[activeBizKey].page = +btn.getAttribute('data-page');
+    renderPagination();
+  });
+
+  bizBody.addEventListener('click', function (e) {
+    var tr = e.target.closest('tr');
+    if (!tr) return;
+    Array.prototype.forEach.call(bizBody.children, function (n) { n.classList.remove('selected'); });
+    tr.classList.add('selected');
+    switchTaskTable(tr.getAttribute('data-biz-key'));
+  });
+  renderPagination();
+
+  // ---- 「回填系统」→ 右侧抽屉 ----
+  var app = document.querySelector('.app');
+  var deletePopconfirm = document.getElementById('deletePopconfirm');
+  var deletePopconfirmText = document.getElementById('deletePopconfirmText');
+  var pendingDeleteRow = null;
+  var pendingDeleteAction = null;
+  function closeDeleteConfirm() {
+    deletePopconfirm.classList.remove('open');
+    pendingDeleteRow = null;
+    pendingDeleteAction = null;
+  }
+  function openDeleteConfirm(trigger, row, action, message) {
+    pendingDeleteRow = row || null;
+    pendingDeleteAction = typeof action === 'function' ? action : null;
+    deletePopconfirmText.textContent = message || '删除后数据不可恢复，确定删除该任务吗？';
+    deletePopconfirm.classList.add('open');
+    var appRect = app.getBoundingClientRect();
+    var rect = trigger.getBoundingClientRect();
+    var left = Math.max(12, Math.min(app.clientWidth - 262, rect.right - appRect.left - 238));
+    var top = Math.max(12, rect.top - appRect.top - deletePopconfirm.offsetHeight - 10);
+    deletePopconfirm.style.left = left + 'px';
+    deletePopconfirm.style.top = top + 'px';
+  }
+  var drawer = document.getElementById('drawer');
+  var mask = document.getElementById('drawerMask');
+  var drawerTitle = document.getElementById('drawerTitle');
+  var drawerBody = drawer.querySelector('.drawer-bd');
+  var standaloneWorkbench = document.getElementById('standaloneWorkbench');
+  var standaloneWorkbenchTitle = document.getElementById('standaloneWorkbenchTitle');
+  var standaloneWorkbenchActions = document.getElementById('standaloneWorkbenchActions');
+  var standaloneWorkbenchBody = document.getElementById('standaloneWorkbenchBody');
+  var viewAiResult = document.getElementById('viewAiResult');
+  var personFillView = document.getElementById('personFillView');
+  var changeFillView = document.getElementById('changeFillView');
+  var changeFlowRow = changeFillView.querySelector('.change-flow-row');
+  var changeFlowActions = changeFillView.querySelector('.change-flow-actions');
+  var changeViewAiResult = document.getElementById('changeViewAiResult');
+  var aiValidateBtn = document.getElementById('aiValidateBtn');
+  var personSaveBtn = document.getElementById('personSaveBtn');
+  var changeAiValidateBtn = document.getElementById('changeAiValidateBtn');
+  var changeSaveBtn = document.getElementById('changeSaveBtn');
+  var aiView = document.getElementById('aiView');
+  var aiViewTitle = document.getElementById('aiViewTitle');
+  var aiViewBody = document.getElementById('aiViewBody');
+  var aiViewFooter = document.getElementById('aiViewFooter');
+
+  function isChangeRow(row) { return !!(row && row.getAttribute('data-biz-type') === 'change'); }
+  function isStandalonePage() { return currentPageKey === 'add' || currentPageKey === 'wage'; }
+  function restoreChangeActionsToFillView() {
+    if (changeFlowActions.parentNode !== changeFlowRow) changeFlowRow.appendChild(changeFlowActions);
+  }
+  function restoreFillViewsToDrawer() {
+    restoreChangeActionsToFillView();
+    if (personFillView.parentNode !== drawerBody) drawerBody.insertBefore(personFillView, aiView);
+    if (changeFillView.parentNode !== drawerBody) drawerBody.insertBefore(changeFillView, aiView);
+  }
+  function mountStandaloneBusiness(key, sourceRow) {
+    var row = sourceRow || standaloneRowContext[key] || (TASK_BODIES[key] && TASK_BODIES[key].rows[0]);
+    if (!row) return;
+    standaloneRowContext[key] = row;
+    activeBizKey = key;
+    currentRow = row;
+    leaveAiView();
+    closeDrawer();
+    standaloneWorkbenchTitle.textContent = BIZ_META[key].title;
+    if (isChangeRow(row)) standaloneWorkbenchActions.appendChild(changeFlowActions);
+    else restoreChangeActionsToFillView();
+    standaloneWorkbenchBody.appendChild(isChangeRow(row) ? changeFillView : personFillView);
+    setFillMode(row);
+    uploadedFiles = row._uploadedFiles ? row._uploadedFiles.slice() : [];
+    if (isChangeRow(row)) {
+      if (!row._selectedPeople) row._selectedPeople = splitNames(row);
+      renderChangeAttachments();
+      renderChangeSummary();
+      renderChangeRows();
+      restoreChangeBackfill(row);
+    } else {
+      renderAttach();
+      if (!restorePersonBackfill(row) && !row._edited) fillForm();
+    }
+    syncValidationActions(row);
+    standaloneWorkbenchBody.scrollTop = 0;
+  }
+  function syncValidationActions(row) {
+    var hasResult = !!(row && row._result);
+    var change = isChangeRow(row);
+    viewAiResult.style.display = !change && hasResult ? 'inline-flex' : 'none';
+    aiValidateBtn.style.display = !change && !hasResult ? 'inline-flex' : 'none';
+    personSaveBtn.style.display = !change ? 'inline-flex' : 'none';
+    changeViewAiResult.style.display = change && hasResult ? 'inline-flex' : 'none';
+    changeAiValidateBtn.style.display = change && !hasResult ? 'inline-flex' : 'none';
+    changeSaveBtn.style.display = change ? 'inline-flex' : 'none';
+  }
+  function setFillMode(row) {
+    var change = isChangeRow(row);
+    personFillView.classList.toggle('hidden', change);
+    changeFillView.classList.toggle('hidden', !change);
+  }
+  function leaveAiView() {
+    drawerBody.classList.remove('ai-mode');
+    aiViewFooter.style.display = 'none';
+    aiViewBody.innerHTML = '';
+  }
+  function enterAiView(title, resultOnly) {
+    setFillMode(currentRow);
+    drawerBody.classList.add('ai-mode');
+    aiViewTitle.textContent = title || 'AI校验';
+    drawerTitle.textContent = resultOnly ? 'AI校验结果' : BIZ_META[activeBizKey].aiTitle;
+    document.getElementById('aiBack').style.display = resultOnly ? 'none' : 'inline-flex';
+    app.classList.add('drawer-open');
+    drawer.setAttribute('aria-hidden', 'false');
+    drawerBody.scrollTop = 0;
+  }
+  function restoreFillView() {
+    if (!currentRow) return;
+    if (isStandalonePage()) {
+      leaveAiView();
+      closeDrawer();
+      mountStandaloneBusiness(activeBizKey);
+      return;
+    }
+    if (isChangeRow(currentRow)) openChangeDrawer();
+    else openDrawer(true);
+  }
+  function openDrawer(keepValues) {
+    if (!currentRow) return;
+    if (isStandalonePage()) { mountStandaloneBusiness(activeBizKey); return; }
+    restoreFillViewsToDrawer();
+    leaveAiView();
+    setFillMode(currentRow);
+    drawerTitle.textContent = BIZ_META[activeBizKey].title;
+    uploadedFiles = currentRow._uploadedFiles ? currentRow._uploadedFiles.slice() : [];
+    renderAttach();
+    if (!keepValues && !restorePersonBackfill(currentRow) && !currentRow._edited) fillForm();
+    syncValidationActions(currentRow);
+    app.classList.add('drawer-open');
+    drawer.setAttribute('aria-hidden', 'false');
+  }
+  function openChangeDrawer() {
+    if (!currentRow) return;
+    if (isStandalonePage()) { mountStandaloneBusiness(activeBizKey); return; }
+    restoreFillViewsToDrawer();
+    leaveAiView();
+    setFillMode(currentRow);
+    drawerTitle.textContent = BIZ_META[activeBizKey].title;
+    uploadedFiles = currentRow._uploadedFiles ? currentRow._uploadedFiles.slice() : [];
+    renderChangeAttachments();
+    renderChangeSummary();
+    renderChangeRows();
+    restoreChangeBackfill(currentRow);
+    syncValidationActions(currentRow);
+    app.classList.add('drawer-open');
+    drawer.setAttribute('aria-hidden', 'false');
+  }
+  function closeDrawer() {
+    app.classList.remove('drawer-open');
+    drawer.setAttribute('aria-hidden', 'true');
+  }
+
+  var currentRow = null;
+
+  // 岗位变动人员确认：右侧默认姓名均来自系统候选集合
+  var peopleMask = document.getElementById('peopleMask');
+  var availableList = document.getElementById('availableList');
+  var selectedList = document.getElementById('selectedList');
+  var peopleSearch = document.getElementById('peopleSearch');
+  var peopleIdentityFilter = document.getElementById('peopleIdentityFilter');
+  var peoplePostFilter = document.getElementById('peoplePostFilter');
+  var peopleAttachInput = document.getElementById('peopleAttachInput');
+  var peopleAttachCount = document.getElementById('peopleAttachCount');
+  var SYSTEM_PEOPLE = ['王德发','李晓梅','张勇','赵敏','刘洋','陈思远','周洁','罗文博','何雨欣','黄志强'];
+  var selectedPeople = [];
+  var initialSelectedPeople = [];
+  var markedAvailable = [];
+  var markedSelected = [];
+
+  function splitNames(row) {
+    return row && row.children[1] ? row.children[1].textContent.trim().split('、').filter(function (n) { return SYSTEM_PEOPLE.indexOf(n) >= 0; }) : [];
+  }
+  function getPeopleMeta(name) {
+    var i = SYSTEM_PEOPLE.indexOf(name);
+    return {identity:i % 3 === 0 ? '专业技术人员' : i % 3 === 1 ? '管理人员' : '工勤人员', post:i % 3 === 0 ? '专业技术十级' : i % 3 === 1 ? '管理七级' : '工勤三级'};
+  }
+  function renderPeopleLists() {
+    var keyword = peopleSearch.value.trim();
+    var identity = peopleIdentityFilter.value;
+    var post = peoplePostFilter.value;
+    var available = SYSTEM_PEOPLE.filter(function (n) {
+      var meta = getPeopleMeta(n);
+      return selectedPeople.indexOf(n) < 0 && (!keyword || n.indexOf(keyword) >= 0) && (identity === '全部人员身份' || meta.identity === identity) && (post === '全部岗位/职员等级' || meta.post === post);
+    });
+    availableList.innerHTML = available.map(function (n) { var meta = getPeopleMeta(n); return '<label class="person-item' + (markedAvailable.indexOf(n) >= 0 ? ' active' : '') + '"><input type="checkbox" data-transfer="available" data-name="' + esc(n) + '"' + (markedAvailable.indexOf(n) >= 0 ? ' checked' : '') + '><span>' + esc(n) + '</span><span class="meta">' + meta.identity + '</span></label>'; }).join('') || '<div class="result-empty" style="min-height:180px;border:0"><strong>暂无可选人员</strong></div>';
+    selectedList.innerHTML = selectedPeople.map(function (n) { return '<label class="person-item' + (markedSelected.indexOf(n) >= 0 ? ' active' : '') + '"><input type="checkbox" data-transfer="selected" data-name="' + esc(n) + '"' + (markedSelected.indexOf(n) >= 0 ? ' checked' : '') + '><span>' + esc(n) + '</span><span class="meta">已提取</span></label>'; }).join('') || '<div class="result-empty" style="min-height:180px;border:0"><strong>尚未选择人员</strong></div>';
+    document.getElementById('availableCount').textContent = available.length + '人';
+    document.getElementById('selectedCount').textContent = selectedPeople.length + '人';
+  }
+  function openPeopleDialog(row) {
+    currentRow = row;
+    initialSelectedPeople = (row._selectedPeople ? row._selectedPeople.slice() : splitNames(row)).filter(function (n) { return SYSTEM_PEOPLE.indexOf(n) >= 0; });
+    selectedPeople = initialSelectedPeople.slice();
+    uploadedFiles = row._uploadedFiles ? row._uploadedFiles.slice() : [];
+    markedAvailable = [];
+    markedSelected = [];
+    peopleSearch.value = '';
+    peopleIdentityFilter.selectedIndex = 0;
+    peoplePostFilter.selectedIndex = 0;
+    renderPeopleLists();
+    renderPeopleAttachments();
+    peopleMask.classList.add('open');
+  }
+  function closePeopleDialog() { peopleMask.classList.remove('open'); }
+  function syncMarked(e) {
+    var input = e.target.closest('input[data-transfer]');
+    if (!input) return;
+    var list = input.getAttribute('data-transfer') === 'available' ? markedAvailable : markedSelected;
+    var name = input.getAttribute('data-name');
+    if (input.checked && list.indexOf(name) < 0) list.push(name);
+    if (!input.checked) { var idx = list.indexOf(name); if (idx >= 0) list.splice(idx, 1); }
+    renderPeopleLists();
+  }
+  function persistCurrentFiles() {
+    if (currentRow) currentRow._uploadedFiles = uploadedFiles.slice();
+  }
+  function addSharedFiles(fileList) {
+    Array.prototype.forEach.call(fileList, function (f) { if (uploadedFiles.indexOf(f.name) < 0) uploadedFiles.push(f.name); });
+    persistCurrentFiles();
+    renderPeopleAttachments();
+    renderChangeAttachments();
+  }
+  function renderPeopleAttachments() {
+    peopleAttachCount.textContent = '附件数量：' + uploadedFiles.length + '个';
+  }
+  availableList.addEventListener('change', syncMarked);
+  selectedList.addEventListener('change', syncMarked);
+  peopleSearch.addEventListener('input', renderPeopleLists);
+  peopleIdentityFilter.addEventListener('change', renderPeopleLists);
+  peoplePostFilter.addEventListener('change', renderPeopleLists);
+  document.getElementById('peopleReset').addEventListener('click', function () {
+    selectedPeople = initialSelectedPeople.filter(function (n) { return SYSTEM_PEOPLE.indexOf(n) >= 0; });
+    markedAvailable = [];
+    markedSelected = [];
+    peopleSearch.value = '';
+    peopleIdentityFilter.selectedIndex = 0;
+    peoplePostFilter.selectedIndex = 0;
+    renderPeopleLists();
+  });
+  document.getElementById('peopleAttachBtn').addEventListener('click', function () { openAttachDialog('change', 'row', currentRow); });
+  peopleAttachInput.addEventListener('change', function () { addSharedFiles(peopleAttachInput.files); peopleAttachInput.value = ''; });
+  document.getElementById('moveRight').addEventListener('click', function () { markedAvailable.forEach(function (n) { if (selectedPeople.indexOf(n) < 0) selectedPeople.push(n); }); markedAvailable = []; renderPeopleLists(); });
+  document.getElementById('moveLeft').addEventListener('click', function () { selectedPeople = selectedPeople.filter(function (n) { return markedSelected.indexOf(n) < 0; }); markedSelected = []; renderPeopleLists(); });
+  document.getElementById('moveAllRight').addEventListener('click', function () { selectedPeople = SYSTEM_PEOPLE.slice(); markedAvailable = []; renderPeopleLists(); });
+  document.getElementById('moveAllLeft').addEventListener('click', function () { selectedPeople = []; markedSelected = []; renderPeopleLists(); });
+  document.getElementById('peopleClose').addEventListener('click', closePeopleDialog);
+  document.getElementById('peopleCancel').addEventListener('click', closePeopleDialog);
+  peopleMask.addEventListener('click', function (e) { if (e.target === peopleMask) closePeopleDialog(); });
+  document.getElementById('peopleConfirm').addEventListener('click', function () {
+    if (!currentRow || !selectedPeople.length) return;
+    currentRow._selectedPeople = selectedPeople.slice();
+    closePeopleDialog();
+    openChangeDrawer();
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('[data-action]') : null;
+    if (!a) return;
+    e.preventDefault();
+    var tr = a.closest('tr');
+    var action = a.getAttribute('data-action');
+    if (
+      tr &&
+      tr.dataset.state === 'completed' &&
+      (action === 'backfill' || action === 'edit' || action === 'result')
+    ) {
+      toast('该任务已完成，不能再次回填或查看结果');
+      return;
+    }
+    if (action === 'backfill' || action === 'edit') {
+      currentRow = tr;
+      if (action === 'backfill' && currentPageKey === 'ai') {
+        if (isChangeRow(tr)) {
+          openBusinessPage('wage', tr);
+          openPeopleDialog(tr);
+        } else {
+          openBusinessPage('add', tr);
+        }
+      } else if (isChangeRow(tr)) {
+        if (action === 'edit' && tr._selectedPeople) openChangeDrawer();
+        else openPeopleDialog(tr);
+      } else {
+        openDrawer(action === 'edit');
+      }
+    } else if (action === 'result') {
+      currentRow = tr;
+      showStoredResult(tr, true);
+    } else if (action === 'delete') {
+      if (tr) openDeleteConfirm(a, tr);
+    } else if (action === 'change-del') {
+      var changeTr = a.closest('tr');
+      if (!changeTr) return;
+      openDeleteConfirm(a, null, function () {
+        if (currentRow && currentRow._selectedPeople && changeTr.children[1]) {
+          var idx = currentRow._selectedPeople.indexOf(changeTr.children[1].textContent.trim());
+          if (idx >= 0) currentRow._selectedPeople.splice(idx, 1);
+        }
+        changeTr.remove();
+        renumberChangeRows();
+        renderChangeSummary();
+      }, '删除后数据不可恢复，确定删除该行变动信息吗？');
+    }
+  });
+  document.getElementById('deleteCancel').addEventListener('click', closeDeleteConfirm);
+  document.getElementById('deleteConfirm').addEventListener('click', function () {
+    var tr = pendingDeleteRow;
+    var action = pendingDeleteAction;
+    closeDeleteConfirm();
+    if (action) { action(); return; }
+    if (!tr) return;
+    tr._validationToken = ++validationSeq;
+    if (currentRow === tr) {
+      closePeopleDialog();
+      closeDrawer();
+      currentRow = null;
+    }
+    tr.remove();
+    renderPagination();
+  });
+  document.addEventListener('click', function (e) {
+    if (!deletePopconfirm.classList.contains('open')) return;
+    if (deletePopconfirm.contains(e.target) || e.target.closest('[data-action="delete"],[data-action="change-del"]')) return;
+    closeDeleteConfirm();
+  });
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  mask.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    var attachMaskNode = document.getElementById('attachMask');
+    if (attachMaskNode && attachMaskNode.classList.contains('open')) { closeAttachDialog(); return; }
+    closeDeleteConfirm(); closePeopleDialog(); closeDrawer();
+  });
+
+  // 回填信息页签切换
+  var panelMap = {person:'personPanel',salary:'salaryPanel',study:'studyPanel',career:'careerPanel',seniority:'seniorityPanel',assessment:'assessmentPanel',highlow:'highlowPanel',probation:'probationPanel',hardship:'hardshipPanel',nursing:'nursingPanel'};
+  document.querySelector('.tab-row').addEventListener('click', function (e) {
+    var tab = e.target.closest('[data-panel]');
+    if (!tab) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-panel]'), function (n) { n.classList.remove('active'); });
+    tab.classList.add('active');
+    Array.prototype.forEach.call(document.querySelectorAll('.fill-panel'), function (p) { p.classList.remove('active'); });
+    var panel = document.getElementById(panelMap[tab.getAttribute('data-panel')]);
+    if (panel) panel.classList.add('active');
+  });
+
+  viewAiResult.addEventListener('click', function () { if (currentRow) showStoredResult(currentRow); });
+
+  // 下拉占位态（未选时保持灰色提示）
+  Array.prototype.forEach.call(document.querySelectorAll('.sel'), function (s) {
+    s.addEventListener('change', function () { s.classList.toggle('empty', !s.value); });
+  });
+
+  // 备注字数统计
+  Array.prototype.forEach.call(document.querySelectorAll('.ta'), function (t) {
+    var c = t.parentNode.querySelector('.counter');
+    if (!c) return;
+    var max = t.getAttribute('maxlength') || 255;
+    var sync = function () { c.textContent = t.value.length + '/' + max; };
+    t.addEventListener('input', sync);
+    sync();
+  });
+
+  /* =========================================================
+     新功能：工资报审附件上传 / AI回填预填 / 保存校验大弹窗
+     ========================================================= */
+
+  // —— 模拟数据：AI 从附件提取后回填到系统的内容 ——
+  var BACKFILL = {
+    pstatus:'专业技术人员', saldate:'2020-09-01', docno:'凉人社薪〔2020〕126号', chgremark:'',
+    name:'王德发', idcard:'513401199003054511', nation:'汉族', gender:'男', birth:'1990-03-05',
+    polity:'群众', initstatus:'专业技术人员', native:'四川·凉山', addr:'四川省凉山州西昌市航天大道一段18号',
+    source:'公招(考核招聘)', entrydate:'2020-09-01', org:'', remark:'',
+    workdate:'2015-07-01', cztf:'是', czgy:'是', fincode:'',
+    edu:'大学本科', degree:'学士', grad:'2014-06-30', sscode:'', sortno:'100'
+  };
+  // 二次提取的“附件真实信息”：用于演示 1 项不一致、1 项待人工确认
+  var REEXTRACT = {};
+  (function(){ for (var k in BACKFILL) REEXTRACT[k] = BACKFILL[k]; })();
+  BACKFILL.birth = '1990-05-21';
+  REEXTRACT.birth = '1990-05-12';
+  BACKFILL.source = '公开招聘';
+  REEXTRACT.source = '公开招录(聘用)';
+
+  // AI 仅校验人事、工资、学习、任职、艰边五类信息；每个字段同时记录提取来源附件
+  var COMPARE = [
+    ['name','姓名','入职登记表.pdf','person'],
+    ['idcard','身份证号','身份证正反面.jpg','person'],
+    ['birth','档案出生日期','工资审批表.pdf','person'],
+    ['nation','民族','身份证正反面.jpg','person'],
+    ['polity','政治面貌','入职登记表.pdf','person'],
+    ['workdate','参加工作时间','工资审批表.pdf','salary'],
+    ['source','人员来源','入职登记表.pdf','person'],
+    ['edu','学历','学历学位证书.pdf','study']
+  ];
+
+  // “查看结果”中展示全部系统回填字段，顺序与回填抽屉保持一致
+  var BACKFILL_FIELDS = [
+    ['pstatus','人员身份'],['saldate','起薪时间'],['docno','依据文号'],['chgremark','变动备注'],
+    ['name','姓名'],['idcard','身份证号'],['nation','民族'],['gender','性别'],
+    ['birth','档案出生日期'],['polity','政治面貌'],['initstatus','初始身份'],['native','籍贯'],
+    ['addr','家庭住址','wide'],['source','人员来源'],['entrydate','进入单位时间'],['org','原工作单位'],
+    ['remark','备注','wide'],['workdate','参加工作时间'],['cztf','是否财政统发'],['czgy','是否财政供养'],
+    ['fincode','财政供养代码'],['edu','学历'],['degree','学位'],['grad','毕业时间'],
+    ['sscode','社保编号'],['sortno','人员排序号']
+  ];
+
+  // 对照参考图展示的 4 类附件
+  var EXPECT = [
+    {name:'入职登记表.pdf', label:'入职登记表', kw:['入职','登记']},
+    {name:'身份证正反面.jpg', label:'身份证正反面', kw:['身份证']},
+    {name:'学历学位证书', label:'学历学位证书', kw:['学历','学位']},
+    {name:'工资审批表.pdf', label:'工资审批表', kw:['工资','审批']}
+  ];
+
+  // —— 回填表单预填 ——
+  function setField(field, val) {
+    var el = document.querySelector('[data-field="' + field + '"]');
+    if (!el) return;
+    if (el.tagName === 'SELECT') {
+      var idx = 0;
+      for (var i = 0; i < el.options.length; i++) {
+        if (el.options[i].textContent.trim() === val) { idx = i; break; }
+      }
+      el.selectedIndex = idx;
+      el.classList.toggle('empty', !el.value);
+    } else {
+      el.value = val || '';
+      var c = el.parentNode.querySelector && el.parentNode.querySelector('.counter');
+      if (c) { var mx = el.getAttribute('maxlength') || 255; c.textContent = el.value.length + '/' + mx; }
+    }
+  }
+  function setRadio(name, val) {
+    var rs = document.querySelectorAll('input[name="' + name + '"]');
+    Array.prototype.forEach.call(rs, function (r) { r.checked = r.parentNode.textContent.indexOf(val) >= 0; });
+  }
+  function fillForm() {
+    Object.keys(BACKFILL).forEach(function (k) { setField(k, BACKFILL[k]); });
+    setRadio('cztf', BACKFILL.cztf);
+    setRadio('czgy', BACKFILL.czgy);
+  }
+
+  // —— 岗位变动专用抽屉：人员、批量结果与附件 ——
+  // b = 变动前[基本工资对应岗位, 薪级, 薪级起考年限, 现任职务, 任职务时间, 实际岗位, 职员等级, 任职员等级时间]
+  // a = 变动后[基本工资对应岗位/职级, 基础性绩效层次, 薪级, 薪级起考年限]
+  var CHANGE_PROFILE = {
+    '王德发': {b:['一级岗位','37级','2023年','科员','2023-01-01','专业技术十级岗位','—','—'], a:['一级岗位','','48级','2023年']},
+    '李晓梅': {b:['五级岗位','35级','2024年','科员','2024-04-01','四级岗位','—','—'], a:['四级岗位','四级岗位','35级','2024年']},
+    '张勇': {b:['九级专业技术岗位','26级','2025年','专业技术人员','2024-03-01','八级专业技术岗位','—','—'], a:['八级专业技术岗位','八级专业技术岗位','26级','2025年']},
+    '赵敏': {b:['专业技术九级','21级','2013年','讲师','2018-07-01','专业技术九级岗位','—','—'], a:['专业技术八级岗位','专业技术八级岗位','22级','2013年']},
+    '刘洋': {b:['管理七级','24级','2010年','副科长','2017-04-01','管理七级岗位','七级职员','2017-04-01'], a:['管理六级岗位','管理六级岗位','25级','2010年']},
+    '陈思远': {b:['专业技术十一级','17级','2017年','助理工程师','2022-01-01','专业技术十一级岗位','—','—'], a:['专业技术十级岗位','专业技术十级岗位','18级','2017年']},
+    '周洁': {b:['工勤三级','20级','2014年','高级工','2019-11-01','工勤三级岗位','—','—'], a:['工勤二级岗位','工勤二级岗位','21级','2014年']},
+    '罗文博': {b:['专业技术十二级','19级','2015年','教师','2020-09-01','专业技术十二级岗位','—','—'], a:['专业技术十一级岗位','专业技术十一级岗位','20级','2015年']},
+    '何雨欣': {b:['管理八级','18级','2016年','科员','2021-03-01','管理八级岗位','八级职员','2021-03-01'], a:['管理七级岗位','管理七级岗位','19级','2016年']},
+    '黄志强': {b:['工勤四级','16级','2018年','中级工','2021-08-01','工勤四级岗位','—','—'], a:['工勤三级岗位','工勤三级岗位','17级','2018年']}
+  };
+  var CHANGE_PROFILE_DEFAULT = {b:['一级岗位','18级','2016年','职员','2020-09-01','专业技术十二级岗位','—','—'], a:['专业技术十二级岗位','专业技术十二级岗位','19级','2016年']};
+  var GRADE_OPTIONS = ['一级岗位','二级岗位','三级岗位','四级岗位','五级岗位','六级岗位','七级岗位','八级岗位','九级岗位','十级岗位','专业技术六级岗位','专业技术七级岗位','专业技术八级岗位','专业技术九级岗位','专业技术十级岗位','专业技术十一级岗位','专业技术十二级岗位','专业技术十三级岗位','管理六级岗位','管理七级岗位','管理八级岗位','工勤二级岗位','工勤三级岗位','工勤四级岗位'];
+  var PERF_OPTIONS = ['一级岗位','二级岗位','三级岗位','四级岗位','五级岗位','六级岗位','七级岗位','八级岗位','专业技术八级岗位','专业技术九级岗位','专业技术十级岗位'];
+  function pickOptions(list, value) {
+    var all = list.slice();
+    if (value && all.indexOf(value) < 0) all.unshift(value);
+    return all;
+  }
+  function miniSelect(list, value, placeholder) {
+    var all = pickOptions(list, value);
+    var head = placeholder ? '<option value=""' + (value ? '' : ' selected') + '>' + esc(placeholder) + '</option>' : '';
+    return '<select class="mini' + (value ? '' : ' empty') + '">' + head + all.map(function (o) {
+      return '<option value="' + esc(o) + '"' + (o === value ? ' selected' : '') + '>' + esc(o) + '</option>';
+    }).join('') + '</select>';
+  }
+  function fmtCnDate(v) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v == null ? '' : v));
+    return m ? m[1] + '年' + m[2] + '月' + m[3] + '日' : String(v == null ? '' : v);
+  }
+  function miniDateCell(value, required, errText) {
+    var empty = !value;
+    var err = !!(required && empty);
+    return '<td>' +
+      '<div class="cell-ctrl' + (err ? ' err' : '') + '" data-datefield>' +
+        '<input class="mini" type="text" placeholder="请选择日期" value="' + esc(value ? fmtCnDate(value) : '') + '">' +
+        '<i class="cal"></i>' +
+        '<input class="dt-native" type="date" tabindex="-1" aria-hidden="true">' +
+      '</div>' +
+      (errText ? '<span class="mini-err"' + (err ? '' : ' hidden') + '>' + esc(errText) + '</span>' : '') +
+    '</td>';
+  }
+  function bindMiniDateFields(scope) {
+    Array.prototype.forEach.call(scope.querySelectorAll('[data-datefield]'), function (wrap) {
+      var text = wrap.querySelector('.mini');
+      var native = wrap.querySelector('.dt-native');
+      var errNode = wrap.parentNode.querySelector('.mini-err');
+      function clearErr() {
+        if (!errNode || !text.value.trim()) return;
+        errNode.hidden = true;
+        wrap.classList.remove('err');
+      }
+      wrap.addEventListener('click', function (e) {
+        if (e.target === native) return;
+        try { if (native.showPicker) native.showPicker(); else native.click(); } catch (err) { /* 浏览器不支持时忽略 */ }
+      });
+      native.addEventListener('change', function () {
+        if (!native.value) return;
+        text.value = fmtCnDate(native.value);
+        clearErr();
+      });
+      text.addEventListener('input', clearErr);
+    });
+  }
+  function renumberChangeRows() {
+    Array.prototype.forEach.call(document.querySelectorAll('#changeResultBody tr'), function (tr, i) {
+      if (tr.children[0]) tr.children[0].textContent = i + 1;
+    });
+  }
+  function renderChangeSummary() {
+    var names = currentRow && currentRow._selectedPeople ? currentRow._selectedPeople : [];
+    document.getElementById('changeSelectedCount').textContent = names.length;
+    document.getElementById('changeSelectedNames').textContent = names.join('、');
+  }
+  function renderChangeRows() {
+    var names = currentRow && currentRow._selectedPeople ? currentRow._selectedPeople : [];
+    var body = document.getElementById('changeResultBody');
+    body.innerHTML = names.map(function (name, i) {
+      var p = CHANGE_PROFILE[name] || CHANGE_PROFILE_DEFAULT;
+      var b = p.b, a = p.a;
+      return '<tr data-person-name="' + esc(name) + '">' +
+        '<td class="sticky-l1">' + (i + 1) + '</td>' +
+        '<td class="sticky-l2">' + esc(name) + '</td>' +
+        '<td>' + esc(b[0]) + '</td>' +
+        '<td>' + esc(b[1]) + '</td>' +
+        '<td>' + esc(b[2]) + '</td>' +
+        '<td><input class="mini" type="text" value="' + esc(b[3]) + '"></td>' +
+        miniDateCell(b[4]) +
+        '<td>' + esc(b[5]) + '</td>' +
+        '<td>' + esc(b[6]) + '</td>' +
+        '<td>' + esc(b[7]) + '</td>' +
+        '<td>' + miniSelect(GRADE_OPTIONS, a[0]) + '</td>' +
+        miniDateCell('', true, '请选择任现岗位/职员等级时间') +
+        '<td>' + miniSelect(PERF_OPTIONS, a[1], '请选择基础性绩效层次') + '</td>' +
+        '<td>' + esc(a[2]) + '</td>' +
+        '<td>' + esc(a[3]) + '</td>' +
+        miniDateCell('', true, '请选择起薪时间') +
+        '<td class="sticky-r"><a class="row-del" href="javascript:;" data-action="change-del">删除</a></td>' +
+      '</tr>';
+    }).join('');
+    bindMiniDateFields(body);
+  }
+  document.getElementById('reselectPeople').addEventListener('click', function () { if (currentRow) openPeopleDialog(currentRow); });
+  document.getElementById('generateChangeResult').addEventListener('click', function () { renderChangeRows(); });
+  document.getElementById('changeNameQuery').addEventListener('input', function (e) {
+    var keyword = e.target.value.trim();
+    Array.prototype.forEach.call(document.querySelectorAll('#changeResultBody tr'), function (tr) { tr.style.display = !keyword || tr.children[1].textContent.indexOf(keyword) >= 0 ? '' : 'none'; });
+  });
+  var changeAttachInput = document.getElementById('changeAttachInput');
+  document.getElementById('changeAttachBtn').addEventListener('click', function () { openAttachDialog('change', 'row', currentRow); });
+  changeAttachInput.addEventListener('change', function () {
+    addSharedFiles(changeAttachInput.files);
+    changeAttachInput.value = '';
+  });
+  function renderChangeAttachments() {
+    document.getElementById('changeAttachCount').textContent = '附件数量：' + uploadedFiles.length + '个';
+  }
+
+  // —— 工资报审附件：本地上传 ——
+  var attachInput  = document.getElementById('attachInput');
+  var attachBtn    = document.getElementById('attachBtn');
+  var attachCount  = document.getElementById('attachCount');
+  var uploadedFiles = [];
+
+  attachBtn.addEventListener('click', function () { openAttachDialog('person', 'row', currentRow); });
+  attachInput.addEventListener('change', function () {
+    Array.prototype.forEach.call(attachInput.files, function (f) { if (uploadedFiles.indexOf(f.name) < 0) uploadedFiles.push(f.name); });
+    attachInput.value = '';
+    persistCurrentFiles();
+    renderAttach();
+  });
+  function renderAttach() {
+    attachCount.textContent = '附件数量：' + uploadedFiles.length + '个';
+  }
+
+  /* =========================================================
+     附件上传弹窗（人员新增 / 岗位职员等级变动 共用）
+     ========================================================= */
+  var PERSON_ATTACH_CATS = [
+    {key:'taogai',    name:'《事业单位新进人员工资套改表》'},
+    {key:'pifu',      name:'事业单位人事管理部门新增人员批复'},
+    {key:'luyong',    name:'县级以上党委组织部门、人力资源社会保障行政部门正式录用通知书'},
+    {key:'hetong',    name:'事业单位聘用合同'},
+    {key:'shangbian', name:'机构编制管理部门上编批文'}
+  ];
+  var CHANGE_ATTACH_CATS = [{key:'other', name:'其它附件'}];
+
+  var attachMaskEl      = document.getElementById('attachMask');
+  var attachCatsBox     = document.getElementById('attachCats');
+  var attachFieldsBox   = document.getElementById('attachFields');
+  var attachIdentitySel = document.getElementById('attachIdentity');
+  var attachSourceSel   = document.getElementById('attachSource');
+  var attachDialogInput = document.getElementById('attachDialogInput');
+  var toastEl           = document.getElementById('toast');
+
+  var attachDialogMode   = 'person';
+  var attachDialogTarget = 'row';
+  var attachDialogRow    = null;
+  var attachStore        = {};
+  var attachInputCat     = null;
+  var attachDraft        = {person:{store:{}}, change:{store:{}}};
+  var toastTimer         = null;
+
+  function toast(message) {
+    toastEl.textContent = message;
+    toastEl.classList.add('show');
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+  }
+  function attachCats(mode) { return mode === 'change' ? CHANGE_ATTACH_CATS : PERSON_ATTACH_CATS; }
+  function cloneStore(src) {
+    var out = {};
+    Object.keys(src || {}).forEach(function (k) { out[k] = (src[k] || []).slice(); });
+    return out;
+  }
+  function flattenStore(store) {
+    var out = [];
+    attachCats(attachDialogMode).forEach(function (c) {
+      (store[c.key] || []).forEach(function (n) { if (out.indexOf(n) < 0) out.push(n); });
+    });
+    return out;
+  }
+  // 打开弹窗时重建分类结构：优先用行上保存的结构化数据，老数据落到首个分类
+  function loadStoreFromRow(row, mode) {
+    if (row && row._attachStore) return cloneStore(row._attachStore);
+    var store = {};
+    var files = (row && row._uploadedFiles) ? row._uploadedFiles : [];
+    if (files.length) store[attachCats(mode)[0].key] = files.slice();
+    return store;
+  }
+  function renderAttachDialog() {
+    if (attachDialogMode === 'change') {
+      attachFieldsBox.hidden = true;
+    } else {
+      attachFieldsBox.hidden = false;
+      if (attachDialogTarget === 'row' && attachDialogRow) {
+        var idText  = attachDialogRow.children[2] ? attachDialogRow.children[2].textContent.trim() : '';
+        var srcText = attachDialogRow.children[3] ? attachDialogRow.children[3].textContent.trim() : '';
+        attachIdentitySel.value = idText || attachIdentitySel.options[0].text;
+        attachSourceSel.value   = srcText || attachSourceSel.options[0].text;
+      }
+    }
+    attachCatsBox.innerHTML = attachCats(attachDialogMode).map(function (c) {
+      var files = attachStore[c.key] || [];
+      var body = files.length
+        ? files.map(function (n, i) {
+            return '<div class="af"><span class="nm">' + esc(n) + '</span>' +
+                   '<button class="rm" type="button" data-rm-cat="' + c.key + '" data-rm-idx="' + i + '">&times;</button></div>';
+          }).join('')
+        : '<div class="none">暂无附件</div>';
+      return '<section class="attach-cat">' +
+        '<div class="attach-cat-hd"><span class="nm">' + esc(c.name) + '</span><span class="acts">' +
+          '<button class="attach-cat-btn" type="button" data-pick="' + c.key + '">上传附件</button>' +
+          '<button class="attach-cat-btn" type="button" data-pick="' + c.key + '">选择附件</button>' +
+          '<button class="attach-cat-btn" type="button" data-tpl="' + c.key + '">模板下载</button>' +
+        '</span></div>' +
+        '<div class="attach-cat-list">' + body + '</div>' +
+      '</section>';
+    }).join('');
+  }
+  function openAttachDialog(mode, target, row) {
+    attachDialogMode   = mode;
+    attachDialogTarget = target;
+    attachDialogRow    = target === 'row' ? (row || currentRow || null) : null;
+    attachStore = target === 'row'
+      ? loadStoreFromRow(attachDialogRow, mode)
+      : cloneStore(attachDraft[mode].store);
+    renderAttachDialog();
+    attachMaskEl.classList.add('open');
+  }
+  function closeAttachDialog() {
+    attachMaskEl.classList.remove('open');
+    attachDialogRow = null;
+    attachInputCat = null;
+  }
+  function commitAttachDialog() {
+    var flat = flattenStore(attachStore);
+    if (attachDialogTarget === 'row' && attachDialogRow) {
+      attachDialogRow._attachStore   = cloneStore(attachStore);
+      attachDialogRow._uploadedFiles = flat.slice();
+      if (attachDialogMode === 'person' && attachDialogRow.children[2] && attachDialogRow.children[3]) {
+        attachDialogRow.children[2].textContent = attachIdentitySel.value;
+        attachDialogRow.children[3].textContent = attachSourceSel.value;
+      }
+      var countCell = attachDialogRow.children[isChangeRow(attachDialogRow) ? 3 : 4];
+      if (countCell) countCell.textContent = flat.length ? String(flat.length) : '';
+      uploadedFiles = flat.slice();
+      persistCurrentFiles();
+      renderAttach();
+      renderChangeAttachments();
+      renderPeopleAttachments();
+    } else {
+      attachDraft[attachDialogMode].store = cloneStore(attachStore);
+    }
+    closeAttachDialog();
+    toast(flat.length ? '附件已保存，共 ' + flat.length + ' 个' : '附件已保存');
+  }
+
+  document.getElementById('addPersonBtn').addEventListener('click', function () {
+    openAttachDialog(BIZ_META[activeBizKey].attach, 'new', null);
+  });
+  attachMaskEl.addEventListener('click', function (e) {
+    if (e.target === attachMaskEl) { closeAttachDialog(); return; }
+    var pick = e.target.closest('[data-pick]');
+    if (pick) {
+      attachInputCat = pick.getAttribute('data-pick');
+      attachDialogInput.value = '';
+      attachDialogInput.click();
+      return;
+    }
+    if (e.target.closest('[data-tpl]')) { toast('模板下载中，请稍候…'); return; }
+    var rm = e.target.closest('[data-rm-cat]');
+    if (rm) {
+      var key = rm.getAttribute('data-rm-cat');
+      var idx = +rm.getAttribute('data-rm-idx');
+      if (attachStore[key]) { attachStore[key].splice(idx, 1); renderAttachDialog(); }
+    }
+  });
+  attachDialogInput.addEventListener('change', function () {
+    var key = attachInputCat;
+    if (key) {
+      if (!attachStore[key]) attachStore[key] = [];
+      Array.prototype.forEach.call(attachDialogInput.files, function (f) {
+        if (attachStore[key].indexOf(f.name) < 0) attachStore[key].push(f.name);
+      });
+      renderAttachDialog();
+    }
+    attachDialogInput.value = '';
+    attachInputCat = null;
+  });
+  document.getElementById('attachDialogClose').addEventListener('click', closeAttachDialog);
+  document.getElementById('attachDialogCancel').addEventListener('click', closeAttachDialog);
+  document.getElementById('attachDialogConfirm').addEventListener('click', commitAttachDialog);
+
+  // —— 独立保存 / 异步AI校验 ——
+  var validationSeq = 0;
+  if (aiValidateBtn) aiValidateBtn.addEventListener('click', startValidation);
+  if (personSaveBtn) personSaveBtn.addEventListener('click', savePersonBackfill);
+  changeAiValidateBtn.addEventListener('click', startValidation);
+  if (changeSaveBtn) changeSaveBtn.addEventListener('click', saveChangeBackfill);
+  changeViewAiResult.addEventListener('click', function () { if (currentRow) showStoredResult(currentRow); });
+
+  function savePersonBackfill() {
+    if (!currentRow || isChangeRow(currentRow)) return;
+    currentRow._uploadedFiles = uploadedFiles.slice();
+    currentRow._savedBackfill = collectPersonBackfill();
+    currentRow._edited = true;
+    setRowState(currentRow, 'completed');
+    toast('保存成功，任务已完成');
+  }
+  function collectChangeBackfill() {
+    var rows = {};
+    Array.prototype.forEach.call(document.querySelectorAll('#changeResultBody tr'), function (tr) {
+      var name = tr.getAttribute('data-person-name') || (tr.children[1] ? tr.children[1].textContent.trim() : '');
+      if (!name) return;
+      rows[name] = Array.prototype.map.call(tr.querySelectorAll('.mini'), function (control) {
+        return control.value;
+      });
+    });
+    return {
+      people: currentRow && currentRow._selectedPeople ? currentRow._selectedPeople.slice() : [],
+      rows: rows,
+      docno: document.getElementById('changeDocNo').value,
+      remark: document.getElementById('changeRemark').value
+    };
+  }
+  function restoreChangeBackfill(row) {
+    if (!row || !row._savedChangeBackfill) return false;
+    var saved = row._savedChangeBackfill;
+    document.getElementById('changeDocNo').value = saved.docno || '';
+    document.getElementById('changeRemark').value = saved.remark || '';
+    Array.prototype.forEach.call(document.querySelectorAll('#changeResultBody tr'), function (tr) {
+      var values = saved.rows && saved.rows[tr.getAttribute('data-person-name')];
+      if (!values) return;
+      Array.prototype.forEach.call(tr.querySelectorAll('.mini'), function (control, index) {
+        if (values[index] == null) return;
+        control.value = values[index];
+        if (control.tagName === 'SELECT') control.classList.toggle('empty', !control.value);
+        if (control.value && control.closest('[data-datefield]')) {
+          control.closest('[data-datefield]').classList.remove('err');
+          var errNode = control.closest('td').querySelector('.mini-err');
+          if (errNode) errNode.hidden = true;
+        }
+      });
+    });
+    return true;
+  }
+  function saveChangeBackfill() {
+    if (!currentRow || !isChangeRow(currentRow)) return;
+    currentRow._uploadedFiles = uploadedFiles.slice();
+    currentRow._selectedPeople = currentRow._selectedPeople ? currentRow._selectedPeople.slice() : [];
+    currentRow._savedChangeBackfill = collectChangeBackfill();
+    currentRow._edited = true;
+    setRowState(currentRow, 'completed');
+    toast('保存成功，任务已完成');
+  }
+
+  function getVal(field) {
+    var el = document.querySelector('[data-field="' + field + '"]');
+    return el ? el.value.trim() : '';
+  }
+  function collectPersonBackfill() {
+    var saved = {};
+    BACKFILL_FIELDS.forEach(function (f) { saved[f[0]] = getVal(f[0]) || BACKFILL[f[0]] || ''; });
+    var cztfChecked = document.querySelector('input[name="cztf"]:checked');
+    var czgyChecked = document.querySelector('input[name="czgy"]:checked');
+    saved.cztf = cztfChecked ? cztfChecked.parentNode.textContent.trim() : BACKFILL.cztf;
+    saved.czgy = czgyChecked ? czgyChecked.parentNode.textContent.trim() : BACKFILL.czgy;
+    return saved;
+  }
+  function restorePersonBackfill(row) {
+    if (!row || !row._savedBackfill) return false;
+    Object.keys(row._savedBackfill).forEach(function (key) {
+      if (key === 'cztf' || key === 'czgy') setRadio(key, row._savedBackfill[key]);
+      else setField(key, row._savedBackfill[key]);
+    });
+    return true;
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+    });
+  }
+  function setRowState(row, state) {
+    if (!row) return;
+    var completed = state === 'completed';
+    row.dataset.state = completed ? 'completed' : 'idle';
+    var status = row.querySelector('[data-role="status"]');
+    var op = row.querySelector('[data-role="operation"]');
+    var deleteLink = '<a class="link-red" data-action="delete" href="javascript:;">删除</a>';
+    if (completed) {
+      status.innerHTML = '<span class="status-pill completed">已完成</span>';
+      op.innerHTML = deleteLink;
+    } else {
+      status.innerHTML = '<span class="status-pill idle">待回填</span>';
+      op.innerHTML = '<a class="op-link" data-action="backfill" href="javascript:;">回填系统</a>' + deleteLink;
+    }
+  }
+  function buildValidationResult(row) {
+    if (isChangeRow(row)) return buildChangeValidationResult(row);
+    var savedBackfill = collectPersonBackfill();
+    row._savedBackfill = savedBackfill;
+    var compare = COMPARE.map(function (c) {
+      var back = savedBackfill[c[0]], ext = REEXTRACT[c[0]] || '';
+      var type = back === ext ? 'ok' : 'bad';
+      return {fieldKey:c[0], field:c[1], ext:ext, back:back, sourceFile:c[2], group:c[3], type:type};
+    });
+    var contentAbnormal = compare.filter(function (r) { return r.type === 'bad'; }).length;
+    var missingAttachments = 1;
+    var uploadErrors = 1;
+    var abnormal = contentAbnormal + missingAttachments + uploadErrors;
+    return {
+      total:12, passed:12 - abnormal, abnormal:abnormal, missingAttachments:missingAttachments, uploadErrors:uploadErrors, contentAbnormal:contentAbnormal, backfill:savedBackfill,
+      attachments:[
+        {type:'ok', name:'入职登记表.pdf', desc:'已上传，内容识别正常'},
+        {type:'ok', name:'身份证正反面.jpg', desc:'已上传，人像与号码清晰可识别'},
+        {type:'error', name:'学历学位证书', desc:'缺失必传附件，未检测到对应文件'},
+        {type:'error', name:'工资审批表.pdf', desc:'附件上传错误，文件类型与要求不符，请重新上传'}
+      ],
+      compare:compare,
+      compareGroups:{
+        person:compare.filter(function (r) { return r.group === 'person'; }),
+        salary:compare.filter(function (r) { return r.group === 'salary'; }),
+        study:compare.filter(function (r) { return r.group === 'study'; }),
+        career:compare.filter(function (r) { return r.group === 'career'; }),
+        hardship:compare.filter(function (r) { return r.group === 'hardship'; })
+      }
+    };
+  }
+  function buildChangeValidationResult(row) {
+    var names = row && row._selectedPeople ? row._selectedPeople.slice() : [];
+    var compare = [
+      {fieldKey:'changeNames',field:'变动人员姓名',ext:names.join('、'),back:names.join('、'),sourceFile:'岗位变动审批表.pdf',group:'person',type:'ok'},
+      {fieldKey:'changeDutyDate',field:'任职岗位/职员等级时间',ext:'2026-09',back:'2026-09',sourceFile:'任免通知.pdf',group:'career',type:'ok'},
+      {fieldKey:'changeGrade',field:'变动后岗位/职员等级',ext:'专业技术十级',back:'专业技术十二级',sourceFile:'岗位变动审批表.pdf',group:'salary',type:'bad'},
+      {fieldKey:'changeDocNo',field:'依据文号',ext:'凉人社薪〔2026〕86号',back:document.getElementById('changeDocNo').value.trim(),sourceFile:'任免通知.pdf',group:'person',type:'bad'}
+    ];
+    var contentAbnormal = compare.filter(function (r) { return r.type === 'bad'; }).length;
+    return {
+      total:8, passed:5, abnormal:3, missingAttachments:1, uploadErrors:0, contentAbnormal:contentAbnormal,
+      backfill:{names:names.join('、'),docno:document.getElementById('changeDocNo').value.trim(),remark:document.getElementById('changeRemark').value.trim()},
+      attachments:[
+        {type:'ok',name:'岗位变动审批表.pdf',desc:'已上传，人员名单与变动信息识别正常'},
+        {type:'ok',name:'任免通知.pdf',desc:'已上传，任职时间识别正常'},
+        {type:'error',name:'工资报审附件',desc:'缺失必传附件，请补充上传'}
+      ],
+      compare:compare,
+      compareGroups:{
+        person:compare.filter(function (r) { return r.group === 'person'; }),
+        salary:compare.filter(function (r) { return r.group === 'salary'; }),
+        study:[],
+        career:compare.filter(function (r) { return r.group === 'career'; }),
+        hardship:[]
+      }
+    };
+  }
+  function setAiResultFooter(result) {
+    var submitted = currentRow && currentRow.dataset.state === 'completed';
+    var hint = document.getElementById('aiViewHint');
+    var recheck = document.getElementById('aiRecheck');
+    var submit = document.getElementById('aiSubmit');
+    aiViewFooter.style.display = 'flex';
+    hint.textContent = submitted ? '该任务已提交，可查看本次AI校验结果' : result.abnormal ? '请核对异常内容，可重新校验或忽略异常继续保存提交' : '本次校验未发现异常，可以保存提交';
+    recheck.style.display = submitted ? 'none' : 'inline-flex';
+    submit.textContent = result.abnormal ? '忽略异常，继续保存提交' : '保存提交';
+    submit.style.display = submitted ? 'none' : 'inline-flex';
+  }
+  function startValidation() {
+    if (!currentRow || currentRow.dataset.state === 'completed') return;
+    currentRow._uploadedFiles = uploadedFiles.slice();
+    currentRow._edited = true;
+    currentRow._validationToken = ++validationSeq;
+    currentRow._validationState = 'checking';
+    var row = currentRow, token = row._validationToken;
+    var resultSnapshot = buildValidationResult(row);
+    setRowState(row, 'idle');
+    showWaiting(row);
+    window.setTimeout(function () {
+      if (row._validationToken !== token || row.dataset.state === 'completed') return;
+      row._result = resultSnapshot;
+      row._validationState = row._result.abnormal ? 'review' : 'pass';
+      setRowState(row, 'idle');
+      if (currentRow === row) syncValidationActions(row);
+      if (currentRow === row && app.classList.contains('drawer-open') && drawerBody.classList.contains('ai-mode')) renderResult(row._result);
+    }, 3200);
+  }
+  function showWaiting(row) {
+    currentRow = row;
+    enterAiView('AI校验进度');
+    aiViewFooter.style.display = 'none';
+    aiViewBody.innerHTML = '<div class="validation-wait"><div class="validation-spinner"></div><h4>正在进行AI校验，请稍候</h4><p>正在校验附件完整性与正确性，并再次提取附件内容<br>与当前系统填写值逐项比对。</p><div class="validation-progress"><i></i></div><div class="wait-note">校验期间可关闭抽屉，完成后可从任务列表手动查看结果</div></div>';
+  }
+  function showStoredResult(row, fromTaskList) {
+    if (!row || (fromTaskList && row.dataset.state === 'completed')) return;
+    currentRow = row;
+    if (row._validationState === 'checking') showWaiting(row);
+    else if (row._result) renderResult(row._result, !!fromTaskList);
+  }
+  function resultTag(type) {
+    if (type === 'ok') return '<span class="result-tag ok">一致 / 通过</span>';
+    return '<span class="result-tag bad">不一致</span>';
+  }
+  function renderCompareTable(errors, allowAdopt) {
+    if (!errors.length) return '<div class="result-empty"><div class="empty-icon">✓</div><strong>未发现内容比对异常</strong><span>附件提取内容与系统填写值一致</span></div>';
+    var html = '<table class="compare-table"><colgroup><col style="width:12%"><col style="width:19%"><col style="width:22%"><col style="width:18%"><col style="width:29%"></colgroup><thead><tr><th>字段</th><th>来源附件</th><th>附件提取值</th><th>系统填写值</th><th>异常说明</th></tr></thead><tbody>';
+    errors.forEach(function (r) {
+      var adopted = !!r.adopted;
+      var adoptControl = allowAdopt ? '<button class="adopt-btn' + (adopted ? ' adopted' : '') + '" type="button" data-adopt-value data-field-key="' + esc(r.fieldKey || '') + '" data-field-name="' + esc(r.field || '') + '" data-extract-value="' + esc(r.ext || '') + '"' + (adopted ? ' disabled' : '') + '>' + (adopted ? '已采纳' : '采纳') + '</button>' : '';
+      html += '<tr class="' + (adopted ? 'adopted' : 'bad') + '"><td>' + esc(r.field) + '</td><td><span class="source-file">' + esc(r.sourceFile || '—') + '</span></td><td><div class="extract-value"><span class="new">' + esc(r.ext || '—') + '</span>' + adoptControl + '</div></td><td><span class="system-value">' + esc(r.back || '—') + '</span></td><td><span class="result-tag ' + (adopted ? 'adopted' : 'bad') + '">' + (adopted ? '已采纳' : '不一致') + '</span><span class="result-note' + (adopted ? ' adopted' : '') + '">' + (adopted ? '已使用附件提取值更新系统回填' : '附件提取值与系统填写值不一致') + '</span></td></tr>';
+    });
+    return html + '</tbody></table>';
+  }
+  function buildAiResultHtml(result, flatMode, allowAdopt) {
+    var attachmentErrors = result.attachments.filter(function (a) { return a.type === 'error'; });
+    var compareErrors = result.compare.filter(function (r) { return r.type === 'bad'; });
+    var html = '';
+    if (!result.abnormal) {
+      return '<div class="result-pass"><div class="pass-icon">✓</div><h4>AI校验通过，未发现异常</h4><p>附件完整性、附件类型及回填内容比对均未发现异常或错误信息。</p></div>';
+    }
+    html += '<div class="vm-alert"><div class="vm-alert-icon">×</div><div class="vm-alert-text">校验完成，共发现 ' + result.abnormal + ' 处异常。以下仅展示需要处理的异常或错误信息。</div>' +
+      '<div class="vm-stat red"><b>' + result.abnormal + '</b><span>异常总数</span></div><div class="vm-stat red"><b>' + result.missingAttachments + '</b><span>缺失附件</span></div><div class="vm-stat red"><b>' + result.uploadErrors + '</b><span>附件上传错误</span></div><div class="vm-stat red"><b>' + result.contentAbnormal + '</b><span>内容比对异常</span></div></div>';
+    if (attachmentErrors.length) {
+      html += '<section class="vm-sec"><h4><i></i>一、附件异常 <span class="cnt">（' + attachmentErrors.length + ' 项）</span></h4><div class="attach-check-list">';
+      attachmentErrors.forEach(function (a) {
+        html += '<div class="attach-check error"><span class="check-icon err">×</span><span class="file">' + esc(a.name) + '<span class="must">必传</span></span><span class="desc">' + esc(a.desc) + '</span></div>';
+      });
+      html += '</div><div class="vm-tip">请补齐缺失附件，并重新上传错误附件后再次校验。</div></section>';
+    }
+    html += '<section class="vm-sec"><h4><i></i>二、附件提取内容与回填内容比对 <span class="cnt">（仅展示 ' + compareErrors.length + ' 项异常）</span></h4>';
+    html += '<div class="vm-tip">比对范围说明：本区域仅比对「附件中有提取」且「系统已填写」的内容，附件未提取或系统未填写的字段不纳入本次比对。</div>';
+    if (flatMode) {
+      html += renderCompareTable(compareErrors, allowAdopt);
+    } else {
+      var groups = [
+        ['person','人事信息'],['salary','工资信息'],['study','学习简历'],['career','任职简历'],['hardship','艰边简历']
+      ];
+      html += '<div class="result-tabs" role="tablist">';
+      groups.forEach(function (g, index) {
+        var count = (result.compareGroups[g[0]] || []).filter(function (r) { return r.type === 'bad'; }).length;
+        html += '<button class="result-tab' + (index === 0 ? ' active' : '') + (count ? ' has-error' : '') + '" type="button" role="tab" data-result-tab="' + g[0] + '">' + g[1] + '<span class="badge">' + count + '</span></button>';
+      });
+      html += '</div>';
+      groups.forEach(function (g, index) {
+        var errors = (result.compareGroups[g[0]] || []).filter(function (r) { return r.type === 'bad'; });
+        html += '<div class="result-panel' + (index === 0 ? ' active' : '') + '" data-result-panel="' + g[0] + '">';
+        html += errors.length ? renderCompareTable(errors, allowAdopt) : '<div class="result-empty"><div class="empty-icon">✓</div><strong>该分类未发现异常</strong><span>当前分类没有需要处理的错误信息</span></div>';
+        html += '</div>';
+      });
+    }
+    return html + '</section>';
+  }
+  function renderResult(result, resultOnly) {
+    enterAiView('AI校验结果', !!resultOnly);
+    aiViewBody.innerHTML = buildAiResultHtml(result, isChangeRow(currentRow), true);
+    setAiResultFooter(result);
+  }
+  function handleResultTabClick(container, e) {
+    var tab = e.target.closest('[data-result-tab]');
+    if (!tab || !container.contains(tab)) return;
+    var key = tab.getAttribute('data-result-tab');
+    Array.prototype.forEach.call(container.querySelectorAll('[data-result-tab]'), function (n) { n.classList.toggle('active', n === tab); });
+    Array.prototype.forEach.call(container.querySelectorAll('[data-result-panel]'), function (n) { n.classList.toggle('active', n.getAttribute('data-result-panel') === key); });
+  }
+  function handleAdoptValue(container, e) {
+    var button = e.target.closest('[data-adopt-value]');
+    if (!button || !container.contains(button) || button.disabled || container === recordAiBody) return false;
+    button.classList.add('adopted');
+    button.textContent = '已采纳';
+    button.disabled = true;
+    var reminder = document.createElement('span');
+    reminder.className = 'adopt-reminder';
+    reminder.textContent = '采纳后会按附件提取值提交';
+    button.insertAdjacentElement('afterend', reminder);
+    return true;
+  }
+  aiViewBody.addEventListener('click', function (e) {
+    if (!handleAdoptValue(aiViewBody, e)) handleResultTabClick(aiViewBody, e);
+  });
+  recordAiBody.addEventListener('click', function (e) { handleResultTabClick(recordAiBody, e); });
+  document.getElementById('aiBack').addEventListener('click', restoreFillView);
+  document.getElementById('aiRecheck').addEventListener('click', startValidation);
+  document.getElementById('aiSubmit').addEventListener('click', function () {
+    if (!currentRow || currentRow._validationState === 'checking') return;
+    currentRow._validationState = 'submitted';
+    setRowState(currentRow, 'completed');
+    closeDrawer();
+    toast('保存提交成功，任务已完成');
+  });
+})();
+</script>
+</body>
+</html>

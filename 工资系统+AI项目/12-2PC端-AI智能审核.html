@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>四川省事业单位工资管理系统 - 业务审核</title>
+  <style>
+    :root {
+      --primary: #2f98e8;
+      --primary-dark: #278bd6;
+      --line: #e4e9ed;
+      --line-strong: #d3dbe0;
+      --head-bg: #fafafa;
+      --text: #333a40;
+      --muted: #71808b;
+      --danger: #ff0000;
+      --danger-strong: #ff1f1f;
+      --header-h: 50px;
+      --crumb-h: 38px;
+      --sidebar-w: 168px;
+      --unit-w: 239px;
+      --row-h: 32px;
+      --head-h: 34px;
+      --radius: 3px;
+      /* 与详情栏“统计行 + 上一条/下一条”高度一致，用于右侧基金信息栏对齐 */
+      --detail-head-h: 65px;
+      --toggle-h: 38px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      color: var(--text);
+      background: #f0f4f7;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 2px solid #1677c8; outline-offset: 1px; }
+
+    .app { position: relative; display: flex; flex-direction: column; height: 100dvh; min-width: 1400px; background: #fff; }
+
+    /* ===== 顶部标题栏 ===== */
+    .topbar {
+      flex: none;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      color: #fff;
+      background: linear-gradient(90deg, #2f96e3, #379ee9);
+    }
+    .brand { font-size: 16px; font-weight: 700; letter-spacing: .2px; }
+    .brand small { font-size: 12px; font-weight: 600; margin-left: 5px; }
+    .top-links { display: flex; gap: 24px; font-size: 13px; }
+    .top-links button { min-height: 34px; padding: 0 2px; border: 0; color: #fff; background: transparent; font-weight: 600; }
+    .top-links button:hover { text-decoration: underline; }
+
+    /* ===== 面包屑行 ===== */
+    .subbar {
+      flex: none;
+      height: var(--crumb-h);
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr auto;
+      align-items: center;
+      border-bottom: 1px solid var(--line-strong);
+      background: #fff;
+    }
+    .org-code { display: flex; align-items: center; height: 100%; padding: 0 12px; border-right: 1px solid var(--line); color: #4a565f; font-size: 13px; }
+    .hamburger { margin-left: 10px; color: var(--primary); font-size: 16px; cursor: pointer; }
+    .breadcrumb { padding-left: 14px; color: #5a6670; font-size: 13px; }
+    .guide-btn { height: 100%; padding: 0 16px; border: 0; color: #fff; background: var(--primary); font-size: 13px; }
+    .guide-btn:hover { background: var(--primary-dark); }
+
+    /* ===== 主体 ===== */
+    .body { flex: 1; min-height: 0; display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
+    .sidebar { position: relative; display: flex; flex-direction: column; border-right: 1px solid var(--line-strong); background: #fff; }
+    .org-name { flex: none; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: #2c3a44; }
+    .nav { flex: 1; min-height: 0; margin: 0; padding: 0; list-style: none; overflow-y: auto; }
+    .nav-item {
+      height: 38px;
+      display: grid;
+      grid-template-columns: 32px 1fr 16px;
+      align-items: center;
+      padding: 0 6px 0 2px;
+      border-left: 4px solid transparent;
+      color: #3b454d;
+      cursor: pointer;
+      user-select: none;
+    }
+    .nav-item:hover { background: #f0f7fc; }
+    .nav-item.active { border-left-color: var(--primary); background: #d5eafb; color: #1c5a8a; }
+    .nav-icon { width: 18px; text-align: center; color: #475159; }
+    .chevron { font-size: 17px; color: #6a7680; }
+    .version { flex: none; padding: 4px 0 8px; text-align: center; color: var(--muted); font-size: 12px; }
+    .back-btn { flex: none; height: 38px; border: 0; color: #fff; background: #42a4ec; font-size: 14px; }
+    .back-btn:hover { background: var(--primary-dark); }
+
+    /* ===== 工作区：左栏贯穿全高，工具栏/页签仅在其右侧 ===== */
+    .workspace {
+      position: relative;
+      min-width: 0;
+      display: grid;
+      grid-template-columns: var(--unit-w) minmax(0, 1fr);
+      grid-template-rows: auto auto minmax(0, 1fr);
+      padding: 8px 10px 10px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    /* 第一栏：单位列表（贯穿工具栏、页签、数据区三行） */
+    .unit-pane {
+      grid-column: 1;
+      grid-row: 1 / 4;
+      min-width: 0;
+      margin-right: 9px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--line);
+      background: #fff;
+      overflow: hidden;
+    }
+    .unit-top { flex: none; padding: 7px; border-bottom: 1px solid var(--line); }
+    .unit-select {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      border: 1px solid #dfe5e9;
+      border-radius: var(--radius);
+      color: #9aa4ab;
+      font-size: 13px;
+    }
+    .unit-select .caret { margin-left: auto; color: #9aa4ab; }
+    .pane-title {
+      flex: none;
+      height: var(--head-h);
+      display: flex;
+      align-items: center;
+      padding: 0 9px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2a33;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    .unit-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 15px; }
+    .unit-list { min-width: 0; overflow: auto; }
+    .list-row { height: 38px; display: flex; align-items: center; padding: 0 9px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .list-row:hover { background: #f0f7fc; }
+    .list-row.active { color: #10344d; background: #64b2ea; }
+
+    /* 滚动条槽 */
+    .gutter {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      border-left: 1px solid var(--line);
+      background: #fafbfc;
+      font-size: 9px;
+      color: #8d979e;
+      user-select: none;
+    }
+
+    /* ===== 审核操作行 ===== */
+    .toolbar { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: minmax(280px, 380px) auto; gap: 16px; align-items: center; padding-bottom: 8px; }
+    .field {
+      height: 30px;
+      padding: 0 9px;
+      border: 1px solid #d8dfe4;
+      border-radius: var(--radius);
+      outline: none;
+      color: #4a565f;
+      background: #fff;
+      font-size: 13px;
+    }
+    .field::placeholder { color: #b7c0c7; }
+    .field:focus { border-color: var(--primary); }
+    .actions { display: flex; align-items: center; gap: 10px; }
+    .btn {
+      height: 30px;
+      padding: 0 14px;
+      border: 1px solid #d8dfe4;
+      border-radius: var(--radius);
+      color: #424d55;
+      background: #fff;
+      font-size: 13px;
+      transition: border-color .15s ease, background-color .15s ease, color .15s ease, transform .1s ease;
+    }
+    .btn:hover { border-color: #7fc1ef; color: var(--primary-dark); }
+    .btn:active { transform: scale(.98); }
+    .btn.primary { border-color: var(--primary); color: #fff; background: var(--primary); }
+    .btn.primary:hover { background: var(--primary-dark); }
+    .btn.danger { border-color: #f25656; color: #fff; background: #f44336; }
+    .btn.danger:hover { background: #e53935; }
+    .btn.outline { border-color: var(--primary); color: var(--primary); background: #fff; }
+    .btn.outline:hover { background: #EAF4FF; border-color: var(--primary-dark); color: var(--primary-dark); }
+
+    /* ===== 页签行 ===== */
+    .tabs { grid-column: 2; grid-row: 2; height: 34px; display: flex; align-items: stretch; border-bottom: 2px solid var(--line); }
+    .tab {
+      padding: 0 12px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      color: #3d474e;
+      background: transparent;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .tab:hover { color: var(--primary-dark); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+    .tabs-right { margin-left: auto; align-self: center; color: #5a6670; font-size: 12px; }
+
+    /* ===== 数据区：变动类型（固定栏） + 可左右滑动的滑动区（人员清单/变动详情/基金信息） ===== */
+    .main-grid {
+      grid-column: 2;
+      grid-row: 3;
+      min-height: 0;
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 314px minmax(0, 1fr);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+    .pane { min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: #fff; overflow: hidden; }
+    .pane-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 15px; }
+    .pane-scroll { min-width: 0; overflow: auto; scrollbar-width: none; }
+    .pane-scroll::-webkit-scrollbar { width: 0; height: 0; }
+
+    /* 红框区域：整条横向滚动带（可左右滑动） */
+    .strip { min-width: 0; display: flex; overflow-x: auto; overflow-y: hidden; }
+    .strip::-webkit-scrollbar { height: 13px; }
+    .strip::-webkit-scrollbar-track { background: #f4f6f8; }
+    .strip::-webkit-scrollbar-thumb { border: 3px solid #f4f6f8; border-radius: 7px; background: #c5ced5; }
+    .strip::-webkit-scrollbar-thumb:hover { background: #aab6bf; }
+    .people-pane { flex: 0 0 172px; }
+    .detail-pane { flex: 1 0 490px; }
+    .fund-pane { flex: 0 0 258px; }
+    .section-head {
+      flex: none;
+      height: var(--head-h);
+      display: flex;
+      align-items: center;
+      padding: 0 9px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2a33;
+      background: var(--head-bg);
+      border-bottom: 1px solid var(--line);
+    }
+    .type-filter { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; color: #4f5b64; font-size: 12px; font-weight: 400; cursor: pointer; user-select: none; }
+    .type-filter input { width: 14px; height: 14px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+    .type-table tbody tr, .people-table tbody tr { transition: background-color .12s ease; }
+    .type-table tbody tr.active-row td { background: #d9effd; }
+    .type-table tbody tr.active-row td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+    .people-table tbody tr.active-row td { background: #d9effd; }
+    .search-strip { flex: none; padding: 5px 7px; border-bottom: 1px solid var(--line); }
+    .search-strip input { width: 100%; height: 30px; padding: 0 8px; border: 1px solid #e0e6ea; border-radius: var(--radius); outline: none; font-size: 13px; }
+    .search-strip input::placeholder { color: #b7c0c7; }
+
+    /* 变动类型：提示框 */
+    .notice-box {
+      flex: none;
+      margin: 6px;
+      padding: 6px 4px;
+      border: 1px solid var(--line);
+      background: var(--head-bg);
+      color: var(--danger);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 19px;
+      text-align: center;
+    }
+
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+    th, td {
+      padding: 6px 9px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    th { font-weight: 600; background: var(--head-bg); }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: #f4faff; }
+    .link { color: #2895e5; }
+    .red { color: var(--danger-strong); }
+    /* 选中仅覆盖前两列（与参考图一致） */
+    .row-selected td:nth-child(1), .row-selected td:nth-child(2) { background: #a9d6f2; }
+
+    /* 变动类型表：人数/报批表列较窄，缩小内边距保证表头单行 */
+    .type-table th, .type-table td { padding: 6px 8px; }
+    .type-table th:nth-child(2), .type-table td:nth-child(2) { padding: 6px 5px; }
+    .type-table th:nth-child(3), .type-table td:nth-child(3) { padding: 6px 7px; }
+
+    /* 人员清单：窄列竖排 */
+    .people-table th, .people-table td { text-align: center; padding: 5px 3px; white-space: normal; word-break: break-all; }
+    .people-table col:nth-child(1) { width: 45px; }
+    .people-table col:nth-child(2) { width: 42px; }
+    .people-table col:nth-child(3) { width: 46px; }
+    .people-table col:nth-child(4) { width: auto; }
+    .people-table .row-selected td:nth-child(2), .people-table .row-selected td:nth-child(3) { background: #a9d6f2; }
+    .people-table .row-selected td:nth-child(1) { background: transparent; }
+
+    /* 变动详情 */
+    .detail-head { flex: none; min-height: var(--detail-head-h); padding: 6px 9px; border-bottom: 1px solid var(--line); }
+    .stats-row { display: flex; align-items: center; flex-wrap: nowrap; font-size: 12px; line-height: 22px; white-space: nowrap; }
+    .stats-row .counter { margin: 0 3px; cursor: pointer; }
+    .stats-row .reset { margin-left: 6px; font-weight: 700; cursor: pointer; }
+    .stats-row .nav-btn { height: 25px; padding: 0 10px; margin-left: 7px; }
+    .step-row { display: flex; align-items: center; gap: 18px; margin-top: 6px; }
+    .issue-link { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 0; color: #4d5962; background: transparent; font-size: 12px; white-space: nowrap; }
+    .issue-link:hover { color: var(--primary-dark); text-decoration: underline; }
+    .issue-link b { min-width: 18px; height: 18px; padding: 0 5px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; color: #fff; background: #ff4d4f; font-size: 11px; font-weight: 600; }
+    .toggle-row { flex: none; height: var(--toggle-h); display: flex; align-items: center; padding: 0 9px; border-bottom: 1px solid var(--line); }
+    .pill {
+      height: 26px;
+      padding: 0 12px;
+      border: 1px solid #bfdcf3;
+      border-radius: var(--radius);
+      color: #165b82;
+      background: #aadaf8;
+      font-size: 13px;
+    }
+    .pill + .pill { margin-left: 12px; }
+    .pill.ghost { padding: 0; border-color: transparent; color: #253039; background: transparent; font-weight: 700; }
+    .toggle-row .pane-name { margin-left: auto; font-size: 13px; font-weight: 600; }
+
+    /* 右侧基金信息栏 */
+    /* 基金信息栏顶部跨越详情区两行：整体为一个连续单元格，中间不得出现横向分割线 */
+    .fund-head-stack {
+      flex: none;
+      height: calc(var(--detail-head-h) + var(--toggle-h));
+      border-bottom: 1px solid var(--line);
+    }
+    .fund-block { padding-bottom: 6px; }
+    .fund-block th, .fund-block td { border: 1px solid var(--line); padding: 6px 8px; }
+    .fund-block .label-cell { font-weight: 600; background: var(--head-bg); }
+    .att-table { margin-top: 20px; }
+    .hist-table { margin-top: 34px; }
+    .att-title { text-align: center; font-weight: 600; }
+    .hist-table th { text-align: center; }
+    .hist-table td.dash { color: #b9c3cb; letter-spacing: 8px; text-align: center; }
+    .fund-link { color: #2895e5; cursor: pointer; }
+    .fund-link:hover { text-decoration: underline; }
+
+    /* 水印 */
+    .watermark {
+      position: absolute;
+      z-index: 5;
+      color: rgba(150, 160, 168, .24);
+      font-size: 14px;
+      line-height: 22px;
+      transform: rotate(-38deg);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .wm1 { left: 60px; top: 290px; }
+    .wm2 { left: 300px; top: 130px; }
+    .wm3 { left: 500px; top: 410px; }
+    .wm4 { left: 760px; top: 190px; }
+    .wm5 { left: 1010px; top: 430px; }
+    .wm6 { right: 30px; top: 120px; }
+
+    /* 提示气泡 */
+    .toast {
+      position: fixed;
+      top: 64px;
+      left: 50%;
+      z-index: 50;
+      transform: translate(-50%, -8px);
+      padding: 9px 18px;
+      border-radius: var(--radius);
+      color: #fff;
+      background: rgba(43, 57, 66, .92);
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ===== 审核通过确认大弹窗（浏览器视口居中） ===== */
+    .amask {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.45);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .2s ease, visibility .2s ease;
+    }
+    .amask.open { opacity: 1; visibility: visible; pointer-events: auto; }
+    .amodal {
+      width: 1210px;
+      max-width: 94%;
+      height: 600px;
+      min-height: 460px;
+      max-height: 90%;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 16px 48px rgba(0,0,0,.25);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(10px) scale(.99);
+      transition: transform .2s ease;
+    }
+    .amask.open .amodal { transform: translateY(0) scale(1); }
+    .a-hd { flex: 0 0 44px; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #F0F0F0; background: #FAFBFC; }
+    .a-hd h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1F1F1F; display: flex; align-items: center; gap: 8px; }
+    .a-hd h3:before { content: '▣'; font-size: 15px; color: #D99B62; }
+    .a-close { width: 26px; height: 26px; border: 0; background: transparent; cursor: pointer; border-radius: 3px; font-size: 20px; line-height: 1; color: #8C8C8C; display: flex; align-items: center; justify-content: center; }
+    .a-close:hover { background: #F5F5F5; color: #262626; }
+    .a-bd { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+    .approval-aside { flex: 0 0 250px; display: flex; flex-direction: column; min-height: 0; border-right: 1px solid #F0F0F0; background: #FCFDFE; }
+    .approval-aside .aside-hd { flex: none; height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 13px; font-weight: 600; color: #1F1F1F; border-bottom: 1px solid #F0F0F0; background: #FAFBFC; }
+    .approval-search { flex: none; padding: 8px 10px; border-bottom: 1px solid #F0F0F0; background: #fff; }
+    .approval-search input { width: 100%; height: 30px; padding: 0 9px 0 30px; border: 1px solid #D9E0E5; border-radius: 3px; outline: none; color: #333; background: #fff no-repeat 9px center; font-size: 13px; }
+    .approval-search input:focus { border-color: #1677FF; box-shadow: 0 0 0 2px rgba(22,119,255,.08); }
+    .approval-search-wrap { position: relative; }
+    .approval-search-wrap:before { content: '⌕'; position: absolute; z-index: 1; left: 10px; top: 4px; color: #8C8C8C; font-size: 17px; pointer-events: none; }
+    .approval-list { flex: 1; min-height: 0; overflow: auto; }
+    .approval-empty { padding: 28px 12px; color: #8C8C8C; font-size: 13px; text-align: center; }
+    .approval-item { padding: 9px 12px; border-bottom: 1px solid #F2F5F7; cursor: pointer; }
+    .approval-item:hover { background: #F4F9FD; }
+    .approval-item.active { background: #EAF4FF; box-shadow: inset 3px 0 0 #1677FF; }
+    .approval-item .nm { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 14px; font-weight: 400; color: #000; }
+    .approval-item .rsn { margin-top: 4px; font-size: 12px; line-height: 16px; color: #8C8C8C; }
+    .approval-item .badge { flex: none; font-size: 11px; font-weight: 400; line-height: 16px; padding: 0 7px; border-radius: 9px; white-space: nowrap; }
+    .approval-item .badge.err { color: #FF4D4F; background: #FFF1F0; border: 1px solid #FFCCC7; }
+    .approval-item .badge.ok { color: #18A85B; background: #F0FFF6; border: 1px solid #B7EBCB; }
+    .approval-detail { flex: 1; min-width: 0; overflow: auto; padding: 12px 16px; }
+    .a-ft { flex: 0 0 50px; height: 50px; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 0 16px; border-top: 1px solid #F0F0F0; background: #fff; }
+    .a-ft .hint { margin-right: auto; font-size: 12px; line-height: 17px; color: #999; }
+
+    /* —— 弹窗内 AI 校验结果（紧凑版） —— */
+    .vm-alert { min-height: 0; border: 1px solid #FF9C9C; border-radius: 5px; background: #FFF2F0; display: grid; grid-template-columns: 32px minmax(260px,1fr) repeat(4,96px); gap: 10px; align-items: center; padding: 9px 14px; margin-bottom: 12px; }
+    .vm-alert-icon { font-size: 30px; line-height: 1; color: #F54764; font-weight: 300; }
+    .vm-alert-text { font-size: 13px; line-height: 20px; color: #F0444D; font-weight: 500; }
+    .vm-stat { height: 46px; min-width: 96px; border: 1px solid #EDF0F2; border-radius: 5px; background: #fff; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .vm-stat b { font-size: 18px; line-height: 22px; }
+    .vm-stat span { font-size: 12px; line-height: 16px; color: #999; white-space: nowrap; }
+    .vm-stat.blue b { color: #287DE5; } .vm-stat.green b { color: #18A85B; } .vm-stat.orange b { color: #FA8C16; } .vm-stat.red b { color: #F0444D; }
+    .vm-sec { margin-bottom: 12px; } .vm-sec h4 { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #262626; display: flex; align-items: center; gap: 7px; } .vm-sec h4 i { flex: 0 0 4px; width: 4px; height: 14px; background: #1677FF; border-radius: 2px; } .vm-sec h4 .cnt { font-size: 12px; font-weight: 400; color: #999; }
+    .attach-check-list { border: 1px solid #ECEFF2; border-radius: 5px; overflow: hidden; } .attach-check { min-height: 0; display: grid; grid-template-columns: 24px minmax(180px,1fr) minmax(420px,auto); align-items: center; padding: 6px 12px; border-bottom: 1px solid #F0F0F0; font-size: 13px; } .attach-check:last-child { border-bottom: 0; } .attach-check .file { color: #595959; white-space: nowrap; } .attach-check .must { font-size: 11px; color: #AAA; margin-left: 6px; } .attach-check .desc { text-align: right; color: #999; white-space: nowrap; } .attach-check.error .desc { color: #FF4D4F; } .attach-check.ok .desc { color: #999; }
+    .check-icon { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 600; } .check-icon.ok { background: #19AF60; } .check-icon.err { background: #FF3B45; }
+    .vm-tip { font-size: 12px; color: #A0A0A0; line-height: 18px; margin-top: 6px; }
+    .compare-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; } .compare-table th { height: 32px; background: #F6F8FB; color: #555; text-align: left; font-weight: 400; padding: 0 10px; white-space: nowrap; } .compare-table td { border-bottom: 1px solid #F0F0F0; padding: 6px 10px; color: #595959; line-height: 19px; white-space: nowrap; } .compare-table tr.bad { background: #FFF1F0; } .compare-table .system-value { color: #595959; } .compare-table .source-file { color: #1677FF; } .compare-table .new { color: #FF3B45; font-weight: 600; }
+    .result-tag { display: inline-block; border: 1px solid; border-radius: 10px; padding: 0 8px; font-size: 12px; line-height: 18px; } .result-tag.ok { color: #18A85B; border-color: #B7EBCB; background: #F0FFF6; } .result-tag.bad { color: #FF4D4F; border-color: #FFAAA7; background: #FFF5F5; }
+    .result-note { display: inline-block; margin-left: 8px; font-size: 12px; color: #FF6B6B; white-space: nowrap; }
+    .result-empty { min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed #D9D9D9; border-radius: 5px; background: #FAFAFA; color: #8C8C8C; text-align: center; padding: 14px; } .result-empty .empty-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; background: #F0F5FF; color: #8C8C8C; font-size: 20px; } .result-empty strong { margin-bottom: 4px; color: #595959; font-size: 14px; font-weight: 500; }
+    .ai-banner { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 10px; padding: 8px 12px; border: 1px solid #BFE0FF; border-radius: 5px; background: #EAF4FF; font-size: 13px; line-height: 20px; color: #1C5B8A; }
+    .ai-banner .ai-dot { flex: 0 0 20px; width: 20px; height: 20px; margin-top: 0; border-radius: 50%; background: #1677FF; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+    .ai-banner b { color: #12518A; }
+
+    /* 三类异常明细弹窗 */
+    .issue-mask { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.45); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .18s ease, visibility .18s ease; }
+    .issue-mask.open { opacity: 1; visibility: visible; pointer-events: auto; }
+    .issue-modal { width: 980px; max-width: 92%; max-height: 82%; display: flex; flex-direction: column; overflow: hidden; border-radius: 4px; background: #fff; box-shadow: 0 16px 44px rgba(0,0,0,.24); }
+    .issue-hd { flex: 0 0 44px; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #F0F0F0; background: #FAFBFC; }
+    .issue-hd h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1F1F1F; }
+    .issue-bd { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 16px; }
+    .issue-summary { margin-bottom: 10px; padding: 9px 12px; border: 1px solid #FF9C9C; border-radius: 4px; color: #F0444D; background: #FFF2F0; font-size: 13px; }
+    .issue-panel { border: 1px solid #E5E7EB; background: #fff; }
+    .issue-panel-title { height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid #F0F0F0; color: #262626; font-size: 14px; font-weight: 600; }
+    .issue-panel-title:before { content: ''; width: 4px; height: 16px; border-radius: 2px; background: #1677FF; }
+    .issue-panel .attach-check-list { border: 0; border-radius: 0; }
+    .issue-ft { flex: 0 0 50px; height: 50px; display: flex; align-items: center; justify-content: flex-end; padding: 0 16px; border-top: 1px solid #F0F0F0; }
+
+    @media (max-width: 1560px) {
+      :root { --unit-w: 228px; }
+      .main-grid { grid-template-columns: 300px minmax(0, 1fr); }
+      .people-pane { flex-basis: 165px; }
+      .detail-pane { flex-basis: 450px; }
+      .stats-row { font-size: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">四川省事业单位工资管理系统 <small>（管理版）</small></div>
+      <div class="top-links"><button type="button">问题解答</button><button type="button">操作手册</button></div>
+    </header>
+
+    <div class="subbar">
+      <div class="org-code">Y1510100JCD307631 <span class="hamburger" title="菜单">≡</span></div>
+      <div class="breadcrumb">当前位置：&nbsp;业务审核&nbsp; › &nbsp;基金审核</div>
+      <button class="guide-btn" type="button">操作指南</button>
+    </div>
+
+    <div class="body">
+      <aside class="sidebar">
+        <div class="org-name">凉山终审单位</div>
+        <ul class="nav">
+          <li class="nav-item"><span class="nav-icon">⌂</span><span>首页</span><span></span></li>
+          <li class="nav-item"><span class="nav-icon">□</span><span>操作指南</span><span></span></li>
+          <li class="nav-item"><span class="nav-icon">▥</span><span>操作指南</span><span class="chevron">›</span></li>
+          <li class="nav-item"><span class="nav-icon">⚙</span><span>信息管理</span><span class="chevron">›</span></li>
+          <li class="nav-item"><span class="nav-icon">♙</span><span>奖励绩效管理</span><span class="chevron">›</span></li>
+          <li class="nav-item"><span class="nav-icon">♙</span><span>绩效管理</span><span class="chevron">›</span></li>
+          <li class="nav-item active"><span class="nav-icon">♟</span><span>业务审核</span><span class="chevron">›</span></li>
+          <li class="nav-item"><span class="nav-icon">⌕</span><span>业务监测</span><span class="chevron">›</span></li>
+          <li class="nav-item"><span class="nav-icon">▥</span><span>统计报表</span><span class="chevron">›</span></li>
+          <li class="nav-item"><span class="nav-icon">♧</span><span>信息查询</span><span class="chevron">›</span></li>
+          <li class="nav-item"><span class="nav-icon">⚙</span><span>数据传输</span><span class="chevron">›</span></li>
+          <li class="nav-item"><span class="nav-icon">⚙</span><span>系统管理</span><span class="chevron">›</span></li>
+        </ul>
+        <div class="version">1.25.23-beta.10017</div>
+        <button class="back-btn" type="button">返回</button>
+      </aside>
+
+      <main class="workspace">
+        <!-- 第一栏：单位列表（贯穿整个工作区高度） -->
+        <section class="unit-pane">
+          <div class="unit-top">
+            <div class="unit-select" role="button" tabindex="0">请选择审核单位<span class="caret">▾</span></div>
+          </div>
+          <div class="pane-title">单位名称</div>
+          <div class="unit-body">
+            <div class="unit-list">
+              <div class="list-row active">测试</div>
+            </div>
+            <div class="gutter"><span>▲</span><span>▼</span></div>
+          </div>
+        </section>
+
+        <!-- 审核操作行（仅位于第一栏右侧） -->
+        <div class="toolbar">
+          <input class="field" id="auditOpinion" placeholder="请输入审核意见！">
+          <div class="actions">
+            <button class="btn primary" data-action="通过" type="button">通过</button>
+            <button class="btn danger" data-action="驳回" type="button">驳回</button>
+            <button class="btn outline" data-action="AI校验结果汇总" type="button">AI校验结果汇总</button>
+            <button class="btn" data-action="历史审核意见" type="button">历史审核意见</button>
+            <button class="btn" data-action="关闭" type="button">关闭</button>
+          </div>
+        </div>
+
+        <!-- 页签行 -->
+        <div class="tabs">
+          <button class="tab" type="button">事业核定表</button>
+          <button class="tab" type="button">事业-变动花名册</button>
+          <button class="tab" type="button">事业-工资发放表</button>
+          <button class="tab" type="button">事业-补扣发详情</button>
+          <button class="tab active" type="button">变动详情</button>
+          <span class="tabs-right">(2026年10月基金)</span>
+        </div>
+
+        <section class="main-grid">
+          <!-- 变动类型 -->
+          <div class="pane">
+            <div class="notice-box">提示：审核变动，驳回基金重新申报，无需重复审核，只需要点击【①剩余数量】审核未审核的变动！</div>
+            <div class="section-head"><span>变动类型</span><label class="type-filter"><input id="abnormalTypeOnly" type="checkbox">显示AI校验异常</label></div>
+            <div class="pane-body">
+              <div class="pane-scroll">
+                <table class="type-table">
+                  <colgroup><col><col style="width:52px"><col style="width:68px"></colgroup>
+                  <thead><tr><th>工资变动</th><th>人数</th><th>报批表</th></tr></thead>
+                  <tbody id="typeTableBody"></tbody>
+                </table>
+              </div>
+              <div class="gutter"><span>▲</span><span>▼</span></div>
+            </div>
+          </div>
+
+          <!-- ===== 红框滑动区：人员清单 + 人员变动详情 + 基金信息，可左右滑动 ===== -->
+          <div class="strip">
+
+          <!-- 变动人员清单 -->
+          <div class="pane people-pane">
+            <div class="section-head"><span>变动人员清单</span></div>
+            <div class="search-strip"><input id="peopleSearch" placeholder="输入人员编号，姓名..."></div>
+            <div class="pane-body">
+              <div class="pane-scroll">
+                <table class="people-table">
+                  <colgroup><col><col><col><col></colgroup>
+                  <thead><tr><th>人员编号</th><th>姓名</th><th>起薪时间</th><th></th></tr></thead>
+                  <tbody id="peopleTableBody"></tbody>
+                </table>
+              </div>
+              <div class="gutter"><span>▲</span><span>▼</span></div>
+            </div>
+          </div>
+
+          <!-- 人员变动详情 -->
+          <div class="pane detail-pane">
+            <div class="detail-head">
+              <div class="stats-row">
+                <span>变动审核结果统计:</span>
+                <span class="counter">①剩余数量(30条)</span>
+                <span class="counter">②通过数量(0条)</span>
+                <span class="counter">③不通过数量(0条)</span>
+                <span class="reset">重置</span>
+                <button class="btn nav-btn" data-action="上一条" type="button">上一条</button>
+                <button class="btn nav-btn" data-action="下一条" type="button">下一条</button>
+              </div>
+              <div class="step-row" aria-label="当前人员AI异常统计">
+                <button class="issue-link" data-issue="missing" type="button">缺失附件数量 <b id="missingCount">1</b></button>
+                <button class="issue-link" data-issue="upload" type="button">附件上传错误数量 <b id="uploadCount">1</b></button>
+                <button class="issue-link" data-issue="compare" type="button">内容对比异常数量 <b id="compareCount">1</b></button>
+              </div>
+            </div>
+            <div class="toggle-row">
+              <button class="pill" data-view="all" type="button">显示全部字段</button>
+              <button class="pill ghost" data-view="changed" type="button">显示变化字段</button>
+              <span class="pane-name">人员变动详情</span>
+            </div>
+            <div class="pane-body">
+              <div class="pane-scroll">
+                <table>
+                  <colgroup><col style="width:33%"><col style="width:26%"><col style="width:27%"><col style="width:14%"></colgroup>
+                  <thead><tr><th>指标项目</th><th>变动前信息</th><th>变动后信息</th><th>增减资</th></tr></thead>
+                  <tbody>
+                    <tr><td>起薪时间</td><td></td><td class="red">2021年03月10日</td><td></td></tr>
+                    <tr><td>姓名</td><td>管理人员甲</td><td>管理人员甲</td><td></td></tr>
+                    <tr><td>人员身份</td><td></td><td class="red">管理人员</td><td></td></tr>
+                    <tr><td>现任职务(是否主力队员)</td><td></td><td class="red">管理助理</td><td></td></tr>
+                    <tr><td>现任职务时间(选招时间)</td><td></td><td class="red">2022年03月01日</td><td></td></tr>
+                    <tr><td>实际岗位(实际基础津贴档...</td><td></td><td class="red">八级岗位</td><td></td></tr>
+                    <tr><td>职员等级</td><td></td><td class="red">八级职员</td><td></td></tr>
+                    <tr><td>任职员等级时间</td><td></td><td class="red">2022年03月01日</td><td></td></tr>
+                    <tr><td>基本工资对应岗位/职员等...</td><td></td><td class="red">八级岗位</td><td></td></tr>
+                    <tr><td>基础绩效奖层次</td><td></td><td></td><td></td></tr>
+                    <tr><td>任现岗位/职员等级时间(...</td><td></td><td class="red">2022年03月01日</td><td></td></tr>
+                    <tr><td>薪级(成绩津贴名次、档次...</td><td></td><td class="red">8级</td><td></td></tr>
+                    <tr><td>高低定后薪级(档次、级别...</td><td></td><td class="red">9级</td><td></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="gutter"><span>▲</span><span>▼</span></div>
+            </div>
+          </div>
+
+          <!-- 基金信息栏（滑动区最右侧内容） -->
+          <aside class="pane fund-pane">
+            <div class="fund-head-stack" aria-hidden="true"></div>
+            <div class="pane-body">
+              <div class="pane-scroll">
+                <div class="fund-block">
+                  <table class="fund-table">
+                    <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
+                    <tbody id="fundTableBody"></tbody>
+                  </table>
+
+                  <table class="att-table">
+                    <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
+                    <thead><tr><th>附件名称</th><th>操作</th></tr></thead>
+                    <tbody>
+                      <tr><td class="att-title" colspan="2">《事业单位新进人员工资套改表》</td></tr>
+                      <tr>
+                        <td>待正常晋升人员-监测人员表(2).xlsx</td>
+                        <td><span class="fund-link" data-action="下载附件">下载</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <table class="hist-table">
+                    <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
+                    <thead><tr><th>变动前</th><th>变动后</th></tr></thead>
+                    <tbody>
+                      <tr><td class="dash">——</td><td><span class="fund-link" data-action="学习简历">学习简历</span></td></tr>
+                      <tr><td class="dash">——</td><td><span class="fund-link" data-action="任职简历">任职简历</span></td></tr>
+                      <tr><td class="dash">——</td><td><span class="fund-link" data-action="工龄信息">工龄信息</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="gutter"><span>▲</span><span>▼</span></div>
+            </div>
+          </aside>
+          </div>
+        </section>
+
+        <span class="watermark wm1">凉山终审单位<br>2026年9月29日<br>禁止拍照截图</span>
+        <span class="watermark wm2">凉山终审单位<br>2026年9月29日<br>禁止拍照截图</span>
+        <span class="watermark wm3">凉山终审单位<br>2026年9月29日<br>禁止拍照截图</span>
+        <span class="watermark wm4">凉山终审单位<br>2026年9月29日<br>禁止拍照截图</span>
+        <span class="watermark wm5">凉山终审单位<br>2026年9月29日<br>禁止拍照截图</span>
+        <span class="watermark wm6">凉山终审单位<br>2026年9月29日<br>禁止拍照截图</span>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <!-- AI 校验结果大弹窗 -->
+  <div class="amask" id="approvalMask" role="dialog" aria-modal="true" aria-labelledby="approvalTitle">
+    <div class="amodal" role="document">
+      <div class="a-hd">
+        <h3 id="approvalTitle">AI 智能校验结果</h3>
+        <button class="a-close" id="approvalClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="a-bd" id="approvalBody"></div>
+      <div class="a-ft">
+        <button class="btn" id="approvalCancel" type="button">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="issue-mask" id="issueMask" role="dialog" aria-modal="true" aria-labelledby="issueTitle">
+    <div class="issue-modal" role="document">
+      <div class="issue-hd"><h3 id="issueTitle">异常明细</h3><button class="a-close" id="issueClose" type="button" aria-label="关闭">×</button></div>
+      <div class="issue-bd" id="issueBody"></div>
+      <div class="issue-ft"><button class="btn" id="issueCancel" type="button">关闭</button></div>
+    </div>
+  </div>
+
+  <script>
+    const toast = document.querySelector('.toast');
+    let toastTimer;
+    function notify(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1400);
+    }
+
+    document.querySelectorAll('[data-action]').forEach((button) => {
+      const action = button.dataset.action;
+      if (action === '驳回') return; // “驳回”单独校验审核意见；“通过”走通用提示
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        notify(`已点击：${action}`);
+      });
+    });
+
+    /* ===== 变动类型 → 人员清单 → 右侧详情三级联动 ===== */
+    const REVIEW_TYPES = [
+      { id: 't1', name: '93工改补发(其它补扣)', abnormal: false, people: [{ id: '00001', name: '王敏', date: '2026年01月01日', role: '管理人员', post: '七级职员', salary: '10级', fund: '3180', missing: [], upload: [], compare: [] }] },
+      { id: 't2', name: '事业人员批量正常晋升薪级', abnormal: false, people: [{ id: '00002', name: '李凯凯', date: '2026年01月01日', role: '专业技术人员', post: '专技十级', salary: '12级', fund: '2460', missing: [], upload: [], compare: [] }, { id: '00003', name: '周蓉', date: '2026年01月01日', role: '专业技术人员', post: '专技九级', salary: '13级', fund: '2710', missing: [], upload: [], compare: [] }] },
+      { id: 't3', name: '人员减少(调出)', abnormal: true, people: [{ id: '00004', name: '任涛涛', date: '2026年02月01日', role: '管理人员', post: '八级职员', salary: '9级', fund: '-3520', missing: ['调出审批表（调动通知）'], upload: [], compare: [] }] },
+      { id: 't4', name: '基础信息个别变动', abnormal: true, people: [{ id: '00010', name: '刘玉玉', date: '2026年03月01日', role: '专业技术人员', post: '专技十级', salary: '11级', fund: '0', missing: ['基础信息变更审批表.pdf'], upload: [], compare: [] }] },
+      { id: 't5', name: '处分人员岗位变动(工人)', abnormal: false, people: [{ id: '00008', name: '工程刘', date: '2026年02月01日', role: '工勤人员', post: '技术工三级', salary: '14级', fund: '-180', missing: [], upload: [], compare: [] }] },
+      { id: 't6', name: '接收调入人员', abnormal: false, people: [{ id: '00011', name: '赵青', date: '2026年04月01日', role: '管理人员', post: '九级职员', salary: '7级', fund: '3340', missing: [], upload: [], compare: [] }] },
+      { id: 't7', name: '津补贴批量变动', abnormal: false, people: [{ id: '00009', name: '关羽羽', date: '2026年01月01日', role: '管理人员', post: '八级职员', salary: '10级', fund: '320', missing: [], upload: [], compare: [] }] },
+      { id: 't8', name: '补发(其它补扣)', abnormal: false, people: [{ id: '00012', name: '陈晨', date: '2026年01月01日', role: '专业技术人员', post: '专技十级', salary: '10级', fund: '560', missing: [], upload: [], compare: [] }] },
+      { id: 't9', name: '起薪(公招(高等院校毕业生))', abnormal: true, people: [{ id: '00007', name: '张小妖', date: '2025年08月01日', role: '专业技术人员', post: '专技十二级', salary: '7级', fund: '3260', missing: [], upload: ['公招录用审批表.pdf'], compare: [] }] },
+      { id: 't10', name: '起薪(社招)', abnormal: true, people: [{ id: '00013', name: '张玉玉', date: '2025年09月01日', role: '专业技术人员', post: '专技十级', salary: '9级', fund: '3670', missing: [], upload: ['社招录用审批表.pdf'], compare: [] }] },
+      { id: 't11', name: '起薪(调入)', abnormal: true, people: [
+        { id: '00005', name: '管理人员甲', date: '2021年03月10日', role: '管理人员', post: '管理助理', salary: '8级', fund: '5267', missing: ['学历学位证书'], upload: ['待正常晋升人员-监测人员表(2).xlsx'], compare: [{ field: '薪级(成绩津贴名次、档次...)', file: '工资套改表.pdf', ext: '8级', back: '9级' }] },
+        { id: '00006', name: '专技人员乙', date: '2025年03月01日', role: '专业技术人员', post: '专技十级', salary: '9级', fund: '4180', missing: [], upload: [], compare: [] }
+      ] },
+      { id: 't12', name: '转正定级', abnormal: true, people: [{ id: '00014', name: '向前多', date: '2026年01月01日', role: '专业技术人员', post: '专技十二级', salary: '8级', fund: '3750', missing: [], upload: [], compare: [{ field: '薪级', file: '转正定级表.pdf', ext: '7级', back: '8级' }] }] },
+      { id: 't13', name: '重新确定工资（原填报有误）', abnormal: true, people: [{ id: '00015', name: '小江子', date: '2026年03月01日', role: '管理人员', post: '八级职员', salary: '9级', fund: '4380', missing: ['工资重新确定审批表.pdf'], upload: [], compare: [{ field: '基本工资对应岗位/职员等级', file: '重新确定工资表.pdf', ext: '三级', back: '四级' }] }] }
+    ];
+    const typeTableBody = document.getElementById('typeTableBody');
+    const peopleTableBody = document.getElementById('peopleTableBody');
+    const peopleSearch = document.getElementById('peopleSearch');
+    const abnormalTypeOnly = document.getElementById('abnormalTypeOnly');
+    const detailTableBody = document.querySelector('.detail-pane .pane-body tbody');
+    const fundTableBody = document.getElementById('fundTableBody');
+    let activeTypeId = 't11';
+    let activePersonId = '00005';
+
+    function getActiveType() { return REVIEW_TYPES.find((item) => item.id === activeTypeId) || REVIEW_TYPES[0]; }
+    function getActivePerson() { const type = getActiveType(); return type.people.find((item) => item.id === activePersonId) || type.people[0]; }
+    function typeHasAbnormal(type) { return type.abnormal || type.people.some((p) => p.missing.length || p.upload.length || p.compare.length); }
+
+    function renderTypes() {
+      const visible = REVIEW_TYPES.filter((type) => !abnormalTypeOnly.checked || typeHasAbnormal(type));
+      if (!visible.some((type) => type.id === activeTypeId) && visible.length) {
+        activeTypeId = visible[0].id;
+        activePersonId = visible[0].people[0].id;
+      }
+      typeTableBody.innerHTML = visible.map((type) => '<tr data-type-id="' + type.id + '" class="' + (type.id === activeTypeId ? 'active-row' : '') + '"><td>' + esc(type.name) + '</td><td>' + type.people.length + '</td><td class="link">报批表</td></tr>').join('');
+    }
+
+    function renderPeople() {
+      const keyword = peopleSearch.value.trim().toLowerCase();
+      const people = getActiveType().people.filter((p) => !keyword || p.id.toLowerCase().includes(keyword) || p.name.toLowerCase().includes(keyword));
+      if (people.length && !people.some((p) => p.id === activePersonId)) activePersonId = people[0].id;
+      peopleTableBody.innerHTML = people.length ? people.map((p) => '<tr data-person-id="' + p.id + '" class="' + (p.id === activePersonId ? 'active-row' : '') + '"><td class="link">' + esc(p.id) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.date) + '</td><td></td></tr>').join('') : '<tr><td colspan="4" style="padding:18px 4px;color:#999;">未找到匹配人员</td></tr>';
+    }
+
+    function renderPersonDetail() {
+      const p = getActivePerson();
+      const rows = [
+        ['起薪时间', '', p.date], ['姓名', p.name, p.name], ['人员身份', '', p.role], ['现任职务(是否主力队员)', '', p.post],
+        ['现任职务时间(选招时间)', '', p.date], ['实际岗位(实际基础津贴档次)', '', p.post], ['职员等级', '', p.post],
+        ['任职员等级时间', '', p.date], ['基本工资对应岗位/职员等级', '', p.post], ['基础绩效奖层次', '', ''],
+        ['任现岗位/职员等级时间', '', p.date], ['薪级(成绩津贴名次、档次)', '', p.salary], ['高低定后薪级(档次、级别)', '', String(parseInt(p.salary, 10) + 1 || 9) + '级']
+      ];
+      detailTableBody.innerHTML = rows.map((r) => '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td class="' + (r[2] && r[1] !== r[2] ? 'red' : '') + '">' + esc(r[2]) + '</td><td></td></tr>').join('');
+      fundTableBody.innerHTML = '<tr><th class="label-cell">基金月份</th><td>2026年10月</td></tr><tr><th class="label-cell">起/止薪月份</th><td>' + esc(p.date) + '</td></tr><tr><th class="label-cell">补扣发月份</th><td>67</td></tr><tr><th class="label-cell">增减资</th><td>' + esc(p.fund) + '</td></tr><tr><th class="label-cell">补扣发金额</th><td>352889</td></tr><tr><th class="label-cell">变动备注</th><td></td></tr>';
+      document.getElementById('missingCount').textContent = p.missing.length;
+      document.getElementById('uploadCount').textContent = p.upload.length;
+      document.getElementById('compareCount').textContent = p.compare.length;
+    }
+
+    function renderReviewWorkspace() { renderTypes(); renderPeople(); renderPersonDetail(); }
+    typeTableBody.addEventListener('click', (event) => {
+      const row = event.target.closest('tr[data-type-id]');
+      if (!row) return;
+      activeTypeId = row.dataset.typeId;
+      activePersonId = getActiveType().people[0].id;
+      peopleSearch.value = '';
+      renderReviewWorkspace();
+    });
+    peopleTableBody.addEventListener('click', (event) => {
+      const row = event.target.closest('tr[data-person-id]');
+      if (!row) return;
+      activePersonId = row.dataset.personId;
+      renderPeople();
+      renderPersonDetail();
+    });
+    peopleSearch.addEventListener('input', renderPeople);
+    abnormalTypeOnly.addEventListener('change', renderReviewWorkspace);
+    renderReviewWorkspace();
+
+    /* ===== AI 校验结果弹窗（含多人员 AI 校验结果） ===== */
+    const approvalMask = document.getElementById('approvalMask');
+    const approvalBody = document.getElementById('approvalBody');
+    const approvalClose = document.getElementById('approvalClose');
+    const approvalCancel = document.getElementById('approvalCancel');
+    const aiResultBtn = document.querySelector('[data-action="AI校验结果汇总"]');
+    let lastFocused = null;
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // 本次审核的多笔业务数据：每人对应不同的变动原因与各自的 AI 校验结果
+    function buildApprovalPeople() {
+      return [
+        {
+          id: 'p1', name: '张三', reason: '起薪(调入)',
+          result: {
+            abnormal: 3, missingAttachments: 1, uploadErrors: 1, contentAbnormal: 1,
+            attachments: [
+              { type: 'error', name: '待正常晋升人员-监测人员表(2).xlsx', desc: '附件上传错误，文件类型与要求不符' },
+              { type: 'error', name: '学历学位证书', desc: '缺失必传附件，未检测到对应文件' }
+            ],
+            compare: [
+              { field: '薪级(成绩津贴名次、档次...)', sourceFile: '工资套改表.pdf', ext: '8级', back: '9级', type: 'bad' }
+            ]
+          }
+        },
+        {
+          id: 'p2', name: '李凯凯', reason: '事业人员批量正常晋升薪级',
+          result: { abnormal: 0, missingAttachments: 0, uploadErrors: 0, contentAbnormal: 0, attachments: [], compare: [] }
+        },
+        {
+          id: 'p3', name: '任涛涛', reason: '人员减少(调出)',
+          result: {
+            abnormal: 1, missingAttachments: 1, uploadErrors: 0, contentAbnormal: 0,
+            attachments: [
+              { type: 'error', name: '调出审批表(调动通知)', desc: '缺失必传附件，未检测到对应文件' }
+            ],
+            compare: []
+          }
+        },
+        {
+          id: 'p4', name: '张小妖', reason: '起薪(公招(高等院校毕业生))',
+          result: {
+            abnormal: 1, missingAttachments: 0, uploadErrors: 1, contentAbnormal: 0,
+            attachments: [
+              { type: 'error', name: '公招录用审批表.pdf', desc: '附件上传错误，文件类型与要求不符' }
+            ],
+            compare: []
+          }
+        },
+        {
+          id: 'p5', name: '向前多', reason: '转正定级',
+          result: {
+            abnormal: 1, missingAttachments: 0, uploadErrors: 0, contentAbnormal: 1,
+            attachments: [],
+            compare: [
+              { field: '薪级(成绩津贴名次、档次...)', sourceFile: '转正定级表.pdf', ext: '7级', back: '8级', type: 'bad' }
+            ]
+          }
+        },
+        {
+          id: 'p6', name: '工程刘', reason: '处分人员岗位变动(工人)',
+          result: { abnormal: 0, missingAttachments: 0, uploadErrors: 0, contentAbnormal: 0, attachments: [], compare: [] }
+        },
+        {
+          id: 'p7', name: '小江子', reason: '重新确定工资（原填报有误）',
+          result: {
+            abnormal: 2, missingAttachments: 1, uploadErrors: 0, contentAbnormal: 1,
+            attachments: [
+              { type: 'error', name: '工资重新确定审批表.pdf', desc: '缺失必传附件，未检测到对应文件' }
+            ],
+            compare: [
+              { field: '基本工资对应岗位/职员等级', sourceFile: '重新确定工资表.pdf', ext: '三级', back: '四级', type: 'bad' }
+            ]
+          }
+        },
+        {
+          id: 'p8', name: '关羽羽', reason: '津补贴批量变动',
+          result: { abnormal: 0, missingAttachments: 0, uploadErrors: 0, contentAbnormal: 0, attachments: [], compare: [] }
+        },
+        {
+          id: 'p9', name: '张玉玉', reason: '起薪(社招)',
+          result: {
+            abnormal: 1, missingAttachments: 0, uploadErrors: 1, contentAbnormal: 0,
+            attachments: [
+              { type: 'error', name: '社招录用审批表.pdf', desc: '附件上传错误，文件类型与要求不符' }
+            ],
+            compare: []
+          }
+        },
+        {
+          id: 'p10', name: '刘玉玉', reason: '基础信息个别变动',
+          result: {
+            abnormal: 1, missingAttachments: 1, uploadErrors: 0, contentAbnormal: 0,
+            attachments: [
+              { type: 'error', name: '基础信息变更审批表.pdf', desc: '缺失必传附件，未检测到对应文件' }
+            ],
+            compare: []
+          }
+        }
+      ];
+    }
+
+    // 构建单人的 AI 校验结果 HTML（异常提示 + 异常明细，正常数据不展示）
+    function buildResultHTML(result) {
+      let html = '<div class="ai-banner"><span class="ai-dot">AI</span>'
+        + '<span>以下为 <b>AI 智能校验结果</b>：系统自动对每笔业务进行附件完整性、正确性及附件内容与系统填写内容进行比对校验，<b>仅展示校验出的异常数据</b>，建议人工复核异常项后再决定是否审核通过。</span></div>';
+      html += '<div class="vm-alert"><div class="vm-alert-icon">×</div><div class="vm-alert-text">校验完成，共发现 ' + result.abnormal + ' 处异常。以下仅展示异常或错误信息。</div>'
+        + '<div class="vm-stat red"><b>' + result.abnormal + '</b><span>异常总数</span></div>'
+        + '<div class="vm-stat red"><b>' + result.missingAttachments + '</b><span>缺失附件</span></div>'
+        + '<div class="vm-stat red"><b>' + result.uploadErrors + '</b><span>附件上传错误</span></div>'
+        + '<div class="vm-stat red"><b>' + result.contentAbnormal + '</b><span>内容比对异常</span></div></div>';
+      const attachmentErrors = result.attachments.filter((a) => a.type === 'error');
+      if (attachmentErrors.length) {
+        html += '<section class="vm-sec"><h4><i></i>一、附件异常 <span class="cnt">（' + attachmentErrors.length + ' 项）</span></h4><div class="attach-check-list">';
+        attachmentErrors.forEach((a) => {
+          html += '<div class="attach-check error"><span class="check-icon err">×</span><span class="file">' + esc(a.name) + '<span class="must">必传</span></span><span class="desc">' + esc(a.desc) + '</span></div>';
+        });
+        html += '</div></section>';
+      }
+      const compareErrors = result.compare.filter((r) => r.type === 'bad');
+      if (compareErrors.length) {
+        html += '<section class="vm-sec"><h4><i></i>二、附件提取内容与回填内容比对 <span class="cnt">（' + compareErrors.length + ' 项异常）</span></h4>';
+        html += '<table class="compare-table"><colgroup><col style="width:15%"><col style="width:17%"><col style="width:19%"><col style="width:19%"><col style="width:30%"></colgroup><thead><tr><th>字段</th><th>来源附件</th><th>附件提取值</th><th>系统填写值</th><th>异常说明</th></tr></thead><tbody>';
+        compareErrors.forEach((r) => {
+          html += '<tr class="bad"><td>' + esc(r.field) + '</td><td><span class="source-file">' + esc(r.sourceFile) + '</span></td><td><span class="new">' + esc(r.ext) + '</span></td><td><span class="system-value">' + esc(r.back) + '</span></td><td><span class="result-tag bad">不一致</span><span class="result-note">附件提取值与系统填写值不一致</span></td></tr>';
+        });
+        html += '</tbody></table></section>';
+      }
+      return html;
+    }
+
+    let currentPeople = [];
+    let approvalActiveId = '';
+    function renderApprovalList(people, activeId, keyword = '') {
+      const normalized = keyword.trim().toLowerCase();
+      const filtered = people.filter((p) => !normalized || p.name.toLowerCase().includes(normalized));
+      let html = '<aside class="approval-aside"><div class="aside-hd">人员（' + people.length + '人）</div><div class="approval-search"><div class="approval-search-wrap"><input id="approvalSearchInput" value="' + esc(keyword) + '" placeholder="搜索人员姓名" aria-label="搜索人员姓名"></div></div><div class="approval-list">';
+      if (!filtered.length) html += '<div class="approval-empty">未找到匹配人员</div>';
+      filtered.forEach((p) => {
+        const badge = '<span class="badge err">' + p.result.abnormal + ' 处异常</span>';
+        html += '<div class="approval-item' + (p.id === activeId ? ' active' : '') + '" data-id="' + p.id + '">'
+          + '<div class="nm"><span>' + esc(p.name) + '</span>' + badge + '</div>'
+          + '<div class="rsn">' + esc(p.reason) + '</div></div>';
+      });
+      html += '</div></aside><div class="approval-detail" id="approvalDetail"></div>';
+      approvalBody.innerHTML = html;
+      const person = people.find((p) => p.id === activeId) || filtered[0] || people[0];
+      if (person) {
+        approvalActiveId = person.id;
+        document.getElementById('approvalDetail').innerHTML = buildResultHTML(person.result);
+      }
+    }
+
+    function openApprovalModal() {
+      lastFocused = document.activeElement;
+      currentPeople = buildApprovalPeople().filter((person) => person.result.abnormal > 0);
+      approvalActiveId = currentPeople[0] ? currentPeople[0].id : '';
+      renderApprovalList(currentPeople, approvalActiveId);
+      approvalMask.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      approvalClose.focus();
+    }
+    function closeApprovalModal() {
+      approvalMask.classList.remove('open');
+      document.body.style.overflow = '';
+      if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+    }
+
+    aiResultBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openApprovalModal();
+    });
+
+    // 左侧人员列表搜索与点击切换右侧明细
+    approvalBody.addEventListener('input', (event) => {
+      if (event.target.id !== 'approvalSearchInput') return;
+      const keyword = event.target.value;
+      const matched = currentPeople.filter((p) => p.name.toLowerCase().includes(keyword.trim().toLowerCase()));
+      if (matched.length && !matched.some((p) => p.id === approvalActiveId)) approvalActiveId = matched[0].id;
+      renderApprovalList(currentPeople, approvalActiveId, keyword);
+      const input = document.getElementById('approvalSearchInput');
+      input.focus();
+      input.setSelectionRange(keyword.length, keyword.length);
+    });
+    approvalBody.addEventListener('click', (event) => {
+      const item = event.target.closest('.approval-item');
+      if (!item) return;
+      const person = currentPeople.find((p) => p.id === item.dataset.id);
+      if (!person) return;
+      approvalActiveId = person.id;
+      approvalBody.querySelectorAll('.approval-item').forEach((it) => it.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById('approvalDetail').innerHTML = buildResultHTML(person.result);
+    });
+
+    /* 三类异常统计明细弹窗 */
+    const issueMask = document.getElementById('issueMask');
+    const issueTitle = document.getElementById('issueTitle');
+    const issueBody = document.getElementById('issueBody');
+    const issueClose = document.getElementById('issueClose');
+    const issueCancel = document.getElementById('issueCancel');
+    const issueLabels = { missing: '缺失附件', upload: '附件上传错误', compare: '内容对比异常' };
+    function buildIssueContent(kind, person) {
+      if (kind === 'compare') {
+        if (!person.compare.length) return '<div class="result-empty"><div class="empty-icon">✓</div><strong>当前人员无内容对比异常</strong></div>';
+        let rows = person.compare.map((item) => '<tr class="bad"><td>' + esc(item.field) + '</td><td><span class="source-file">' + esc(item.file) + '</span></td><td><span class="new">' + esc(item.ext) + '</span></td><td>' + esc(item.back) + '</td><td><span class="result-tag bad">不一致</span><span class="result-note">附件提取值与系统填写值不一致</span></td></tr>').join('');
+        return '<div class="issue-panel"><div class="issue-panel-title">附件提取内容与回填内容比对（' + person.compare.length + ' 项异常）</div><table class="compare-table"><colgroup><col style="width:18%"><col style="width:18%"><col style="width:17%"><col style="width:17%"><col style="width:30%"></colgroup><thead><tr><th>字段</th><th>来源附件</th><th>附件提取值</th><th>系统填写值</th><th>异常说明</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+      }
+      const files = kind === 'missing' ? person.missing : person.upload;
+      if (!files.length) return '<div class="result-empty"><div class="empty-icon">✓</div><strong>当前人员无' + issueLabels[kind] + '</strong></div>';
+      const desc = kind === 'missing' ? '缺失必传附件，未检测到对应文件' : '附件上传错误，文件类型与要求不符';
+      const rows = files.map((file) => '<div class="attach-check error"><span class="check-icon err">×</span><span class="file">' + esc(file) + '<span class="must">必传</span></span><span class="desc">' + desc + '</span></div>').join('');
+      return '<div class="issue-panel"><div class="issue-panel-title">' + issueLabels[kind] + '（' + files.length + ' 项）</div><div class="attach-check-list">' + rows + '</div></div>';
+    }
+    function openIssueModal(kind) {
+      const person = getActivePerson();
+      issueTitle.textContent = issueLabels[kind] + '明细 - ' + person.name;
+      issueBody.innerHTML = buildIssueContent(kind, person);
+      issueMask.classList.add('open');
+      issueClose.focus();
+    }
+    function closeIssueModal() { issueMask.classList.remove('open'); }
+    document.querySelectorAll('[data-issue]').forEach((button) => button.addEventListener('click', () => openIssueModal(button.dataset.issue)));
+    issueClose.addEventListener('click', closeIssueModal);
+    issueCancel.addEventListener('click', closeIssueModal);
+    issueMask.addEventListener('click', (event) => { if (event.target === issueMask) closeIssueModal(); });
+
+    /* 驳回：未填写审核意见时提示先输入 */
+    const rejectBtn = document.querySelector('[data-action="驳回"]');
+    const auditOpinion = document.getElementById('auditOpinion');
+    rejectBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (!auditOpinion.value.trim()) {
+        notify('请先输入审核意见');
+        auditOpinion.focus();
+        return;
+      }
+      notify('已驳回');
+      const counters = document.querySelectorAll('.stats-row .counter');
+      if (counters[2]) counters[2].textContent = '③不通过数量(1条)';
+    });
+    approvalClose.addEventListener('click', closeApprovalModal);
+    approvalCancel.addEventListener('click', closeApprovalModal);
+    approvalMask.addEventListener('click', (event) => { if (event.target === approvalMask) closeApprovalModal(); });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (issueMask.classList.contains('open')) closeIssueModal();
+      else if (approvalMask.classList.contains('open')) closeApprovalModal();
+    });
+
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((item) => item.classList.remove('active'));
+        tab.classList.add('active');
+        notify(`已切换至：${tab.textContent}`);
+      });
+    });
+
+    document.querySelectorAll('.nav-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach((nav) => nav.classList.remove('active'));
+        item.classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.list-row').forEach((row) => {
+      row.addEventListener('click', () => {
+        row.parentElement.querySelectorAll('.list-row').forEach((item) => item.classList.remove('active'));
+        row.classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.detail-pane tbody tr').forEach((row) => {
+      row.addEventListener('click', () => {
+        row.closest('table').querySelectorAll('tr.row-selected').forEach((item) => item.classList.remove('row-selected'));
+        row.classList.add('row-selected');
+      });
+    });
+
+    document.querySelectorAll('.pill').forEach((pill) => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.pill').forEach((item) => item.classList.add('ghost'));
+        pill.classList.remove('ghost');
+        notify(pill.dataset.view === 'all' ? '已显示全部字段' : '已显示变化字段');
+      });
+    });
+
+    document.querySelector('.unit-select').addEventListener('click', () => notify('请选择审核单位'));
+    document.querySelector('.back-btn').addEventListener('click', () => notify('已返回上一页'));
+  </script>
+</body>
+</html>

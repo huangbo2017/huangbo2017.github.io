@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="oEdVkkLS9vGDTEbkWCyanO">
+<head data-page-node-id="8yMYKMJjrPzxSCJlFMTD6C">
+  <meta charset="UTF-8" data-page-node-id="0gvBmwqLmLlgegMKLVR1w3" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="0QdIZ7I6AnDSpf1o5NaPIv" />
+  <title>事业单位特殊岗位津贴申报与审批管理原型</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --line: #e4e9f2;
+      --text: #172033;
+      --muted: #667085;
+      --primary: #1f5eff;
+      --primary-weak: #edf3ff;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --purple: #7c3aed;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 224px;
+      background: linear-gradient(180deg, #0f1e3d 0%, #13264b 100%);
+      color: #fff;
+      padding: 18px 12px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      box-shadow: 8px 0 24px rgba(15, 23, 42, 0.08);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 16px; border-bottom: 1px solid rgba(255,255,255,.12); margin-bottom: 12px; }
+    .brand-badge { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #22c55e); display: grid; place-items: center; font-weight: 800; }
+    .brand h1 { font-size: 15px; margin: 0; line-height: 1.25; }
+    .brand p { margin: 3px 0 0; font-size: 11px; color: #bfd0ef; }
+    .menu-title { padding: 8px 10px 7px; font-size: 12px; color: #94a3b8; }
+    .menu-item {
+      border: 0;
+      width: 100%;
+      text-align: left;
+      color: #dbeafe;
+      background: transparent;
+      padding: 10px 10px;
+      margin: 4px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      line-height: 1.32;
+      font-size: 13px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .menu-item:hover { background: rgba(255,255,255,.08); }
+    .menu-item.active { background: #2563eb; color: white; box-shadow: 0 8px 20px rgba(37,99,235,.28); }
+    .main { flex: 1; min-width: 0; }
+    .topbar { height: 64px; background: rgba(255,255,255,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 5; }
+    .crumb { color: var(--muted); font-size: 12px; margin-bottom: 3px; }
+    .page-title { font-size: 20px; font-weight: 750; }
+    .top-actions { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; display: grid; place-items: center; font-weight: 700; }
+    .content { padding: 18px 22px 24px; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; overflow: visible; }
+    .card-head { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+    .card-title { font-weight: 750; font-size: 16px; }
+    .card-body { padding: 16px; }
+    .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); padding: 0 16px; background: #fbfcff; overflow-x: auto; position: sticky; top: 64px; z-index: 4; }
+    .modal .tabs { top: 0; }
+    .tab { border: 0; background: transparent; padding: 13px 12px; cursor: pointer; color: var(--muted); border-bottom: 3px solid transparent; white-space: nowrap; }
+    .tab.active { color: var(--primary); border-color: var(--primary); font-weight: 700; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    .subtabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; position: sticky; top: 113px; z-index: 3; background: var(--panel); padding: 10px 0; }
+    .subtab { border: 1px solid var(--line); background: #fff; padding: 8px 12px; border-radius: 999px; cursor: pointer; color: var(--muted); }
+    .subtab.active { background: var(--primary-weak); color: var(--primary); border-color: #b9d2ff; font-weight: 700; }
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step { border: 1px solid var(--line); border-radius: 12px; background: #fcfdff; padding: 14px; min-height: auto; }
+    .step.compact-step { display: grid; grid-template-columns: 220px 1fr; gap: 14px; align-items: center; }
+    .step-index { width: 28px; height: 28px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--primary); color: #fff; font-weight: 800; margin-right: 8px; }
+    .step h3 { margin: 0 0 14px; font-size: 15px; }
+    .step.compact-step h3 { margin: 0; }
+    label { font-size: 13px; color: #475467; display: block; margin-bottom: 6px; }
+    select, input, textarea { width: 100%; border: 1px solid #d6deeb; border-radius: 10px; padding: 9px 10px; background: #fff; color: var(--text); font-family: inherit; }
+    textarea { resize: vertical; min-height: 74px; }
+    .form-grid { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 10px; align-items: end; padding: 12px; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { border: 1px solid var(--line); background: #fff; color: #344054; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 650; }
+    .normal-text-button { font-weight: 400; }
+    .btn:hover { border-color: #b8c4d8; }
+    .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .btn.success { background: var(--success); border-color: var(--success); color: #fff; }
+    .btn.warning { background: var(--warning); border-color: var(--warning); color: #fff; }
+    .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .btn.ghost { background: #f8fafc; }
+    .help { color: var(--muted); font-size: 12px; margin-top: 8px; line-height: 1.6; }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 1060px; background: #fff; }
+    th, td { padding: 10px 10px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; white-space: nowrap; }
+    th { background: #f8fafc; color: #475467; font-weight: 750; }
+    tr:hover td { background: #fbfdff; }
+    .link { color: var(--primary); cursor: pointer; font-weight: 400; }
+    .tag { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .tag.draft { background: #f2f4f7; color: #475467; }
+    .tag.pending { background: #fff7e6; color: #b45309; }
+    .tag.pass { background: #eafaf0; color: #15803d; }
+    .tag.reject { background: #fee2e2; color: #b91c1c; }
+    .tag.submit { background: #eaf1ff; color: #1d4ed8; }
+    .editable { border: 1px dashed #a8b4ca; border-radius: 7px; padding: 5px 8px; background: #fff; display: inline-block; min-width: 92px; }
+    .change-level-select { min-width: 100px; padding: 7px 9px; border-radius: 8px; }
+    .retro-amount, .change-after-amount { font-weight: 750; color: var(--primary); }
+    .fixed-action-table th:last-child, .fixed-action-table td:last-child { position: sticky; right: 0; z-index: 2; box-shadow: -8px 0 12px rgba(15, 23, 42, .06); }
+    .fixed-action-table th:last-child { background: #f8fafc; z-index: 3; }
+    .fixed-action-table td:last-child { background: #fff; }
+    .retro-detail-table th:nth-child(1), .retro-detail-table td:nth-child(1),
+    .retro-detail-table th:nth-child(2), .retro-detail-table td:nth-child(2),
+    .retro-detail-table th:nth-child(3), .retro-detail-table td:nth-child(3),
+    .retro-detail-table th:nth-child(4), .retro-detail-table td:nth-child(4) { position: sticky; z-index: 2; }
+    .retro-detail-table th:nth-child(1), .retro-detail-table td:nth-child(1) { left: 0; min-width: 64px; }
+    .retro-detail-table th:nth-child(2), .retro-detail-table td:nth-child(2) { left: 64px; min-width: 64px; }
+    .retro-detail-table th:nth-child(3), .retro-detail-table td:nth-child(3) { left: 128px; min-width: 92px; }
+    .retro-detail-table th:nth-child(4), .retro-detail-table td:nth-child(4) { left: 220px; min-width: 92px; box-shadow: 8px 0 12px rgba(15, 23, 42, .06); }
+    .retro-detail-table th:nth-child(-n+4) { background: #f8fafc; z-index: 4; }
+    .retro-detail-table td:nth-child(-n+4) { background: #fff; }
+    .retro-detail-table th:nth-last-child(2), .retro-detail-table td:nth-last-child(2) { position: sticky; right: 92px; min-width: 92px; z-index: 2; }
+    .retro-detail-table th:nth-last-child(2) { background: #f8fafc; z-index: 4; }
+    .retro-detail-table td:nth-last-child(2) { background: #fff; }
+    .retro-detail-table th:last-child, .retro-detail-table td:last-child { min-width: 92px; }
+    .template-link { color: var(--danger); cursor: pointer; font-weight: 700; margin-left: 10px; }
+    .change-card { height: calc(100vh - 106px); overflow: hidden; display: flex; flex-direction: column; }
+    .change-card > .tabs { flex: 0 0 auto; position: static; top: auto; z-index: auto; }
+    .change-card > .card-body { flex: 1; min-height: 0; overflow: auto; }
+    .workflow-card { height: calc(100vh - 106px); overflow: hidden; display: flex; flex-direction: column; }
+    .workflow-card > .tabs { flex: 0 0 auto; position: static; top: auto; z-index: auto; }
+    .workflow-card > .card-body { flex: 1; min-height: 0; overflow: hidden; }
+    .workflow-pane.active { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+    .workflow-pane .subtabs { flex: 0 0 auto; position: static; top: auto; z-index: auto; margin: 0 0 14px; padding: 0; background: transparent; }
+    .workflow-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 14px; align-items: stretch; overflow: hidden; }
+    .workflow-detail-panel { min-height: 0; display: flex; flex-direction: column; }
+    .workflow-detail-scroll { min-height: 0; overflow-y: auto; padding-right: 8px; }
+    .unit-list { border: 1px solid var(--line); border-radius: 12px; background: #fff; overflow: hidden; align-self: stretch; }
+    .unit-list-head { padding: 12px 14px; background: #f8fafc; border-bottom: 1px solid var(--line); font-weight: 750; }
+    .unit-list tr { cursor: pointer; }
+    .unit-list tbody { display: block; max-height: calc(100vh - 260px); overflow: auto; }
+    .unit-list thead, .unit-list tbody tr { display: table; width: 100%; table-layout: fixed; }
+    .unit-table { width: 100%; min-width: 0; border-collapse: collapse; }
+    .unit-table th, .unit-table td { padding: 10px 12px; font-size: 12px; border-bottom: 1px solid #eef2f7; white-space: normal; }
+    .unit-table th { background: #f8fafc; color: #475467; }
+    .unit-table tr.active td { background: #edf3ff; }
+    .unit-name { font-weight: 750; color: #243047; }
+    .unit-time { color: var(--muted); font-size: 12px; }
+    .workflow-grid { display: flex; flex-direction: column; gap: 10px; }
+    .flow-card { border: 1px solid var(--line); border-radius: 12px; background: #fff; padding: 12px; position: relative; }
+    .flow-card:after { content: "↓"; position: absolute; left: 24px; bottom: -16px; color: #98a2b3; font-weight: 800; z-index: 1; }
+    .flow-card:last-child:after { display: none; }
+    .flow-card h4 { margin: 0 0 10px; font-size: 15px; display: flex; justify-content: space-between; }
+    .flow-list { margin: 0; padding: 0; list-style: none; color: #475467; font-size: 12px; line-height: 1.9; display: grid; grid-template-columns: repeat(3, minmax(160px, 1fr)); column-gap: 14px; }
+    .flow-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+    .audit-opinion-input { flex: 1 1 360px; min-width: 300px; height: 38px; }
+    .detail-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #344054; font-weight: 750; }
+    .detail-title small { color: var(--muted); font-weight: 500; }
+    .query-layout { display: grid; grid-template-columns: 310px 1fr; gap: 18px; }
+    .todo-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; align-items: start; }
+    .todo-list { border: 1px solid var(--line); border-radius: 12px; background: #fff; overflow: hidden; }
+    .todo-list-head { padding: 12px 14px; background: #f8fafc; border-bottom: 1px solid var(--line); font-weight: 750; }
+    .todo-table { width: 100%; min-width: 0; border-collapse: collapse; }
+    .todo-table th, .todo-table td { padding: 11px 12px; font-size: 13px; border-bottom: 1px solid #eef2f7; white-space: normal; }
+    .todo-table tr { cursor: pointer; }
+    .todo-table tr.active td { background: #edf3ff; }
+    .todo-detail-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-weight:750; color:#344054; }
+    .summary-box { border: 1px solid var(--line); border-radius: 14px; padding: 16px; background: #fcfdff; }
+    .timeline { margin: 0; padding: 0; list-style: none; }
+    .timeline li { position: relative; padding-left: 20px; margin: 12px 0; color: #475467; font-size: 13px; }
+    .timeline li:before { content: ""; width: 9px; height: 9px; background: var(--primary); border-radius: 50%; position: absolute; left: 0; top: 5px; }
+    .modal-mask { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 99; align-items: center; justify-content: center; padding: 24px; }
+    .modal-mask.show { display: flex; }
+    .modal-mask.top-modal { z-index: 120; }
+    .modal { width: min(980px, 96vw); background: #fff; border-radius: 18px; box-shadow: 0 30px 90px rgba(0,0,0,.24); overflow: hidden; }
+    .modal.tall { height: min(760px, 88vh); display: flex; flex-direction: column; }
+    .modal.attachment-query-modal { width: min(1380px, 98vw); }
+    .modal.tall .modal-body { flex: 1; min-height: 0; overflow: auto; }
+    .modal-head { padding: 16px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 18px; }
+    .dual { display: grid; grid-template-columns: 1fr 86px 1fr; gap: 12px; align-items: stretch; }
+    .listbox { border: 1px solid var(--line); border-radius: 12px; overflow-y: auto; overflow-x: hidden; min-height: 300px; }
+    .listbox h4 { margin: 0; padding: 11px 12px; background: #f8fafc; border-bottom: 1px solid var(--line); }
+    .person-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+    .person-table th, .person-table td { padding: 8px 6px; font-size: 12px; border-bottom: 1px solid #eef2f7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .person-table th { background: #f8fafc; color: #475467; }
+    .person-table th:first-child, .person-table td:first-child { width: 42px; text-align: center; }
+    .person-table th:nth-child(2), .person-table td:nth-child(2) { width: 70px; }
+    .person-table th:nth-child(3), .person-table td:nth-child(3) { width: 155px; }
+    .region-table { min-width: 0; }
+    .region-table th, .region-table td { text-align: left; }
+    .region-table th:first-child, .region-table td:first-child { width: 42px; text-align: center; }
+    .region-table th:nth-child(2), .region-table td:nth-child(2), .region-table th:nth-child(3), .region-table td:nth-child(3) { width: calc((100% - 42px) / 2); }
+    .region-table input { width: auto; margin: 0; }
+    .region-modal { width: min(900px, 96vw); }
+    .region-modal .modal-body { padding: 14px 18px; }
+    .region-modal .dual { height: 466px; }
+    .region-modal .listbox { min-height: 0; height: 466px; overflow-y: auto; }
+    .region-modal .person-table th, .region-modal .person-table td { padding: 5px 6px; height: 27px; }
+    .unit-select-modal { width: min(1400px, 98vw); }
+    .unit-select-modal .dual { grid-template-columns: minmax(0, 1fr) 86px minmax(0, 1fr); }
+    .unit-select-modal .listbox { overflow-x: auto; }
+    .unit-select-modal .region-table { min-width: 560px; table-layout: fixed; }
+    .unit-select-modal .region-table th:nth-child(2), .unit-select-modal .region-table td:nth-child(2) { width: 180px; }
+    .unit-select-modal .region-table th:nth-child(3), .unit-select-modal .region-table td:nth-child(3) { width: auto; min-width: 320px; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.45; word-break: break-all; }
+    .query-filter-grid { grid-template-columns: 120px 210px 300px auto; justify-content: start; }
+    .query-filter-grid .region-filter, .query-filter-grid .allowance-filter, .query-filter-grid .keyword-filter { min-width: 0; }
+    .query-filter-grid .keyword-filter input { width: 300px; }
+    .query-filter-grid .region-filter .btn { width: 100%; padding-left: 8px; padding-right: 8px; }
+    .query-drill-banner { display: none; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; padding: 12px 14px; border: 1px solid #91caff; border-radius: 10px; background: #e6f4ff; color: #0958d9; }
+    .query-drill-banner.show { display: flex; }
+    .query-drill-banner strong { color: #003eb3; }
+    .query-filter-active { border-color: #1677ff !important; box-shadow: 0 0 0 2px rgba(22,119,255,.12); background: #f0f7ff; }
+    .query-match-highlight td { background: #fffbe6 !important; }
+    .query-data-table th:nth-child(2), .query-data-table td:nth-child(2), .query-data-table th:nth-child(3), .query-data-table td:nth-child(3), .query-data-table th:nth-child(4), .query-data-table td:nth-child(4) { position: sticky; z-index: 2; }
+    .query-data-table th:nth-child(2), .query-data-table td:nth-child(2) { left: 0; min-width: 100px; }
+    .query-data-table th:nth-child(3), .query-data-table td:nth-child(3) { left: 100px; min-width: 100px; }
+    .query-data-table th:nth-child(4), .query-data-table td:nth-child(4) { left: 200px; min-width: 190px; box-shadow: 8px 0 12px rgba(15, 23, 42, .06); }
+    .query-data-table th:nth-child(2), .query-data-table th:nth-child(3), .query-data-table th:nth-child(4) { background: #f8fafc; z-index: 4; }
+    .query-data-table td:nth-child(2), .query-data-table td:nth-child(3), .query-data-table td:nth-child(4) { background: #fff; }
+    .query-data-table .total-row td:nth-child(2), .query-data-table .total-row td:nth-child(3), .query-data-table .total-row td:nth-child(4) { background: #eef5ff; }
+    .statistics-filter { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: end; padding: 14px 16px; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; }
+    .statistics-filter label { font-weight: 700; color: #344054; }
+    .statistics-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .statistics-tag { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 999px; background: #fff; color: #475467; cursor: pointer; user-select: none; }
+    .statistics-tag:has(input:checked) { color: var(--primary); border-color: #93b4ff; background: var(--primary-weak); font-weight: 700; }
+    .statistics-tag input { width: auto; margin: 0; accent-color: var(--primary); }
+    .statistics-note { margin-top: 9px; color: var(--muted); font-size: 12px; }
+    .statistics-table { min-width: 1450px; }
+    .statistics-table th, .statistics-table td { text-align: center; }
+    .statistics-table th:nth-child(-n+2), .statistics-table td:nth-child(-n+2) { text-align: left; }
+    .statistics-table .total-row td { text-align: center; }
+    #page-statistics .statistics-table th:first-child, #page-statistics .statistics-table td:first-child { position: sticky; left: 0; z-index: 5; min-width: 56px; background: #fff; }
+    #page-statistics .statistics-table th:nth-child(2), #page-statistics .statistics-table td:nth-child(2) { position: sticky; left: 56px; z-index: 5; min-width: 190px; background: #fff; box-shadow: 8px 0 12px rgba(15,23,42,.06); }
+    #page-statistics .statistics-table th:first-child, #page-statistics .statistics-table th:nth-child(2) { background: #f8fafc; z-index: 10; }
+    #page-statistics .statistics-table .total-row td:first-child, #page-statistics .statistics-table .total-row td:nth-child(2) { background: #eef5ff; z-index: 9; }
+    #page-statistics .statistics-table tr:hover td:first-child, #page-statistics .statistics-table tr:hover td:nth-child(2) { background: #fbfdff; }
+    #page-statistics .statistics-table .total-row:hover td:first-child, #page-statistics .statistics-table .total-row:hover td:nth-child(2) { background: #eef5ff; }
+    .statistics-query-bar { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)) auto; gap: 10px; align-items: end; padding: 12px; margin-bottom: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; justify-content: start; }
+    #page-statistics .card-body { padding: 0; overflow: visible; }
+    #page-statistics .tab-pane.active { height: auto; overflow: visible; box-sizing: border-box; }
+    #statistics-condition, #statistics-summary, #statistics-city, #statistics-county, #statistics-unit, #statistics-person, #statistics-retro { padding: 15px; }
+    #page-statistics .table-wrap { border-radius: 12px; margin-left: 0; margin-right: 0; }
+    #page-statistics .statistics-query-bar { position: sticky; top: 0; z-index: 12; }
+    #page-statistics .statistics-table-wrap { position: relative; }
+    #statistics-city .statistics-table thead, #statistics-county .statistics-table thead, #statistics-unit .statistics-table thead, #statistics-person .statistics-table thead, #statistics-retro .statistics-table thead { position: sticky; top: 0; z-index: 8; }
+    #statistics-city .statistics-table thead th, #statistics-county .statistics-table thead th, #statistics-unit .statistics-table thead th, #statistics-person .statistics-table thead th, #statistics-retro .statistics-table thead th { background: #f8fafc; }
+    #statistics-city .statistics-table .total-row, #statistics-county .statistics-table .total-row, #statistics-unit .statistics-table .total-row { position: sticky; top: 38px; z-index: 7; }
+    #statistics-city .statistics-table .total-row td, #statistics-county .statistics-table .total-row td, #statistics-unit .statistics-table .total-row td { background: #eef5ff; }
+    #statistics-city .table-wrap, #statistics-county .table-wrap, #statistics-unit .table-wrap, #statistics-person .table-wrap, #statistics-retro .table-wrap { max-height: calc(100vh - 290px); overflow: auto; }
+    #statistics-summary > .statistics-query-bar, #statistics-summary > .table-wrap { width: 100%; box-sizing: border-box; }
+    #statistics-summary { min-height: 100%; }
+    .statistics-summary-bottom-space { height: 170px; flex: 0 0 170px; }
+    .statistics-detail-bottom-space { height: 170px; }
+    .statistics-drill-active .statistics-detail-bottom-space { display: none; }
+    .workflow-stat-note { color: #dc2626; font-weight: 650; margin-left: 4px; }
+    #page-statistics .statistics-query-bar { margin-left: 0; margin-right: 0; }
+    #page-statistics .statistics-table th, #page-statistics .statistics-table td { padding: 10px 10px; font-size: 13px; }
+    .statistics-query-bar input, .statistics-query-bar select { min-width: 0; }
+    .statistics-query-bar .btns { align-self: end; }
+    .statistics-query-hint { color: var(--muted); font-size: 12px; margin: -4px 0 12px; }
+    .statistics-drill-active { padding-top: 20px !important; }
+    .statistics-drill-active .statistics-query-bar { position: static !important; border-color: #9ab9ff; box-shadow: 0 0 0 3px rgba(56, 101, 214, .08); }
+    .statistics-clickable { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; padding: 2px 6px; color: var(--primary); background: var(--primary-weak); border: 1px solid #b9d2ff; border-radius: 6px; cursor: pointer; font-weight: 700; }
+    .statistics-clickable:hover { text-decoration: underline; background: #e4edff; border-color: #8fb2ff; }
+    .statistics-table .total-row .statistics-clickable { background: #e7f0ff; border-color: #a6c4ff; }
+    .statistics-condition-table { min-width: 1320px; table-layout: fixed; }
+    .statistics-condition-table th:nth-child(4), .statistics-condition-table td:nth-child(4) { width: 840px; min-width: 840px; max-width: 840px; }
+    .statistics-condition-table td:nth-child(4) { overflow: visible; }
+    .statistics-condition-table .statistics-condition-value { width: 100%; max-width: 100%; box-sizing: border-box; }
+    .statistics-condition-table th, .statistics-condition-table td { text-align: center; }
+    .statistics-condition-table td:nth-child(2), .statistics-condition-table td:nth-child(4) { text-align: left; white-space: normal; }
+    .statistics-condition-table input[type="checkbox"] { width: auto; }
+    .statistics-condition-value { display: flex; align-items: center; gap: 8px; min-width: 320px; }
+    .statistics-condition-value input, .statistics-condition-value select { min-width: 140px; padding: 7px 9px; }
+    .statistics-condition-value select[multiple] { height: 72px; min-width: 260px; }
+    .statistics-multi { position: relative; width: 100%; min-width: 0; max-width: 100%; }
+    .statistics-multi-control { min-height: 38px; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; padding: 5px 34px 5px 8px; border: 1px solid #d6deeb; border-radius: 8px; background: #fff; cursor: pointer; position: relative; }
+    .statistics-multi-control:after { content: "⌄"; position: absolute; right: 10px; top: 8px; color: #667085; }
+    .statistics-multi-placeholder { color: #98a2b3; }
+    .statistics-multi-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; background: #f2f4f7; border: 1px solid #d0d5dd; border-radius: 4px; color: #344054; }
+    .statistics-multi-tag button { border: 0; background: transparent; color: #667085; cursor: pointer; padding: 0; line-height: 1; }
+    .statistics-multi-menu { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 3px); z-index: 20; max-height: 210px; overflow: auto; border: 1px solid #d6deeb; border-radius: 6px; background: #fff; box-shadow: 0 10px 24px rgba(15,23,42,.16); }
+    .statistics-multi.open .statistics-multi-menu { display: block; }
+    .statistics-multi-option { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; cursor: pointer; }
+    .statistics-multi-option:hover, .statistics-multi-option.selected { background: #e6f5ff; }
+    .statistics-multi-check { color: #1677ff; font-weight: 800; }
+    .statistics-condition-value .month-separator { color: var(--muted); white-space: nowrap; }
+    .person-table input { width: auto; margin: 0; }
+    .dual-actions { display: grid; place-items: center; gap: 8px; align-content: center; }
+    .upload-box { border: 1px dashed #9bb5df; background: #f7fbff; border-radius: 12px; padding: 14px; color: #475467; line-height: 1.7; }
+    .upload-category-list { display: grid; gap: 12px; }
+    .upload-category { border: 1px solid var(--line); border-radius: 14px; background: #fcfdff; padding: 14px; display: grid; grid-template-columns: 180px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+    .upload-category strong { color: #1d2939; font-size: 14px; }
+    .upload-category input { min-width: 0; }
+    .attachment-count { color: var(--primary); cursor: pointer; font-weight: 700; }
+    .btn.primary.attachment-count { color: #fff; }
+    .attachment-query-table { min-width: 1500px; }
+    .attachment-query-table .approval-stage-cell { text-align: center; vertical-align: middle; font-weight: 700; color: #344054; background: #fbfdff; }
+    .attachment-query-table th:last-child, .attachment-query-table td:last-child { min-width: 112px; text-align: center; }
+    .attachment-query-table tr:hover td:last-child { background: #fff; }
+    .total-row td { background: #eef5ff; color: #1d3f73; font-weight: 800; }
+    .total-row:hover td { background: #e5efff; }
+    .success-panel { border: 1px solid #bbf7d0; background: #f0fdf4; color: #166534; border-radius: 12px; padding: 14px; line-height: 1.7; }
+    .notice { padding: 10px 12px; border-radius: 10px; background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; margin-bottom: 12px; font-size: 13px; }
+    .config-shell { width: 100%; max-width: 1040px; margin: 20px auto; }
+    .config-shell .table-wrap { overflow-x: hidden; }
+    .config-title { background: linear-gradient(90deg, #2389e8, #45aef3); color: #fff; padding: 14px 18px; border-radius: 12px 12px 0 0; font-size: 18px; font-weight: 800; text-align: center; }
+    .signature-box { display: inline-flex; min-width: 108px; height: 42px; align-items: center; justify-content: center; padding: 4px 10px; border: 1px dashed #b8c5d8; border-radius: 8px; color: #475467; background: #fbfdff; font-family: "KaiTi", "STKaiti", serif; font-size: 19px; }
+    .signature-toggle { display: inline-flex; align-items: center; gap: 6px; margin: 0; white-space: nowrap; }
+    .signature-toggle { justify-content: center; }
+    .signature-toggle input { width: auto; margin: 0; }
+    .config-actions { display: grid; grid-template-columns: 72px 72px; align-items: center; justify-content: center; gap: 8px; min-width: 152px; }
+    .config-actions .link { display: inline-block; text-align: center; white-space: nowrap; }
+    .approval-config-table { min-width: 860px; table-layout: fixed; }
+    #page-approvalConfig .table-wrap { overflow-x: auto; overflow-y: hidden; }
+    .approval-config-table th, .approval-config-table td { padding: 8px 8px; text-align: center; vertical-align: middle; }
+    .approval-config-table th:nth-child(1) { width: 20%; }
+    .approval-config-table th:nth-child(2) { width: 17%; }
+    .approval-config-table th:nth-child(3) { width: 21%; }
+    .approval-config-table th:nth-child(4) { width: 12%; }
+    .approval-config-table th:nth-child(5) { width: 30%; }
+    .person-choice-row { cursor: pointer; }
+    .person-choice-row:hover { background: #edf3ff; }
+    .person-choice-row.selected { background: #dbeafe; box-shadow: inset 3px 0 0 var(--primary); }
+    .signature-preview { min-height: 100px; display: grid; place-items: center; border: 1px dashed #b8c5d8; border-radius: 10px; background: #fbfdff; font-family: "KaiTi", "STKaiti", serif; font-size: 34px; color: #172033; }
+    @media (max-width: 1180px) { .query-layout, .workflow-layout { grid-template-columns: 1fr; display: grid; } .step.compact-step { grid-template-columns: 1fr; } .flow-list { grid-template-columns: 1fr; } .flow-card:after { display: none; } .sidebar { width: 248px; } }
+  </style>
+</head>
+<body data-page-node-id="0hs0BUJZ9kdUgQnsSlsDLg">
+  <div class="app" data-page-node-id="UW4Y5p8ZECyXKUJBVL68FX">
+    <aside class="sidebar" data-page-node-id="kUbxgZmob6NV75GZLoTVPv">
+      <div class="brand" data-page-node-id="G1fJEyJ4AcMgllUgiD8061">
+        <div class="brand-badge" data-page-node-id="vTw8pE4xLtcYAjBqa4F3l1">津</div>
+        <div data-page-node-id="hSfwWNFzDOnrQsrdJOrPag">
+          <h1 data-page-node-id="VNAfTBuHKsPnbUeuSd4yOU">特殊岗位津贴管理</h1>
+          <p data-page-node-id="GqxNHcLzK0bAoZwXVKmnuE">申报 · 审批 · 查询原型</p>
+        </div>
+      </div>
+      <div class="menu-title" data-page-node-id="NmYv8r4sDkZf8GBmm0JLCr">功能菜单</div>
+      <button class="menu-item active" data-page="change" data-page-node-id="f44S2uMQ8FlIE7zB5hsuth">① 专职特岗变更</button>
+      <button class="menu-item" data-page="retro" data-page-node-id="IEiXSQdonCt4AeQVWwmr7N">② 临时特岗补发</button>
+      <button class="menu-item" data-page="submit" data-page-node-id="VgT9553mzieb6AHc3JhoYJ">③ 特岗结果申报</button>
+      <button class="menu-item" data-page="audit1" data-page-node-id="AHUkv10UlLBu0Kyx4TFi4N">④ 特岗主管审核</button>
+      <button class="menu-item" data-page="audit2" data-page-node-id="1pfVBsTQwAjv6fu5UMnAqS">⑤ 特岗人社初审</button>
+      <button class="menu-item" data-page="audit3" data-page-node-id="cwTncMV2cuP5kwSzBsevBk">⑥ 特岗人社复审</button>
+      <button class="menu-item" data-page="audit4" data-page-node-id="WqAZQk3obDju9kCfInt7WE">⑦ 特岗人社终审</button>
+      <button class="menu-item" data-page="query" data-page-node-id="XMuF7JnoUUYAqfR6VH063T">⑧ 特岗数据查询</button>
+      <button class="menu-item" data-page="statistics">⑨ 特岗数据统计</button>
+      <button class="menu-item" data-page="homeTodo" data-page-node-id="F3hXeOsGtRXsHSCufocVYN">⑩ 首页待办事项</button>
+      <button class="menu-item" data-page="approvalConfig">⑪ 审批环节配置</button>
+    </aside>
+
+    <main class="main" data-page-node-id="AGLGDFYkN3uvZzToZXMPqB">
+      <header class="topbar" data-page-node-id="PDcTBEL8FOkfJ5UD4PYmAY">
+        <div data-page-node-id="AcMROHQbRbWL7EDdlXz5ut">
+          <div class="crumb" data-page-node-id="OjCle1AoIv0eEDHEPxJmCp">事业单位薪酬业务 / 特殊岗位津贴</div>
+          <div class="page-title" id="topTitle" data-page-node-id="T55gnKdsIjg1lu9vQKY2Vs">专职特岗变更</div>
+        </div>
+        <div class="top-actions" data-page-node-id="Z4I8FCXWYDN9I4GtMUQAVZ"><span data-page-node-id="KgKUuH9QSLFXJrTFvJE1cX">当前角色：工资处经办人</span><div class="avatar" data-page-node-id="eSUwQl0hUZ4AdRuBbonjPA">管</div></div>
+      </header>
+
+      <section class="content" data-page-node-id="fobMxWfdAPrKvo77WTBqJO">
+        <section id="page-change" class="page active" data-page-node-id="qghLN4wLDwu9xvrJjZie30"></section>
+        <section id="page-retro" class="page" data-page-node-id="qofigjzNLS5AGDslo5XMaC"></section>
+        <section id="page-submit" class="page" data-page-node-id="0T1UdkhKpJDzOHBGsHBrVb"></section>
+        <section id="page-audit1" class="page" data-page-node-id="6lek19BBOYDBtuGj6OJtVB"></section>
+        <section id="page-audit2" class="page" data-page-node-id="LLXWbaiPHSDX6CdhWP1qPr"></section>
+        <section id="page-audit3" class="page" data-page-node-id="p4cwnL9XT3XX4LFfIus14Z"></section>
+        <section id="page-audit4" class="page" data-page-node-id="z2r5HGeUIwWcNiS8D74OAB"></section>
+        <section id="page-query" class="page" data-page-node-id="zRvHsloivQ2KXahyPUNCHC"></section>
+        <section id="page-statistics" class="page"></section>
+        <section id="page-homeTodo" class="page" data-page-node-id="j2zNN5EHM1aG4Etmbf0K6b"></section>
+        <section id="page-approvalConfig" class="page"></section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-mask" id="approverModal">
+    <div class="modal">
+      <div class="modal-head"><strong>选择更换人员</strong><button class="btn" onclick="closeModal('approverModal')">关闭</button></div>
+      <div class="modal-body">
+        <div class="form-grid" style="grid-template-columns:1fr auto;margin-bottom:12px;"><div><label>姓名/账号</label><input id="approverKeyword" placeholder="请输入姓名或账号" oninput="renderApproverCandidates()" /></div><div class="btns" style="align-self:end;"><button class="btn primary" onclick="renderApproverCandidates()">查询</button><button class="btn ghost" onclick="clearApproverSearch()">重置</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>序号</th><th>账号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>联系方式</th><th>联系手机</th><th>邮箱</th></tr></thead><tbody id="approverCandidateBody"></tbody></table></div>
+        <div class="btns" style="justify-content:flex-end;margin-top:16px;"><button class="btn ghost" onclick="closeModal('approverModal')">取消</button><button class="btn primary" onclick="confirmApproverChange()">确定</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="signatureModal">
+    <div class="modal" style="max-width:620px;">
+      <div class="modal-head"><strong>更换签名</strong><button class="btn" onclick="closeModal('signatureModal')">关闭</button></div>
+      <div class="modal-body">
+        <div><label>签名人姓名</label><input id="signatureNameInput" placeholder="请输入签名显示名称" oninput="updateSignaturePreview()" /></div>
+        <div style="margin-top:14px;"><label>签名预览</label><div class="signature-preview" id="signaturePreview">签名</div></div>
+        <div class="btns" style="justify-content:flex-end;margin-top:16px;"><button class="btn ghost" onclick="closeModal('signatureModal')">取消</button><button class="btn primary" onclick="confirmSignatureChange()">确定</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="regionModal">
+    <div class="modal region-modal">
+      <div class="modal-head"><strong>选择区域：四川省地市、区县</strong><button class="btn" onclick="closeModal('regionModal')">关闭</button></div>
+      <div class="modal-body">
+        <div class="form-grid" style="grid-template-columns:minmax(260px, 420px) auto; margin-bottom:12px;">
+          <div><label>地市/区县</label><input id="regionKeyword" placeholder="请输入地市或区县" oninput="renderRegions()" /></div>
+          <div class="btns" style="align-self:end;"><button class="btn primary" onclick="renderRegions()">查询</button><button class="btn ghost" onclick="clearRegionSearch()">重置</button></div>
+        </div>
+        <div class="dual">
+          <div class="listbox"><h4>待选区域</h4><div id="leftRegions"></div></div>
+          <div class="dual-actions"><button class="btn primary" onclick="moveSelectedRegions()">新增&gt;</button><button class="btn ghost" onclick="cancelSelectedRegions()">&lt;取消</button></div>
+          <div class="listbox"><h4>已选区域</h4><div id="rightRegions"></div></div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;"><button class="btn" onclick="closeModal('regionModal')">取消</button><button class="btn primary" onclick="confirmRegions()">确定选择</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="unitModal">
+    <div class="modal region-modal unit-select-modal">
+      <div class="modal-head"><strong>选择单位：主管单位、基层单位</strong><button class="btn" onclick="closeModal('unitModal')">关闭</button></div>
+      <div class="modal-body">
+        <div class="form-grid" style="grid-template-columns:minmax(260px, 420px) auto; margin-bottom:12px;">
+          <div><label>主管单位/基层单位</label><input id="unitKeyword" placeholder="请输入主管单位或基层单位" oninput="renderStatisticUnits()" /></div>
+          <div class="btns" style="align-self:end;"><button class="btn primary" onclick="renderStatisticUnits()">查询</button><button class="btn ghost" onclick="clearStatisticUnitSearch()">重置</button></div>
+        </div>
+        <div class="dual">
+          <div class="listbox"><h4>待选单位</h4><div id="leftStatisticUnits"></div></div>
+          <div class="dual-actions"><button class="btn primary" onclick="moveSelectedStatisticUnits()">新增&gt;</button><button class="btn ghost" onclick="cancelSelectedStatisticUnits()">&lt;取消</button></div>
+          <div class="listbox"><h4>已选单位</h4><div id="rightStatisticUnits"></div></div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;"><button class="btn" onclick="closeModal('unitModal')">取消</button><button class="btn primary" onclick="confirmStatisticUnits()">确定选择</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="personModal" data-page-node-id="SHRz3EdoPK4jZ0ic70uIeq">
+    <div class="modal" data-page-node-id="Bm8RDos7WbCVVxdRsgbUXs">
+      <div class="modal-head" data-page-node-id="D13lEJSCXmXRZGYmQNDlFM"><strong data-page-node-id="RtHHEnCgspjrhnJB5G36Ay">选择人员：左右列表选择</strong><button class="btn" onclick="closeModal('personModal')" data-page-node-id="VXGbENBqgKnBzijrBKvhxe">关闭</button></div>
+      <div class="modal-body" data-page-node-id="DdhfBqNIc5tStpWb8CTsVU">
+        <div class="form-grid" style="grid-template-columns:minmax(260px, 420px) auto; margin-bottom:12px;" data-page-node-id="4z2L7SVPToe15WxNs6EaIY">
+          <div data-page-node-id="4baRUAAvY1l8BF7KQNJ8DL"><label data-page-node-id="bpz00pPfEtYxaXnrGRbYd6">姓名+身份证号</label><input id="personKeyword" placeholder="请输入姓名或身份证号" oninput="renderPeople()" data-page-node-id="6qctigWUUbEhXB4KFqgzUy" /></div>
+          <div class="btns" style="align-self:end;" data-page-node-id="AeS29lIE3Z2hT4HfzeSXtk"><button class="btn primary" onclick="renderPeople()" data-page-node-id="Enh26C07r43KtWyv8AOXXB">查询</button><button class="btn ghost" onclick="clearPersonSearch()" data-page-node-id="TioHZWNmyO8vI0wwBSD0DF">重置</button></div>
+        </div>
+        <div class="dual" data-page-node-id="7Kcj540n6x3eDdcmDLqY6h">
+          <div class="listbox" data-page-node-id="OQph6GJWsKUvhnOv9Mbz64"><h4 data-page-node-id="vbgnkKzo4tTWygPAeVdUGB">待选人员</h4><div id="leftPeople" data-page-node-id="XRx4HzViNtYDDRKSZyxlo3"></div></div>
+          <div class="dual-actions" data-page-node-id="9bMIepfjlhy0GscTmyLyTw"><button class="btn primary" onclick="moveSelected()" data-page-node-id="roi288PdncBmExo8gcTLFF">新增&gt;</button><button class="btn ghost" onclick="cancelSelected()" data-page-node-id="PStQUrVsD55C9GrLh3Z1cJ">&lt;取消</button></div>
+          <div class="listbox" data-page-node-id="NSoDK8EgwGf5FdaPrFFXnH"><h4 data-page-node-id="eb8nkFnzRVlGjpZtO28Ugj">已选人员</h4><div id="rightPeople" data-page-node-id="yD0Vsi8sBDAe51rRc7unVj"></div></div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;" data-page-node-id="EuC5Z5Ha623K55VgpQOh6s"><button class="btn" onclick="closeModal('personModal')" data-page-node-id="JQ914FQtP16vHpB5x7Gr1H">取消</button><button class="btn primary" onclick="confirmPeople()" data-page-node-id="KgJLpiYvA0tiRomOfxPFFU">确定选择</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="uploadModal" data-page-node-id="HfRpLhfDAy8JqOedwVPMss">
+    <div class="modal" style="max-width:620px;" data-page-node-id="BCQ85RxhiRT9shfGUDzZfv">
+      <div class="modal-head" data-page-node-id="LOnnhT9ggLfX831qUMYJFA"><strong data-page-node-id="SYDTX8nPHt96eB3hUJhAfw">附件上传</strong><button class="btn" onclick="closeModal('uploadModal')" data-page-node-id="6Q6bsKZcaH7Kpu68orHQ2B">关闭</button></div>
+      <div class="modal-body" data-page-node-id="pujHMZT3wpoNQVemkkJqrC">
+        <div class="upload-category-list" id="uploadCategoryList">
+          <div class="upload-category"><strong>1、特殊岗位津贴审批表</strong><input type="file" /><button class="btn ghost" onclick="mockSingleUpload('特殊岗位津贴审批表')">上传</button></div>
+          <div class="upload-category"><strong>2、特殊岗位津贴人员花名册</strong><input type="file" /><button class="btn ghost" onclick="mockSingleUpload('特殊岗位津贴人员花名册')">上传</button></div>
+          <div class="upload-category"><strong>3、单位公示情况</strong><input type="file" /><button class="btn ghost" onclick="mockSingleUpload('单位公示情况')">上传</button></div>
+          <div class="upload-category"><strong>4、单位申报承诺书</strong><input type="file" /><button class="btn ghost" onclick="mockSingleUpload('单位申报承诺书')">上传</button></div>
+          <div class="upload-category"><strong>5、按月享受津贴的人员岗位聘任变动需提供佐证材料（聘任文件、岗位变动通知等）</strong><input type="file" /><button class="btn ghost" onclick="mockSingleUpload('按月享受津贴的人员岗位聘任变动需提供佐证材料（聘任文件、岗位变动通知等）')">上传</button></div>
+          <div class="upload-category"><strong>6、按月享受津贴的人员需提供在岗工作记录（考勤记录、工作日志、排班表等，需单位盖章）</strong><input type="file" /><button class="btn ghost" onclick="mockSingleUpload('按月享受津贴的人员需提供在岗工作记录（考勤记录、工作日志、排班表等，需单位盖章）')">上传</button></div>
+          <div class="upload-category"><strong>7、临时与按天领取特殊岗位津贴人员需提供出勤表（单位盖章）</strong><input type="file" /><button class="btn ghost" onclick="mockSingleUpload('临时与按天领取特殊岗位津贴人员需提供出勤表（单位盖章）')">上传</button></div>
+          <div class="upload-category"><strong>8、其他相关佐证材料</strong><input type="file" /><button class="btn ghost" onclick="mockSingleUpload('其他相关佐证材料')">上传</button></div>
+        </div>
+        <div class="help" data-page-node-id="qd5TbptGi1CHOzXgq0rGTC">支持 PDF、DOCX、图片等格式。此处为原型演示，不实际上传文件。</div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;" data-page-node-id="jwsGHti846WjUnwZBULoF4"><button class="btn" onclick="closeModal('uploadModal')" data-page-node-id="AyDwK23msHA0AI7vxeBa8o">取消</button><button class="btn primary" onclick="mockUploaded()" data-page-node-id="9OMB5QDHZGSjXdWcLSIaAo">确认上传</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="rejectModal" data-page-node-id="4VJxpDs3DUGFXMinpthx3i">
+    <div class="modal" style="max-width:620px;" data-page-node-id="42fVZgDVsHmBGaiIxa6YFQ">
+      <div class="modal-head" data-page-node-id="NfXMatGCcXoGDqe1i9jThI"><strong data-page-node-id="zdteKSFOj6P3szu0EVGKHl">驳回处理</strong><button class="btn" onclick="closeModal('rejectModal')" data-page-node-id="PeuGFYA1AvY5gT76LXBMEs">关闭</button></div>
+      <div class="modal-body" data-page-node-id="Ov7wEheU4QUrR0bKXh81wh">
+        <div class="notice" data-page-node-id="kQWdT1KYDz8c9lNojiAuvD">驳回必须选择退回层级并填写审核意见。</div>
+        <div class="form-grid" style="grid-template-columns:1fr;" data-page-node-id="EMFhf2CQznNecc8EERDS1H">
+          <div data-page-node-id="KY9O83t1A1qFv6GNJSUBJq"><label data-page-node-id="Bjrc4qwC4LJbERhVV9wMBZ">驳回到层级</label><select data-page-node-id="KBJyEbGZZxlok25GtVpCzF"><option data-page-node-id="19h0fuv3sYBp6vTipwi4Ho">基层单位申报</option><option data-page-node-id="PRWRhFaZiTkwCaf6l5qLqJ">主管单位审核</option><option data-page-node-id="mxdwZajW9EWNmLzRPCT4AX">工资处初审</option><option data-page-node-id="hvAXiEfN9LszcthV6liQzi">工资处复审</option></select></div>
+          <div data-page-node-id="Eih45lcUEBffp8M4mVqzuw"><label data-page-node-id="S0KuVkcHaG4HPhKpcJS7ft">审核意见（必填）</label><textarea placeholder="请输入驳回原因，例如：附件缺少盖章页，请补充后重新提交。"></textarea></div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;" data-page-node-id="fbEQXiqYwAf0CpIBoCZlnG"><button class="btn" onclick="closeModal('rejectModal')" data-page-node-id="hKT9pzHUc9nx4Xq1mWOA4G">取消</button><button class="btn danger" onclick="alert('已驳回：原型演示')" data-page-node-id="veLTZ5wKBndMj3jeGV3AOn">确认驳回</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="saveModal" data-page-node-id="BgRHSA8GksEEeFji9DiVR5">
+    <div class="modal" style="max-width:520px;" data-page-node-id="7xURO79Qq1hivEv5Mj8pAi">
+      <div class="modal-head" data-page-node-id="GH6h4LMcVBCBGeUkyMr1li"><strong data-page-node-id="1yRBYPmNoOSQhHMMcQaDNM">保存提示</strong><button class="btn" onclick="closeModal('saveModal')" data-page-node-id="NAa2v8v9JWLwsUVatmanhz">关闭</button></div>
+      <div class="modal-body" data-page-node-id="HVJf5UtJeFgfTyyp9WJW4z">
+        <div class="success-panel" data-page-node-id="MeJ2LHdDuvGr7vGEPlHHqz">保存成功，已生成明细结果。可继续查看明细结果或关闭提示框。</div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;" data-page-node-id="1pMLXCPYCDIzTDHFNdN9Pa"><button class="btn" onclick="closeModal('saveModal')" data-page-node-id="lWIY6p7gPGimu11SEdJJDx">关闭</button><button class="btn primary" onclick="goSavedDetail()" data-page-node-id="xApyRQ6uDEJ2kxH4kR4XHM">查看明细结果</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="withdrawModal" data-page-node-id="tELCGAbAnyF0UD7AZhlanQ">
+    <div class="modal" style="max-width:480px;" data-page-node-id="QZmEYkCLKzH6SaRGDSNU9e">
+      <div class="modal-head" data-page-node-id="7tIXKnQAe7M5PcMfSAgH87"><strong data-page-node-id="MBXbDhymEDHIrblL9c9ASE">撤回确认</strong><button class="btn" onclick="closeModal('withdrawModal')" data-page-node-id="sDDk1UcAtOGPjI06JlBTL2">关闭</button></div>
+      <div class="modal-body" data-page-node-id="UmO0BzyHDk0ba0lABHGSr9">
+        <div class="notice" data-page-node-id="MGGoFDxbpBxOta9B53sl0r">是否确定撤回？</div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;" data-page-node-id="HOg9EHDqhyEjiT6dUfpUAU"><button class="btn" onclick="closeModal('withdrawModal')" data-page-node-id="a20CxUUZn5ziqqOIelDgYx">关闭</button><button class="btn primary" onclick="confirmWithdraw()" data-page-node-id="BtfPQJlGDyRh5FuXhy0GSW">确定</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask top-modal" id="attachmentModal" data-page-node-id="adWcZ7U5Fj4smN2p2d5MhG">
+    <div class="modal tall attachment-query-modal" data-page-node-id="Oh3Lo4trQTceev8B14fTTO">
+      <div class="modal-head" data-page-node-id="2p588yZwxsgjISeKTnlzDP"><strong data-page-node-id="nDlqvyDi4shyDLrKtjn9tq">附件查询</strong><button class="btn" onclick="closeModal('attachmentModal')" data-page-node-id="VJm6DMI0PF1G8QEEh9Myu2">关闭</button></div>
+      <div class="modal-body" data-page-node-id="4lcWCwoBGCIHfauqd8rKrq">
+        <div class="table-wrap" data-page-node-id="0RqPBtVkowSGNHUxXqo1qY"><table class="attachment-query-table fixed-action-table"><thead><tr><th>序号</th><th>申报审批环节</th><th>附件类型</th><th>附件名称</th><th>上传人</th><th>上传时间</th><th>操作</th></tr></thead><tbody><tr><td>1</td><td rowspan="8" class="approval-stage-cell">基层单位申报</td><td>特殊岗位津贴审批表</td><td>特殊岗位津贴审批表.pdf</td><td>刘经办</td><td>2026-09-04 09:30</td><td><span class="link">预览</span>　<span class="link">下载</span></td></tr><tr><td>2</td><td>特殊岗位津贴人员花名册</td><td>特殊岗位津贴人员花名册.xlsx</td><td>刘经办</td><td>2026-09-04 09:31</td><td><span class="link">预览</span>　<span class="link">下载</span></td></tr><tr><td>3</td><td>单位公示情况</td><td>单位公示情况.pdf</td><td>刘经办</td><td>2026-09-04 09:32</td><td><span class="link">预览</span>　<span class="link">下载</span></td></tr><tr><td>4</td><td>单位申报承诺书</td><td>单位申报承诺书.pdf</td><td>刘经办</td><td>2026-09-04 09:33</td><td><span class="link">预览</span>　<span class="link">下载</span></td></tr><tr><td>5</td><td>按月享受津贴的人员岗位聘任变动需提供佐证材料（聘任文件、岗位变动通知等）</td><td>岗位聘任变动佐证材料.pdf</td><td>刘经办</td><td>2026-09-04 09:34</td><td><span class="link">预览</span>　<span class="link">下载</span></td></tr><tr><td>6</td><td>按月享受津贴的人员需提供在岗工作记录（考勤记录、工作日志、排班表等，需单位盖章）</td><td>在岗工作记录.pdf</td><td>刘经办</td><td>2026-09-04 09:35</td><td><span class="link">预览</span>　<span class="link">下载</span></td></tr><tr><td>7</td><td>临时与按天领取特殊岗位津贴人员需提供出勤表（单位盖章）</td><td>特殊岗位津贴人员出勤表.xlsx</td><td>刘经办</td><td>2026-09-04 09:36</td><td><span class="link">预览</span>　<span class="link">下载</span></td></tr><tr><td>8</td><td>其他相关佐证材料</td><td>其他相关佐证材料.pdf</td><td>刘经办</td><td>2026-09-04 09:37</td><td><span class="link">预览</span>　<span class="link">下载</span></td></tr><tr><td>9</td><td class="approval-stage-cell">主管单位审核</td><td>特岗审批表</td><td>主管单位特岗审批表.pdf</td><td>周主管</td><td>2026-09-04 10:11</td><td><span class="link" onclick="previewStageAttachment('supervisor')">预览</span>　<span class="link">下载</span></td></tr><tr><td>10</td><td class="approval-stage-cell">特岗人社复审</td><td>特岗审批表</td><td>人社复审特岗审批表.pdf</td><td>孙复审</td><td>2026-09-04 11:13</td><td><span class="link" onclick="previewStageAttachment('review')">预览</span>　<span class="link">下载</span></td></tr><tr><td>11</td><td class="approval-stage-cell">特岗人社终审</td><td>特岗审批表</td><td>人社终审特岗审批表.pdf</td><td>吴终审</td><td>2026-09-04 12:14</td><td><span class="link" onclick="previewStageAttachment('final')">预览</span>　<span class="link">下载</span></td></tr></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="approvalDetailModal" data-page-node-id="QSWhhql3ZrOdsNdPPdwDpK">
+    <div class="modal" data-page-node-id="TwMVrKFxtllECtlPPo4ekZ">
+      <div class="modal-head" data-page-node-id="Z5VJLmJBR0G6ZMfgvvTIdH"><strong data-page-node-id="O5l6TWtTXHDN1ibMhuI9PO">详细审批信息</strong><button class="btn" onclick="closeModal('approvalDetailModal')" data-page-node-id="tMMGBURjfdZIcZXI8A2Pc8">关闭</button></div>
+      <div class="modal-body" data-page-node-id="hRbLxCkT1py7kjtLuMSoQB">
+        <div class="workflow-grid" data-page-node-id="ho7DAKroTxDDH8v7gWv3DT">
+          <div class="flow-card" data-page-node-id="WZYJ4WL006TMVDpp8yiMat"><h4 data-page-node-id="hG8T5BK2wB8U40bJxr5TsJ">基层单位申报 <span class="tag submit" data-page-node-id="KnURKq1NShOA9yFdGKmUvG">已提交</span></h4><ul class="flow-list" data-page-node-id="CaKwnK0qJPB0KViI7MdcER"><li data-page-node-id="DPWWZBSh44erlis6l0iEzQ">查看详情：<button class="btn primary normal-text-button" onclick="openDetailModal()" data-page-node-id="wzQ0XT5hBOD1akBW9IliQJ">申报数据</button> <button class="btn primary normal-text-button" onclick="previewRosterPdf()">审批表和花名册</button></li><li data-page-node-id="IHlQ1BjMMxv2VQc5HdI2Zx">特殊岗位津贴名称：卫生防疫津贴</li><li data-page-node-id="8A8s0hyo4C9zrTCR4DSzXL">专职变更人数：12 人</li><li data-page-node-id="y2roKKXtIl5GR4HHtQEMtE">变动前金额：3,240</li><li data-page-node-id="lf0N58Ps24zc9LzswVIzwo">变动后金额：5,040</li><li data-page-node-id="jWUUKZH8DsE4Pxw4LTo8Zd">增减资：+1,800</li><li data-page-node-id="laffiVSymVEEBq7q3iE2dB">临时补发人数：5 人</li><li data-page-node-id="nADNOyjhvy0cyjBFvZfdOI">一类（天）：12 天，一类标准：26元/天</li><li data-page-node-id="G2umJ5UVPOtC6kJtDWdkny">二类（天）：18 天，二类标准：21元/天</li><li data-page-node-id="0VEsXEQoHyftpBxHAdIL31">三类（天）：6 天，三类标准：16元/天</li><li data-page-node-id="GMS8HeJB3aZcd3J17H70l1">四类（天）：0 天，四类标准：12元/天</li><li data-page-node-id="zoUUTN7V7TBzEk3niGCb3C">临时补发金额：4,300</li><li data-page-node-id="76r31ozEG7DQH3aHYWUTGl">附件数量：<button class="btn primary attachment-count" onclick="openModal('attachmentModal')" data-page-node-id="HFiH6EfHoxBCu08gkoFboh">申报附件（3个）</button></li><li data-page-node-id="jXDJYxju9ngm03wlQuddcE">提交人：刘经办</li><li data-page-node-id="elnsrzyc3E0HBx4J4Nu3KG">提交时间：2026-09-04 09:30</li></ul></div>
+          <div class="flow-card" data-page-node-id="wfSK6dukDiBBRHkcj18XDq"><h4 data-page-node-id="dN9qOZtrABfBsjOwMwRUXE">主管单位审核 <span class="tag pass" data-page-node-id="J7R296rH3c4jDhNKUJNkFw">已审核</span></h4><ul class="flow-list" data-page-node-id="C0nAR3xZEgmIC7uslp3nEw"><li data-page-node-id="KWGATN6Ova50MXU3KR9ucW">审批模板下载：<a class="link" href="file:///C:/Users/Administrator/Desktop/%E7%89%B9%E5%B2%97%E6%B4%A5%E8%B4%B4%E5%AE%A1%E6%89%B9%E8%A1%A8.png" download="特岗津贴审批表.png" data-page-node-id="K2IdUZbRaiIwYKkMCY2of0">下载审批表</a></li><li data-page-node-id="abEYe8vv5G11gsSnmA4nDE">附件数量：<span class="attachment-count" onclick="openModal('attachmentModal')" data-page-node-id="4Loh5b77PLKrELUkEQHldB">2 个</span></li><li data-page-node-id="zWhiXelAPsROETf9FClFHH">审核状态：通过</li><li data-page-node-id="ibDRLJKzUTAu7t4xB7Gye3">审核意见：同意申报</li><li data-page-node-id="IqYJ2ydalEg0GRrB9wMmlV">审核人：周主管</li><li data-page-node-id="mG99nSDDyDS8MuC3TvZfI3">审核时间：2026-09-04 10:11</li></ul></div>
+          <div class="flow-card" data-page-node-id="M5AR2nf8CsvDqR4bTakkWa"><h4 data-page-node-id="ER00K6bM3jUgIhVl1MnX1I">特岗人社初审 <span class="tag pending" data-page-node-id="P7mrAn56rQaNKW26Oup4Td">待审核</span></h4><ul class="flow-list" data-page-node-id="Jl4uaf6yZIDsiDYDByaxaA"><li data-page-node-id="0mKaO1e2h1W8ammdP5c1HU">审批模板下载：<a class="link" href="file:///C:/Users/Administrator/Desktop/%E7%89%B9%E5%B2%97%E6%B4%A5%E8%B4%B4%E5%AE%A1%E6%89%B9%E8%A1%A8.png" download="特岗津贴审批表.png" data-page-node-id="ltOJQOVG7BrBzFdH4pKoz8">下载审批表</a></li><li data-page-node-id="UqAzHbDGtw1kJvvrtqyO4D">附件数量：<span class="attachment-count" onclick="openModal('attachmentModal')" data-page-node-id="9noDAynobjDwvdwddVq76g">1 个</span></li><li data-page-node-id="GqhdKk7T0I2BSAUztoczpE">审核状态：待审核</li><li data-page-node-id="XkLCPzal7AnfKM0Rd9Q8cZ">审核意见：-</li><li data-page-node-id="yLGrvQXUgPI1hQAesk1bMV">审核人：钱初审</li><li data-page-node-id="XYKBIe8R93WYNE9yGo4DLo">审核时间：-</li></ul></div>
+          <div class="flow-card" data-page-node-id="Dt6o5ODdxtzhDUi5EE97yA"><h4 data-page-node-id="Iz8CLGGq3k0rrg7WBaBzqz">特岗人社复审 <span class="tag pending" data-page-node-id="5g5KBNo4e0WHYEVq3FVZza">待处理</span></h4><ul class="flow-list" data-page-node-id="XGk0haPEHPtVgsAdIsEE05"><li data-page-node-id="q1C7TwPgBh77kyYWXiP69v">审批模板下载：<a class="link" href="file:///C:/Users/Administrator/Desktop/%E7%89%B9%E5%B2%97%E6%B4%A5%E8%B4%B4%E5%AE%A1%E6%89%B9%E8%A1%A8.png" download="特岗津贴审批表.png" data-page-node-id="CdKghWXOLLXtQkpGtuLS3b">下载审批表</a></li><li data-page-node-id="wfd4e9N2QAADUyT4VfEnBf">附件数量：<span class="attachment-count" onclick="openModal('attachmentModal')" data-page-node-id="G2zBeJul8zF6oONHXohz0B">0 个</span></li><li data-page-node-id="ZJ8q7iqtxgyo7DLdRqpWV8">审核状态：待处理</li><li data-page-node-id="rMWc9rU5cdUHeT3aPiB2OP">审核意见：-</li><li data-page-node-id="6NyX8DWjXWIpEfTKhfqf8B">审核人：孙复审</li><li data-page-node-id="hVPqKDqktfiPytDXnnNLh6">审核时间：-</li></ul></div>
+          <div class="flow-card" data-page-node-id="CzGrA6w3s9gnIjCkTxhMFQ"><h4 data-page-node-id="O9Kbi3i1nw4jtxnltkVDgW">特岗人社终审 <span class="tag pending" data-page-node-id="jHCweaS5x6MEGHrurpQnD9">待处理</span></h4><ul class="flow-list" data-page-node-id="CptKy96Fa5MTUbZA9ISy76"><li data-page-node-id="jHMDeDjPkSHVj5E6o7qq4U">审批模板下载：<a class="link" href="file:///C:/Users/Administrator/Desktop/%E7%89%B9%E5%B2%97%E6%B4%A5%E8%B4%B4%E5%AE%A1%E6%89%B9%E8%A1%A8.png" download="特岗津贴审批表.png" data-page-node-id="BFhtsJ1xnFsvszuso8TolR">下载审批表</a></li><li data-page-node-id="6vEEF1oPasbHvWyHw5TyEg">附件数量：<span class="attachment-count" onclick="openModal('attachmentModal')" data-page-node-id="5BepejJkudJYHzU3r7jsSy">0 个</span></li><li data-page-node-id="vARKoMEFDyA5jpHPjufHcN">审核状态：待处理</li><li data-page-node-id="SHPGw1Xjf9bCCSCvBrBuAd">审核意见：-</li><li data-page-node-id="zQFf6iLvV6Mtb5Exo4LPxR">审核人：吴终审</li><li data-page-node-id="qBrWPLA9hzCUu1cPBlbMaq">审核时间：-</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="detailModal" data-page-node-id="cayB4lZjnZ9CBnIKB8b5Tj">
+    <div class="modal tall" data-page-node-id="d7u8baxprZeea1GVXmpoV1">
+      <div class="modal-head" data-page-node-id="r36GaYjp48PcVBxDZoofxm"><strong data-page-node-id="h6RbUYkOSmF3NYF2uxALEd">基层单位申报详情</strong><button class="btn" onclick="closeModal('detailModal')" data-page-node-id="Oth6DCZP5TqdJeVHF44Ceh">关闭</button></div>
+      <div class="modal-body" data-page-node-id="v0ngB4CG5GjilXQCn2rqCF">
+        <div class="tabs" data-page-node-id="uUkOdJIYIMU81uDHiOcsBl"><button class="tab active" data-tab="detail-change" data-page-node-id="e3H1ALj4JIHktgwqWWHRfA">专职特岗变更明细</button><button class="tab" data-tab="detail-retro" data-page-node-id="YIFO7fgtF1OXTZ9evvXwjN">临时特岗补发变更明细</button></div>
+        <div style="padding-top:14px;" data-page-node-id="vc7BuzDb2UWdogHLXrSHPV">
+          <div id="detail-change" class="tab-pane active" data-page-node-id="KAjyNC7KLyjheoShZo0ark"><div class="table-wrap" data-page-node-id="vsN5tqR2MrBND518YEedvz"><table data-page-node-id="dhu8wsIFHiRI3OsKnCcDQm"><thead data-page-node-id="xblYpIc8Q7bPgAGiK3GBI4"><tr data-page-node-id="a18NfcEgm763VyewFNF7qU"><th data-page-node-id="T4U7NgDqcKrr4jJyREGPIC">序号</th><th data-page-node-id="pDr5oNd5QSbVFVCFUS5lgv">姓名</th><th data-page-node-id="taPqLQHBq0fOpXuAqOcarG">身份证号</th><th data-page-node-id="B9HGIpOC39RSUYsQmj4eLB">特殊岗位津贴名称</th><th data-page-node-id="p71BkLdBAj5VomAw8p19Hl">变动前金额</th><th data-page-node-id="GDXpzCdX6SkRNXX9IJpDcg">变动后津贴类别</th><th data-page-node-id="2PpeDmrPwtVyAIfNA3pT9u">变动后金额</th><th data-page-node-id="JBSFmlNu7ynduMUC7I0iOD">起薪时间</th><th data-page-node-id="UHzZiEc0OvQP0IiPRh2jQa">备注</th></tr></thead><tbody data-page-node-id="i5IIYskw47hanCGFDHgc5k"><tr data-page-node-id="iad8ko0l9Q4oo1F7JAwIUr"><td data-page-node-id="HyafiglDRP3oQ8xbsdGIbG">1</td><td data-page-node-id="pZlFc8FYgG2YwTYcgEyGIQ">张晓华</td><td data-page-node-id="CFsz9q1W3gx9pVeyVBvRPJ">110101198702031234</td><td data-page-node-id="a3VceyZAP1CvjwWlbDAi3P">卫生防疫津贴</td><td data-page-node-id="bSJ8Dnr6Bn9nZZA0o5XEiy">260</td><td data-page-node-id="bTY0ue3KBdIN7WuldunA6r">一类</td><td data-page-node-id="UbqfsWkBExOLf9CvAiGXGm">420</td><td data-page-node-id="mPWCUCx7Zvqs18KckNzBJd">2026-09</td><td data-page-node-id="HlsElBRTF8vdLTdWQBY3ZM">岗位类别调整</td></tr><tr data-page-node-id="J0DSUqJpLkDHllWNFbXBMF"><td data-page-node-id="ldoaJoBCgtNKBx151L9ES1">2</td><td data-page-node-id="MdhuZEqwAn90QqLvts2Vpu">李文强</td><td data-page-node-id="E44x25Qk28cTRZhOPY0NHK">110101199003084567</td><td data-page-node-id="GOjeufHm5vlCKG6XDRgxjM">卫生防疫津贴</td><td data-page-node-id="QjSfgPZxd7JiL8hNBjje0Q">300</td><td data-page-node-id="5sWscg5BZwL3gjkLm3wlfL">二类</td><td data-page-node-id="MKZrEFCktcxTfnYo9Ebzi0">450</td><td data-page-node-id="ccer6rQB3YtsLTd891YF54">2026-09</td><td data-page-node-id="8GCRQVMqKzpmBzcohiFFkP">补充确认</td></tr></tbody></table></div></div>
+          <div id="detail-retro" class="tab-pane" data-page-node-id="l4xL18TLhmvVCfT1MDccdA"><div class="table-wrap" data-page-node-id="aHP4vC6hlhzQPh7cNl2mpi"><table data-page-node-id="R3zIEmH9FxwwQTxm28QBg5"><thead data-page-node-id="iRMSe14KMIY3iszLfxwL6L"><tr data-page-node-id="60bhaLaXTk37Rm0o1R8vLK"><th data-page-node-id="eeABK5xjcVuHVDKD4uW0rq">序号</th><th data-page-node-id="uzMRxU3xk5cSMviQWLJ6HL">姓名</th><th data-page-node-id="GuP6pryrjgy4UramVsBhDG">身份证号</th><th data-page-node-id="2EOSZRSzbcsgrQazeFApeN">特殊岗位津贴名称</th><th data-page-node-id="UgMi8odgGB66YV1kHxXzXk">一类（天）</th><th data-page-node-id="F2cBSlONMrMHcyHsxmA2r8">一类标准</th><th data-page-node-id="2YK3KroDmwRsT42tbI7Iz1">二类（天）</th><th data-page-node-id="TQEEvpY542fTRvnyTlGbAi">二类标准</th><th data-page-node-id="uPMXiOam88Qy7WciqYg8Vj">三类（天）</th><th data-page-node-id="lfLM7qrhMYAWfFABnX0Bqf">三类标准</th><th data-page-node-id="c7E0u1EL3dXcIJkR3Jq8Pr">四类（天）</th><th data-page-node-id="Z3RH0EgbL3pH8DECUNLPXF">四类标准</th><th data-page-node-id="T2fCJiRe3sdtYgEaAg7E32">补发金额</th><th data-page-node-id="1gd4ZYbFeX78FC9rZm9qoF">备注</th></tr></thead><tbody data-page-node-id="JRqJrq1khOI2JbXvFbtKgx"><tr data-page-node-id="QKIFCywNDqDMsAqsfUENGY"><td data-page-node-id="aBcIO2RGnB6HcvkyO5rGCR">1</td><td data-page-node-id="6SuHBlEOs5DrAvj6FYKgbj">赵明</td><td data-page-node-id="hAdGnWPKGwdu1LSTQ3tmmm">110101197912126789</td><td data-page-node-id="kXBBfCO82Avs3P2XpCgIqT">环境保护监测津贴</td><td data-page-node-id="zULccejY8LhhrGi9a7PdnH">0</td><td data-page-node-id="WFhV6Q9jSHMvrQ4s76NB88">26元/天</td><td data-page-node-id="81oBO4SEP7HKhHvfIz6AOH">31</td><td data-page-node-id="1G4kwGvCCb17tcrA9QjnFy">21元/天</td><td data-page-node-id="ALPmF0KDGUDjSrFjw2BG7m">0</td><td data-page-node-id="ReGqp0L60Nm2HlvLTXclQQ">16元/天</td><td data-page-node-id="UMIWC3nGCudhwE1c5pKIxu">0</td><td data-page-node-id="c27yAwTRBOC5VLaniQWicr">12元/天</td><td data-page-node-id="XU5VhiSyPfOD6jgwtK68jF">620</td><td data-page-node-id="0fppyFu3YP2mkPhPBQy5bh">跨月补发</td></tr><tr data-page-node-id="C71DhglWuzITFrFBLAZxFu"><td data-page-node-id="6CBaqTfG6yPtSrHEgMc3Zz">2</td><td data-page-node-id="bSWYG5qiywGHWQQYOmunKC">陈静</td><td data-page-node-id="9U1A1Udh4XskUCUJNsN4BH">110101199506018901</td><td data-page-node-id="ayVSYjB5zy9SK9OAOQWsId">环境保护监测津贴</td><td data-page-node-id="mPYYT25zh7TY4Q1e61YU0m">0</td><td data-page-node-id="jjGyt7HdsBoIZMRFoucX3U">26元/天</td><td data-page-node-id="fEYBGYS4ABe8O5lTc23Lt6">0</td><td data-page-node-id="Rc6WHV2Cjc5pHTJcrZL8sV">21元/天</td><td data-page-node-id="lI5PgJ0390ya8Cfrb0uELo">31</td><td data-page-node-id="ajM3EJjEfAPK8ux2P4T2Na">16元/天</td><td data-page-node-id="Y1f1h7ZCKdUtrpFBmALNrg">0</td><td data-page-node-id="UGAuEweuQ2Pn8KjeSvCr5K">12元/天</td><td data-page-node-id="lK7gaD4jMQcE7m01KKFghQ">713</td><td data-page-node-id="dC6UcQh6FpMUOyiPG9rPGx">材料补充</td></tr></tbody></table></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const allowanceTypes = ['卫生防疫津贴','农业有毒有害保健津贴','林业有毒有害岗位津贴','畜牧兽医医疗卫生津贴','环境保护监测津贴','艰苦广播电视台站津贴'];
+    const changeAllowanceTypes = allowanceTypes.filter(t => t !== '艰苦广播电视台站津贴');
+    const allowanceRules = {
+      '卫生防疫津贴': { categories: ['一类','二类','三类','四类'], monthly: [560,450,350,260], daily: [26,21,16,12] },
+      '农业有毒有害保健津贴': { categories: ['一类','二类','三类'], monthly: [450,350,260], daily: [21,16,12] },
+      '林业有毒有害岗位津贴': { categories: ['一类','二类','三类'], monthly: [450,350,260], daily: [21,16,12] },
+      '畜牧兽医医疗卫生津贴': { categories: ['一类','二类','三类'], monthly: [450,350,260], daily: [21,16,12] },
+      '环境保护监测津贴': { categories: ['一类','二类','三类'], monthly: [450,350,260], daily: [21,16,12] },
+      '艰苦广播电视台站津贴': { categories: ['一类','二类','三类','四类','五类','六类','其中一至四类机房','其中五至六类机房'], monthly: [], daily: [40,32,24,16,12,8,4,2] }
+    };
+    const people = [
+      ['1','张晓华','110101198702031234','事业编制','专技十级'],
+      ['2','李文强','110101199003084567','事业编制','管理八级'],
+      ['3','王丽','110101198811225678','合同聘用','专技九级'],
+      ['4','赵明','110101197912126789','事业编制','工勤三级'],
+      ['5','陈静','110101199506018901','事业编制','专技十二级'],
+      ['6','周立新','110101198405067890','事业编制','工勤二级']
+    ];
+    const sichuanRegions = [
+      ['成都市','锦江区'],['成都市','新都区'],['成都市','青羊区'],['成都市','金牛区'],['成都市','武侯区'],['成都市','成华区'],['成都市','双流区'],
+      ['绵阳市','涪城区'],['绵阳市','游仙区'],['德阳市','旌阳区'],['自贡市','自流井区'],['攀枝花市','东区'],['泸州市','江阳区'],
+      ['广元市','利州区'],['遂宁市','船山区'],['内江市','市中区'],['乐山市','市中区'],['南充市','顺庆区'],['眉山市','东坡区'],
+      ['宜宾市','翠屏区'],['广安市','广安区'],['达州市','通川区'],['雅安市','雨城区'],['巴中市','巴州区'],['资阳市','雁江区'],
+      ['阿坝藏族羌族自治州','马尔康市'],['甘孜藏族自治州','康定市'],['凉山彝族自治州','西昌市']
+    ];
+    let selectedRegions = [];
+    const statisticUnitOptions = [
+      ['成都市卫生健康委员会','成都市新都区疾病预防控制中心'],['成都市农业农村局','成都市锦江区农业技术推广站'],['绵阳市林业局','绵阳市涪城区林业保护中心'],['德阳市农业农村局','德阳市旌阳区畜牧兽医站'],['宜宾市生态环境局','宜宾市翠屏区生态环境监测站'],['南充市文化广播电视和旅游局','南充市顺庆区广播电视监测台']
+    ];
+    let selectedStatisticUnits = [];
+    let selectedPeople = [];
+    let lastPickContext = 'change';
+    let uploaded = false;
+    let uploadContext = 'base';
+    let withdrawTarget = 'submit';
+    let queryDetailAllowance = allowanceTypes[0];
+    const approvalStages = [
+      { key: 'initial', name: '特岗人社初审', approver: '钱初审', signature: '', signatureEnabled: true },
+      { key: 'recheck', name: '特岗人社复审', approver: '孙复审', signature: '孙复审', signatureEnabled: true },
+      { key: 'final', name: '特岗人社终审', approver: '吴终审', signature: '吴终审', signatureEnabled: true }
+    ];
+    const approverCandidates = [
+      { account: 'qian.chushen', name: '钱初审', gender: '男', idCard: '510***********1226', phone: '028-86500001', mobile: '15100000001', email: 'qian@example.cn' },
+      { account: 'sun.fushen', name: '孙复审', gender: '男', idCard: '510***********3654', phone: '028-86500002', mobile: '15888888888', email: 'sun@example.cn' },
+      { account: 'wu.zhongshen', name: '吴终审', gender: '女', idCard: '510***********4288', phone: '028-86500003', mobile: '15900000003', email: 'wu@example.cn' },
+      { account: 'zhou.shenhe', name: '周审核', gender: '女', idCard: '510***********6532', phone: '028-86500004', mobile: '13700000004', email: 'zhou@example.cn' }
+    ];
+    let editingApprovalStage = '';
+    let selectedApproverIndex = -1;
+
+    function typeOptions(types=allowanceTypes, selected='') { return types.map(t => `<option ${t===selected?'selected':''}>${t}</option>`).join(''); }
+    function getRule(type) { return allowanceRules[type] || allowanceRules['卫生防疫津贴']; }
+    function selectedPeopleFor(kind) { return selectedPeople.length ? selectedPeople : (kind === 'change' ? people.slice(0,3) : people.slice(3,5)); }
+    function categoryOptions(type) { const rule = getRule(type); return rule.categories.map((c,i)=>`<option value="${rule.monthly[i]}">${c}</option>`).join(''); }
+    function changeCategory(type, seed=0) { const rule=getRule(type); const idx=seed%rule.categories.length; return { name: rule.categories[idx], amount: rule.monthly[idx] }; }
+    function renderChangeRows(type, rows=selectedPeopleFor('change')) { const rule=getRule(type); return rows.map((p,i)=>`<tr><td>${i+1}</td><td>${p[1]}</td><td>${p[2]}</td><td class="allowance-name">${type}</td><td>${260+i*40}</td><td><select class="change-level-select" onchange="updateChangeAmount(this)">${categoryOptions(type)}</select></td><td class="change-after-amount">${rule.monthly[0]}</td><td><input type="month" value="2026-09" /></td><td><span class="editable" contenteditable>备注</span></td></tr>`).join(''); }
+    function selectedRetroMonths() { return { start: document.getElementById('retroStartMonth')?.value || '2026-07', end: document.getElementById('retroEndMonth')?.value || '2026-09' }; }
+    function renderRetroTable(type, rows=selectedPeopleFor('retro')) { const rule=getRule(type); const months=selectedRetroMonths(); const headers=rule.categories.map(c=>`<th>${c}（天）</th><th>${c}标准</th>`).join(''); const body=rows.map((p,i)=>`<tr class="retro-calc-row"><td>${i+1}</td><td>${p[1]}</td><td>${p[2]}</td><td class="allowance-name">${type}</td><td>${months.start}</td><td>${months.end}</td>${rule.categories.map((c,j)=>`<td><span class="editable retro-days" contenteditable oninput="updateRetroAmount(this)">${j===0?(i?8:12):0}</span></td><td class="retro-standard" data-rate="${rule.daily[j]}">${rule.daily[j]}元/天</td>`).join('')}<td class="retro-amount">${(i?8:12)*rule.daily[0]}</td><td><span class="editable" contenteditable>备注</span></td></tr>`).join(''); return `<table style="min-width:${1280+rule.categories.length*180}px"><thead><tr><th>序号</th><th>姓名</th><th>身份证号</th><th>特殊岗位津贴名称</th><th>起始月份</th><th>终止月份</th>${headers}<th>补发金额</th><th>备注</th></tr></thead><tbody>${body}</tbody></table>`; }
+    const allRetroCategories = ['一类','二类','三类','四类','五类','六类','其中一至四类机房','其中五至六类机房'];
+    function retroHeaderCells() { return allRetroCategories.map(c=>`<th>${c}（天）</th><th>${c}标准</th>`).join(''); }
+    function retroDataCells(type, seed=0) { const rule=getRule(type); return allRetroCategories.map((c,j)=>j<rule.categories.length?`<td>${j===0?8+seed:j===1?12+seed:0}</td><td>${rule.daily[j]}元/天</td>`:'<td>-</td><td>-</td>').join(''); }
+    function retroMonthCells(seed=0) { const startMonth=String(7 + (seed % 2)).padStart(2,'0'); return `<td>2026-${startMonth}</td><td>2026-09</td>`; }
+    function retroTotal(type, seed=0) { const r=getRule(type); return (8+seed)*r.daily[0] + (r.daily[1] ? (12+seed)*r.daily[1] : 0); }
+    function workflowRateItems(type, idx=0) { const r=getRule(type); return r.categories.map((c,j)=>`<li>${c}（天）：${j===0?12+idx:j===1?18+idx:j===2?6+idx:idx} 天</li>`).join(''); }
+    function statusOptions() { return '<option>全部</option><option>待提交</option><option>待主管审核</option><option>待人社初审</option><option>待人社复审</option><option>待人社终审</option><option>已通过</option><option>驳回</option>'; }
+    function tag(status) { const map = { '待提交':'draft', '已提交':'submit', '待审核':'pending', '已审核':'pass', '已通过':'pass', '驳回':'reject' }; return `<span class="tag ${map[status]||'pending'}">${status}</span>`; }
+
+    function renderChange() {
+      document.getElementById('page-change').innerHTML = `
+      <div class="card change-card"><div class="tabs"><button class="tab active" data-tab="change-new">新增变更</button><button class="tab" data-tab="change-summary">汇总结果</button><button class="tab" data-tab="change-detail">明细结果</button></div>
+        <div class="card-body">
+          <div id="change-new" class="tab-pane active">${newChangePane()}</div>
+          <div id="change-summary" class="tab-pane">${changeSummaryPane()}</div>
+          <div id="change-detail" class="tab-pane">${changeDetailPane()}</div>
+        </div>
+      </div>`;
+    }
+    function newChangePane(prefill='') {
+      return `<div class="steps">
+        <div class="step compact-step"><h3><span class="step-index">1</span>选择特殊岗位津贴</h3><div><label>特殊岗位津贴</label><select id="changeAllowanceSelect" onchange="refreshChangeSelection()">${typeOptions(changeAllowanceTypes)}</select><div class="help">艰苦广播电视台站津贴不适用于专职特岗变更。</div></div></div>
+        <div class="step compact-step"><h3><span class="step-index">2</span>选择人员</h3><div><button class="btn primary" onclick="openPeople('change')">打开人员选择弹窗</button><div class="help" id="changeSelected">已选 3 人：张晓华、李文强、王丽</div></div></div>
+        <div class="step"><h3 style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><span><span class="step-index">3</span>确定变更</span><span class="btns"><button class="btn ghost" onclick="alert('Excel导出：原型演示')">Excel导出</button><button class="btn ghost" onclick="alert('Excel导入：原型演示')">Excel导入</button></span></h3><div class="table-wrap"><table style="min-width:1060px"><thead><tr><th>序号</th><th>姓名</th><th>身份证号</th><th>特殊岗位津贴名称</th><th>变动前金额</th><th>变动后津贴类别</th><th>变动后金额</th><th>起薪时间</th><th>备注</th></tr></thead><tbody>
+        ${renderChangeRows('卫生防疫津贴')}
+        </tbody></table></div><div class="btns" style="margin-top:12px"><button class="btn primary" onclick="saveResult('change')">保存结果</button></div>${prefill}</div>
+      </div>`;
+    }
+    function changeSummaryPane() { return `<div class="form-grid"><div><label>特殊岗位津贴</label><select>${typeOptions(changeAllowanceTypes)}</select></div><div><label>审核状态</label><select>${statusOptions()}</select></div><div class="btns"><button class="btn primary">查询</button><button class="btn ghost">重置</button><button class="btn ghost" onclick="alert('Excel导出：原型演示')">导出</button></div></div><div class="table-wrap"><table><thead><tr><th>序号</th><th>审核状态</th><th>特殊岗位津贴名称</th><th>人数</th><th>变动前金额</th><th>变动后津贴类别</th><th>变动后金额</th><th>增减资</th></tr></thead><tbody>${changeAllowanceTypes.map((t,i)=>{const c=changeCategory(t,i); const before=2200+i*300; const after=c.amount*(8+i); return `<tr><td>${i+1}</td><td>${tag('待提交')}</td><td>${t}</td><td><span class="link" onclick="activateTab('change-detail')">${8+i}</span></td><td>${before}</td><td>${c.name}</td><td>${after}</td><td>${after-before>=0?'+':''}${after-before}</td></tr>`}).join('')}</tbody></table></div>`; }
+    function changeDetailPane() { return `<div class="form-grid"><div><label>特殊岗位津贴</label><select>${typeOptions(changeAllowanceTypes)}</select></div><div><label>姓名+身份证号</label><input placeholder="请输入姓名或身份证号" /></div><div><label>审核状态</label><select>${statusOptions()}</select></div><div class="btns"><button class="btn primary">查询</button><button class="btn ghost" onclick="alert('Excel导出：原型演示')">导出</button><button class="btn warning" onclick="editBack('change')">批量编辑</button><button class="btn danger">批量删除</button></div></div><div class="table-wrap"><table class="fixed-action-table"><thead><tr><th>勾选</th><th>序号</th><th>审核状态</th><th>姓名</th><th>身份证号</th><th>特殊岗位津贴名称</th><th>变动前金额</th><th>变动后津贴类别</th><th>变动后金额</th><th>增减资</th><th>起薪时间</th><th>备注</th><th>操作</th></tr></thead><tbody>${people.slice(0,5).map((p,i)=>{const t=changeAllowanceTypes[i]; const c=changeCategory(t,i); const before=240+i*30; return `<tr><td><input type="checkbox" /></td><td>${i+1}</td><td>${tag('待提交')}</td><td>${p[1]}</td><td>${p[2]}</td><td>${t}</td><td>${before}</td><td>${c.name}</td><td>${c.amount}</td><td>${c.amount-before>=0?'+':''}${c.amount-before}</td><td>2026-09</td><td>${i%2?'岗位类别调整':'补充确认'}</td><td><span class="link" onclick="editBack('change')">编辑</span>　<span class="link">删除</span></td></tr>`}).join('')}</tbody></table></div>`; }
+
+
+    function renderRetro() {
+      document.getElementById('page-retro').innerHTML = `<div class="card"><div class="tabs"><button class="tab active" data-tab="retro-new">新增补发</button><button class="tab" data-tab="retro-summary">汇总结果</button><button class="tab" data-tab="retro-detail">明细结果</button></div><div class="card-body"><div id="retro-new" class="tab-pane active">${newRetroPane()}</div><div id="retro-summary" class="tab-pane">${retroSummaryPane()}</div><div id="retro-detail" class="tab-pane">${retroDetailPane()}</div></div></div>`;
+    }
+    function newRetroPane(prefill='') { return `<div class="steps"><div class="step compact-step"><h3><span class="step-index">1</span>选择特殊岗位津贴</h3><div><label>特殊岗位津贴</label><select id="retroAllowanceSelect" onchange="refreshRetroSelection()">${typeOptions()}</select></div></div><div class="step compact-step"><h3><span class="step-index">2</span>选择人员</h3><div><button class="btn primary" onclick="openPeople('retro')">打开人员选择弹窗</button><div class="help" id="retroSelected">已选 2 人：赵明、陈静</div></div></div><div class="step compact-step"><h3><span class="step-index">3</span>选择补发月份</h3><div class="form-grid"><div><label>起始月份</label><input id="retroStartMonth" type="month" value="2026-07" onchange="refreshRetroSelection()" /></div><div><label>终止月份</label><input id="retroEndMonth" type="month" value="2026-09" onchange="refreshRetroSelection()" /></div></div></div><div class="step compact-step"><h3><span class="step-index">4</span>上传考勤记录表</h3><div><input id="attendanceFileInput" type="file" accept=".xls,.xlsx,.csv,.pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none" onchange="handleAttendanceFile(this)" /><button class="btn primary" onclick="document.getElementById('attendanceFileInput').click()">上传考勤记录表</button><span class="template-link" onclick="previewAttendanceSheet()">考勤记录表（模板）</span><div class="help" id="attendanceFileName">暂未选择文件</div></div></div><div class="step"><h3 style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><span><span class="step-index">5</span>确定补发</span><span class="btns"><button class="btn ghost" onclick="alert('Excel导出：原型演示')">Excel导出</button><button class="btn ghost" onclick="alert('Excel导入：原型演示')">Excel导入</button></span></h3><div class="table-wrap" id="retroDynamicTable">${renderRetroTable('卫生防疫津贴')}</div><div class="btns" style="margin-top:12px"><button class="btn primary" onclick="saveResult('retro')">保存结果</button></div>${prefill}</div></div>`; }
+
+    function retroSummaryPane() { return `<div class="form-grid"><div><label>特殊岗位津贴</label><select>${typeOptions()}</select></div><div><label>审核状态</label><select>${statusOptions()}</select></div><div class="btns"><button class="btn primary">查询</button><button class="btn ghost">重置</button><button class="btn ghost" onclick="alert('Excel导出：原型演示')">导出</button></div></div><div class="table-wrap"><table style="min-width:1800px"><thead><tr><th>序号</th><th>审核状态</th><th>特殊岗位津贴名称</th><th>人数</th>${retroHeaderCells()}<th>补发金额</th></tr></thead><tbody>${allowanceTypes.map((t,i)=>`<tr><td>${i+1}</td><td>${tag('待提交')}</td><td>${t}</td><td><span class="link" onclick="activateTab('retro-detail')">${4+i}</span></td>${retroDataCells(t,i)}<td>${retroTotal(t,i)}</td></tr>`).join('')}</tbody></table></div>`; }
+    function retroDetailPane() { return `<div class="form-grid"><div><label>特殊岗位津贴</label><select>${typeOptions()}</select></div><div><label>姓名+身份证号</label><input placeholder="请输入姓名或身份证号" /></div><div><label>审核状态</label><select>${statusOptions()}</select></div><div class="btns"><button class="btn primary">查询</button><button class="btn ghost" onclick="alert('Excel导出：原型演示')">导出</button><button class="btn warning" onclick="editBack('retro')">批量编辑</button><button class="btn danger">批量删除</button></div></div><div class="table-wrap"><table class="fixed-action-table retro-detail-table" style="min-width:2360px"><thead><tr><th>勾选框</th><th>序号</th><th>审核状态</th><th>姓名</th><th>身份证号</th><th>特殊岗位津贴名称</th><th>起始月份</th><th>终止月份</th>${retroHeaderCells()}<th>补发金额</th><th>备注</th><th>考勤表</th><th>操作</th></tr></thead><tbody>${people.map((p,i)=>{const t=allowanceTypes[i]; return `<tr><td><input type="checkbox" /></td><td>${i+1}</td><td>${tag('待提交')}</td><td>${p[1]}</td><td>${p[2]}</td><td>${t}</td>${retroMonthCells(i)}${retroDataCells(t,i)}<td>${retroTotal(t,i)}</td><td>${i%2?'跨月补发':'材料补充'}</td><td><span class="link" onclick="previewAttendanceSheet()">考勤表</span></td><td><span class="link" onclick="editBack('retro')">编辑</span>　<span class="link">删除</span></td></tr>`}).join('')}</tbody></table></div>`; }
+
+    const stageNames = ['基层单位申报','主管单位审核','特岗人社初审','特岗人社复审','特岗人社终审'];
+    const allowanceUnitGroups = [
+      ['省XXXXXX卫生A单位','省XXXXXX卫生B单位','省XXXXXX卫生C单位','省XXXXXX卫生D单位','省XXXXXX卫生E单位'],
+      ['省XXXXXX农业A单位','省XXXXXX农业B单位','省XXXXXX农业C单位','省XXXXXX农业D单位','省XXXXXX农业E单位'],
+      ['省XXXXXX林业A单位','省XXXXXX林业B单位','省XXXXXX林业C单位','省XXXXXX林业D单位','省XXXXXX林业E单位'],
+      ['省XXXXXX畜牧A单位','省XXXXXX畜牧B单位','省XXXXXX畜牧C单位','省XXXXXX畜牧D单位','省XXXXXX畜牧E单位'],
+      ['省XXXXXX环境A单位','省XXXXXX环境B单位','省XXXXXX环境C单位','省XXXXXX环境D单位','省XXXXXX环境E单位'],
+      ['省XXXXXX广播电视A台站','省XXXXXX广播电视B台站','省XXXXXX广播电视C台站','省XXXXXX广播电视D台站','省XXXXXX广播电视E台站']
+    ];
+    function pageStage(pageId) { return { submit: 0, audit1: 1, audit2: 2, audit3: 3, audit4: 4 }[pageId] ?? 0; }
+    function renderWorkflow(pageId, title, mode) {
+      const first = mode === 'submit' ? '待提交/驳回（12）' : '待审核（12）';
+      const second = mode === 'submit' ? '已提交（8）' : '已审核（8）';
+      document.getElementById('page-' + pageId).innerHTML = `<div class="card workflow-card"><div class="tabs"><button class="tab active" data-tab="${pageId}-todo">${first}</button><button class="tab" data-tab="${pageId}-done">${second}</button></div><div class="card-body"><div id="${pageId}-todo" class="tab-pane workflow-pane active">${workflowPane(pageId, mode, false)}</div><div id="${pageId}-done" class="tab-pane workflow-pane">${workflowPane(pageId, mode, true)}</div></div></div>`;
+    }
+    function typeSubTabs(activeType=0) { return `<div class="subtabs">${allowanceTypes.map((t,i)=>`<button class="subtab ${i===activeType?'active':''}" onclick="selectAllowanceTab(this, ${i})">${t}（${12-i*2}）</button>`).join('')}</div>`; }
+    function unitList(typeIdx=0) { const units=allowanceUnitGroups[typeIdx] || allowanceUnitGroups[0]; return `<div class="unit-list"><div class="unit-list-head">单位列表</div><table class="unit-table"><thead><tr><th>单位名称</th><th>提交时间</th></tr></thead><tbody>${units.map((u,i)=>`<tr class="${i===0?'active':''}" onclick="selectUnit(this, '${u}', ${i}, ${typeIdx})"><td><span class="unit-name">${u}</span></td><td><span class="unit-time">2026-09-04 ${String(9+i).padStart(2,'0')}:30</span></td></tr>`).join('')}</tbody></table></div>`; }
+    function workflowPane(pageId, mode, done) {
+      const stage = pageStage(pageId);
+      const firstUnit = allowanceUnitGroups[0][0];
+      return `${typeSubTabs(0)}<div class="workflow-layout" data-page="${pageId}" data-type="0">${unitList(0)}<div class="workflow-detail-panel"><div class="detail-title"><span class="active-unit-name">${firstUnit}</span></div><div class="workflow-detail-scroll"><div class="workflow-grid">
+        ${baseApplyCard(mode, done, 0, stage, 0)}${auditCard(stageNames[1], mode, done, 1, 0, stage)}${auditCard(stageNames[2], mode, done, 2, 0, stage)}${auditCard(stageNames[3], mode, done, 3, 0, stage)}${auditCard(stageNames[4], mode, done, 4, 0, stage)}
+      </div></div></div></div>`;
+    }
+    function baseApplyCard(mode, done, idx=0, stage=0, typeIdx=0) { const actions = mode==='submit' ? (done ? '<button class="btn warning" onclick="openWithdraw(\'submit\')">撤回待提交</button>' : '<button class="btn ghost" onclick="openUploadModal(\'base\')">上传附件</button><button class="btn primary" onclick="needUpload(\'submit\')">提交</button>') : ''; const attachmentCount = mode === 'audit' && !done ? '1' : (done ? '3' : '0'); return `<div class="flow-card"><h4>基层单位申报 ${tag(done?'已提交':'待提交')}</h4><ul class="flow-list"><li>查看详情：<button class="btn primary normal-text-button" onclick="openDetailModal()">申报数据</button> <button class="btn primary normal-text-button" onclick="previewRosterPdf()">审批表和花名册</button></li><li>专职变更人数：${12+idx} 人<span class="workflow-stat-note">（总人数${44+idx*2}人，执行特岗${12+idx}人，执行比例${Math.round((12+idx)/(44+idx*2)*100)}%）</span></li><li>变动前金额：${3240+idx*280}</li><li>变动后金额：${5040+idx*320}</li><li>增减资：+${1800+idx*40}</li><li>临时补发人数：${5+idx} 人<span class="workflow-stat-note">（总人数${44+idx*2}人，临时补发${5+idx}人，执行比例${Math.round((5+idx)/(44+idx*2)*100)}%）</span></li>${workflowRateItems(allowanceTypes[typeIdx] || allowanceTypes[0], idx)}<li>临时补发金额：${4300+idx*360}</li><li>附件数量：<button class="btn primary attachment-count normal-text-button" onclick="openModal('attachmentModal')">附件（${attachmentCount}个）</button> <button class="btn primary normal-text-button" onclick="previewAttendanceSheet()">考勤表</button></li><li>提交人：刘经办</li><li>提交时间：2026-09-04 ${String(9+idx).padStart(2,'0')}:30</li></ul><div class="flow-actions">${actions}</div></div>`; }
+    function auditCard(name, mode, done, idx, unitIdx=0, stage=1) { const isCurrent = mode !== 'submit' && stage === idx; const isPrevAudited = mode !== 'submit' && !done && idx < stage; const isAudited = done || isPrevAudited; const allowsUpload = idx === 1; const uploadAction = allowsUpload ? '<button class="btn ghost" onclick="openUploadModal(\'supervisor\')">上传附件</button>' : ''; const passAction = allowsUpload ? 'needUpload(\'pass\')' : 'alert(\'审核通过：原型演示\')'; const actions = isCurrent ? (done ? '<button class="btn warning" onclick="openWithdraw(\'audit\')">撤回待审核</button>' : `${uploadAction}<input class="audit-opinion-input" placeholder="审核意见" /><button class="btn success" onclick="${passAction}">通过</button><button class="btn danger" onclick="openModal(\'rejectModal\')">驳回</button>`) : ''; const cardStatus = isAudited ? '已审核' : (mode !== 'submit' && stage === idx ? '待审核' : '待处理'); const auditStatus = isAudited ? '已审核' : (mode !== 'submit' && stage === idx ? '待审核' : '待处理'); const standardDocuments = `<li>审批模板下载：<a class="link" href="#" onclick="previewApprovalForm(); return false;">下载审批表</a></li><li>附件数量：<span class="attachment-count" onclick="openModal('attachmentModal')">${done ? '2' : (isPrevAudited ? '1' : '0')} 个</span></li>`; const auditedAttachment = isAudited ? '<li>附件数量：<span class="attachment-count" onclick="openModal(\'attachmentModal\')">1 个</span></li>' : ''; const documentItems = idx === 1 ? standardDocuments : (idx === 3 || idx === 4 ? auditedAttachment : ''); return `<div class="flow-card"><h4>${name} ${tag(cardStatus)}</h4><ul class="flow-list">${documentItems}<li>审核状态：${auditStatus}</li><li>审核意见：${isAudited ? '同意申报' : '-'}</li><li>审核人：${['周主管','钱初审','孙复审','吴终审'][idx-1]}</li><li>审核时间：${isAudited ? `2026-09-04 ${10+unitIdx}:1${idx}`:'-'}</li></ul><div class="flow-actions">${actions}</div></div>`; }
+
+    function renderQuery() {
+      document.getElementById('page-query').innerHTML = `<div class="card"><div class="tabs"><button class="tab active" data-tab="query-summary">汇总结果</button><button class="tab" data-tab="query-change">专职特岗数据</button><button class="tab" data-tab="query-retro">临时特岗数据</button></div><div class="card-body"><div class="query-drill-banner" id="queryDrillBanner"><div><strong>统计数据反查</strong><span id="queryDrillText"></span></div><button class="btn ghost" onclick="clearStatisticsBackcheck()">清除反查条件</button></div><div class="form-grid query-filter-grid"><div class="region-filter"><label>区域</label><button class="btn primary" id="queryRegionButton" onclick="openRegionModal()">选择区域</button></div><div class="allowance-filter"><label>特殊岗位津贴</label><select id="queryAllowanceFilter" onchange="applyQueryFilters()"><option value="">全部津贴</option>${typeOptions()}</select></div><div class="keyword-filter"><label>单位/姓名/身份证号</label><input id="queryKeywordFilter" placeholder="请输入关键字" oninput="applyQueryFilters()" /></div><div class="btns"><button class="btn primary" onclick="applyQueryFilters()">查询</button><button class="btn ghost" onclick="resetQueryFilters()">重置</button><button class="btn ghost" onclick="alert('Excel导出：原型演示')">导出</button></div></div><div id="query-summary" class="tab-pane active">${querySummaryPane()}</div><div id="query-change" class="tab-pane">${queryChangePane()}</div><div id="query-retro" class="tab-pane">${queryRetroPane()}</div></div></div>`;
+    }
+    function sumNumbers(values) { return values.reduce((sum,value)=>sum+(Number(value)||0),0); }
+    function retroDayTotals(types) { return allRetroCategories.map((category,j)=>sumNumbers(types.map((type,i)=>j<getRule(type).categories.length?(j===0?8+i:j===1?12+i:0):0))); }
+    function querySummaryPane() { const units=['市疾病预防控制中心','市农业技术推广站','市林业保护中心','市畜牧兽医站','市生态环境监测站','市广播电视监测台']; const rows=allowanceTypes.map((t,i)=>{const hasMonthly=getRule(t).monthly.length,c=hasMonthly?changeCategory(t,i):null,before=hasMonthly?3240+i*280:0,after=hasMonthly?c.amount*(12+i):0; return {t,i,hasMonthly,c,before,after,change:after-before,retroPeople:5+i,retroAmount:retroTotal(t,i)};}); const dayTotals=retroDayTotals(allowanceTypes); const totalRow=`<tr class="total-row"><td>合计</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>${sumNumbers(rows.map(row=>row.hasMonthly?12+row.i:0))}</td><td>${sumNumbers(rows.map(row=>row.before))}</td><td>${sumNumbers(rows.map(row=>row.after))}</td><td>${sumNumbers(rows.map(row=>row.hasMonthly?row.change:0))}</td><td>${sumNumbers(rows.map(row=>row.retroPeople))}</td>${dayTotals.map(total=>`<td>${total}</td><td>-</td>`).join('')}<td>${sumNumbers(rows.map(row=>row.retroAmount))}</td><td>-</td><td>-</td></tr>`; return `<div class="table-wrap"><table class="query-data-table" style="min-width:2400px"><thead><tr><th>序号</th><th>地市</th><th>区县</th><th>特殊岗位津贴名称</th><th>审批明细</th><th>审核状态</th><th>单位名称</th><th>专职变更人数</th><th>变动前金额</th><th>变动后金额</th><th>增减资</th><th>临时补发人数</th>${retroHeaderCells()}<th>临时补发金额</th><th>提交人</th><th>提交时间</th></tr></thead><tbody>${totalRow}${rows.map(row=>`<tr><td>${row.i+1}</td><td>${['成都市','绵阳市','德阳市','宜宾市','南充市','凉山彝族自治州'][row.i]}</td><td>${['新都区','涪城区','旌阳区','翠屏区','顺庆区','西昌市'][row.i]}</td><td>${row.t}</td><td><span class="link" onclick="openQueryApprovalDetail('${row.t}', ${row.i})">查看</span></td><td>${tag(row.i%2?'已提交':'待审核')}</td><td>${units[row.i]}</td><td>${row.hasMonthly?`<span class="link" onclick="activateTab('query-change')">${12+row.i}</span>`:'-'}</td><td>${row.hasMonthly?row.before:'-'}</td><td>${row.hasMonthly?row.after:'-'}</td><td>${row.hasMonthly?row.change:'-'}</td><td><span class="link" onclick="activateTab('query-retro')">${row.retroPeople}</span></td>${retroDataCells(row.t,row.i)}<td>${row.retroAmount}</td><td>刘经办</td><td>2026-09-04 ${String(9+row.i).padStart(2,'0')}:30</td></tr>`).join('')}</tbody></table></div>`; }
+    function queryChangePane() { const units=['市疾病预防控制中心','市农业技术推广站','市林业保护中心','市畜牧兽医站','市生态环境监测站']; const rows=people.slice(0,5).map((p,i)=>{const t=changeAllowanceTypes[i],c=changeCategory(t,i),before=240+i*30; return {p,i,t,c,before,after:c.amount,change:c.amount-before};}); const totalRow=`<tr class="total-row"><td>合计</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>${rows.length}</td><td>${sumNumbers(rows.map(row=>row.before))}</td><td>-</td><td>${sumNumbers(rows.map(row=>row.after))}</td><td>${sumNumbers(rows.map(row=>row.change))}</td><td>-</td><td>-</td><td>-</td></tr>`; return `<div class="table-wrap"><table class="query-data-table" style="min-width:1500px"><thead><tr><th>序号</th><th>地市</th><th>区县</th><th>特殊岗位津贴名称</th><th>单位名称</th><th>姓名</th><th>身份证号</th><th>专职变更人数</th><th>变动前金额</th><th>变动后津贴类别</th><th>变动后金额</th><th>增减资</th><th>起薪时间</th><th>提交人</th><th>提交时间</th></tr></thead><tbody>${totalRow}${rows.map(row=>`<tr><td>${row.i+1}</td><td>${['成都市','绵阳市','德阳市','宜宾市','南充市'][row.i]}</td><td>${['新都区','涪城区','旌阳区','翠屏区','顺庆区'][row.i]}</td><td>${row.t}</td><td>${units[row.i]}</td><td>${row.p[1]}</td><td>${row.p[2]}</td><td>1</td><td>${row.before}</td><td>${row.c.name}</td><td>${row.after}</td><td>${row.change}</td><td>2026-09</td><td>刘经办</td><td>2026-09-04 ${String(9+row.i).padStart(2,'0')}:30</td></tr>`).join('')}</tbody></table></div>`; }
+    function queryRetroPane() { const units=['市疾病预防控制中心','市农业技术推广站','市林业保护中心','市畜牧兽医站','市生态环境监测站','市广播电视监测台']; const dayTotals=retroDayTotals(allowanceTypes); const totalRow=`<tr class="total-row"><td>合计</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>${people.length}</td><td>-</td><td>-</td>${dayTotals.map(total=>`<td>${total}</td><td>-</td>`).join('')}<td>${sumNumbers(allowanceTypes.map((type,i)=>retroTotal(type,i)))}</td><td>-</td><td>-</td></tr>`; return `<div class="table-wrap"><table class="query-data-table" style="min-width:2300px"><thead><tr><th>序号</th><th>地市</th><th>区县</th><th>特殊岗位津贴名称</th><th>单位名称</th><th>姓名</th><th>身份证号</th><th>临时补发人数</th><th>起始月份</th><th>终止月份</th>${retroHeaderCells()}<th>补发特岗津贴金额</th><th>提交人</th><th>提交时间</th></tr></thead><tbody>${totalRow}${people.map((p,i)=>{const t=allowanceTypes[i]; return `<tr><td>${i+1}</td><td>${['成都市','绵阳市','德阳市','宜宾市','南充市','凉山彝族自治州'][i]}</td><td>${['新都区','涪城区','旌阳区','翠屏区','顺庆区','西昌市'][i]}</td><td>${t}</td><td>${units[i]}</td><td>${p[1]}</td><td>${p[2]}</td><td>1</td>${retroMonthCells(i)}${retroDataCells(t,i)}<td>${retroTotal(t,i)}</td><td>刘经办</td><td>2026-09-04 ${String(9+i).padStart(2,'0')}:30</td></tr>`}).join('')}</tbody></table></div>`; }
+
+    const statisticsRows = [
+      { city:'成都市', county:'新都区', unit:'四川省成都市新都区疾病预防控制中心', department:'成都市卫生健康委员会', year:'2026年', allowance:'卫生防疫津贴', post:'专技', mode:'专职', people:36, levels:[8,12,10,6], amount:142800, retro:8 },
+      { city:'成都市', county:'锦江区', unit:'四川省成都市锦江区农业技术推广站', department:'成都市农业农村局', year:'2026年', allowance:'农业有毒有害保健津贴', post:'专技', mode:'临时', people:24, levels:[6,10,8,0], amount:78360, retro:12 },
+      { city:'绵阳市', county:'涪城区', unit:'四川省绵阳市涪城区林业保护中心', department:'绵阳市林业局', year:'2026年', allowance:'林业有毒有害岗位津贴', post:'管理', mode:'专职', people:18, levels:[4,8,6,0], amount:62400, retro:5 },
+      { city:'德阳市', county:'旌阳区', unit:'四川省德阳市旌阳区畜牧兽医站', department:'德阳市农业农村局', year:'2026年', allowance:'畜牧兽医医疗卫生津贴', post:'工勤', mode:'专职', people:21, levels:[5,9,7,0], amount:69300, retro:6 },
+      { city:'宜宾市', county:'翠屏区', unit:'四川省宜宾市翠屏区生态环境监测站', department:'宜宾市生态环境局', year:'2025年', allowance:'环境保护监测津贴', post:'专技', mode:'临时', people:15, levels:[3,7,5,0], amount:48600, retro:9 },
+      { city:'南充市', county:'顺庆区', unit:'四川省南充市顺庆区广播电视监测台', department:'南充市文化广播电视和旅游局', year:'2025年', allowance:'艰苦广播电视台站津贴', post:'工勤', mode:'临时', people:12, levels:[2,4,3,3], amount:37800, retro:10 }
+    ];
+    const statisticsTabs = [
+      ['statistics-condition','设置查询条件'],['statistics-summary','特岗执行汇总'],['statistics-city','地市执行明细'],['statistics-county','区县执行明细'],['statistics-unit','单位执行明细'],['statistics-person','特岗人员明细'],['statistics-retro','特岗补发明细']
+    ];
+    function statisticsMultiSelect(id, options) { return `<div class="statistics-multi" id="${id}"><div class="statistics-multi-control" onclick="toggleStatisticsMulti('${id}', event)"><span class="statistics-multi-placeholder">空</span></div><div class="statistics-multi-menu">${options.map(item=>`<div class="statistics-multi-option" data-value="${item}" onclick="selectStatisticsMulti('${id}','${item}',event)"><span>${item}</span><span class="statistics-multi-check"></span></div>`).join('')}</div></div>`; }
+    function toggleStatisticsMulti(id,event) { event?.stopPropagation(); document.querySelectorAll('.statistics-multi.open').forEach(item=>{if(item.id!==id)item.classList.remove('open');}); document.getElementById(id)?.classList.toggle('open'); }
+    function selectStatisticsMulti(id,value,event) { event?.stopPropagation(); const root=document.getElementById(id); if(!root)return; const option=[...root.querySelectorAll('.statistics-multi-option')].find(item=>item.dataset.value===value); option?.classList.toggle('selected'); if(option) option.querySelector('.statistics-multi-check').textContent=option.classList.contains('selected')?'✓':''; renderStatisticsMultiTags(root); }
+    function removeStatisticsMulti(id,value,event) { event?.stopPropagation(); const root=document.getElementById(id); const option=[...root.querySelectorAll('.statistics-multi-option')].find(item=>item.dataset.value===value); option?.classList.remove('selected'); if(option) option.querySelector('.statistics-multi-check').textContent=''; renderStatisticsMultiTags(root); }
+    function renderStatisticsMultiTags(root) { const control=root.querySelector('.statistics-multi-control'); const values=[...root.querySelectorAll('.statistics-multi-option.selected')].map(item=>item.dataset.value); control.innerHTML=values.length?values.map(value=>`<span class="statistics-multi-tag">${value}<button type="button" onclick="removeStatisticsMulti('${root.id}','${value}',event)">×</button></span>`).join(''):'<span class="statistics-multi-placeholder">空</span>'; }
+    const statisticsFieldRows = [
+      { name:'统计月份', condition:'范围', value:'<div class="statistics-condition-value"><input type="month" value="2026-01" aria-label="起始月份" /><span class="month-separator">至</span><input type="month" value="2026-12" aria-label="终止月份" /></div>' },
+      { name:'特殊岗位津贴', condition:'包含', value:`<div class="statistics-condition-value">${statisticsMultiSelect('statistics-allowance-multi', allowanceTypes)}</div>` },
+      { name:'人员身份', condition:'包含', value:`<div class="statistics-condition-value">${statisticsMultiSelect('statistics-identity-multi', ['管理人员','专业技术人员','事业技术工人','事业普通工人'])}</div>` },
+      { name:'姓名', condition:'包含', value:'<div class="statistics-condition-value"><input placeholder="请输入姓名，支持模糊查询" /></div>' },
+      { name:'身份证号', condition:'包含', value:'<div class="statistics-condition-value"><input placeholder="请输入身份证号，支持模糊查询" /></div>' }
+    ];
+    function statisticsTabButtons() { return statisticsTabs.map(([id,label],i)=>`<button class="tab ${i===0?'active':''}" data-tab="${id}" onclick="activateStatisticsTab('${id}')">${label}</button>`).join(''); }
+    function renderStatistics() { const page=document.getElementById('page-statistics'); page.innerHTML = `<div class="card workflow-card"><div class="tabs statistics-tabs">${statisticsTabButtons()}</div><div class="card-body"><div id="statistics-condition" class="tab-pane active">${statisticsConditionPane()}</div><div id="statistics-summary" class="tab-pane">${statisticsSummaryPane()}</div><div id="statistics-city" class="tab-pane">${statisticsCityPane()}</div><div id="statistics-county" class="tab-pane">${statisticsCountyPane()}</div><div id="statistics-unit" class="tab-pane">${statisticsUnitPane()}</div><div id="statistics-person" class="tab-pane">${statisticsPersonPane()}</div><div id="statistics-retro" class="tab-pane">${statisticsRetroPane()}</div></div></div>`; const body=page.querySelector('.card-body'); statisticsTabs.forEach(([paneId])=>{const pane=document.getElementById(paneId);if(pane&&pane.parentElement!==body)body.appendChild(pane);}); }
+    function statisticsConditionPane() { return `<div class="notice">第1步：设置查询条件（单位）</div><div class="statistics-filter"><div class="btns"><button class="btn primary" onclick="openRegionModal()">选择区域</button><span class="tag submit">已选区域（201个）</span><button class="btn primary" onclick="openStatisticUnitModal()">选择单位</button><span class="tag submit" id="selectedStatisticUnitCount">已选单位（100家）</span></div></div><div class="table-wrap"><table class="statistics-condition-table"><thead><tr><th>勾选</th><th>字段名</th><th>条件</th><th>值</th><th>关系</th><th>操作</th></tr></thead><tbody>${statisticsFieldRows.map((row,i)=>`<tr><td><input type="checkbox" checked /></td><td>${row.name}</td><td>${row.condition}</td><td>${row.value}</td><td>● 并且</td><td><span class="link">删除</span></td></tr>`).join('')}<tr><td colspan="6" style="height:42px"></td></tr></tbody></table></div><div class="notice" style="margin-top:14px">第2步：生成查询结果</div><button class="btn primary" onclick="generateStatisticsResults()">生成查询结果</button></div>`; }
+    document.addEventListener('click',()=>document.querySelectorAll('.statistics-multi.open').forEach(item=>item.classList.remove('open')));
+    function activateStatisticsTab(id) { const page=document.getElementById('page-statistics'); if(!page)return; page.querySelectorAll('.statistics-tabs .tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===id)); statisticsTabs.forEach(([paneId])=>document.getElementById(paneId)?.classList.toggle('active',paneId===id)); const target=document.getElementById(id); if(target) target.scrollTop=0; }
+    function openStatisticsCityDetail() { const pane=document.getElementById('statistics-city'); if(pane) { pane.innerHTML=statisticsCityPane(); pane.classList.remove('statistics-drill-active'); pane.removeAttribute('data-drill-keyword'); } activateStatisticsTab('statistics-city'); }
+    function generateStatisticsResults() { const pane=document.getElementById('statistics-summary'); if(pane) { pane.innerHTML=statisticsSummaryPane(); pane.classList.remove('statistics-drill-active'); pane.removeAttribute('data-drill-keyword'); pane.scrollTop=0; } activateStatisticsTab('statistics-summary'); }
+    function statLink(label,target) { return `<span class="link" onclick="activateStatisticsTab('${target}')">${label}</span>`; }
+    function statTotals(rows) { return {city:new Set(rows.map(row=>row.city)).size,county:new Set(rows.map(row=>row.city+'-'+row.county)).size,unit:new Set(rows.map(row=>row.unit)).size,people:sumNumbers(rows.map(row=>row.people)),levels:[0,1,2,3].map(index=>sumNumbers(rows.map(row=>row.levels[index]))),retro:sumNumbers(rows.map(row=>row.retro)),retroDays:[0,1,2,3,4,5].map(index=>sumNumbers(rows.map((row,rowIndex)=>statisticsRetroDays(row,rowIndex)[index]))),amount:sumNumbers(rows.map(row=>row.amount))}; }
+    function statisticsRetroDays(row,index=0) { return [row.retro+(index%3), row.retro+1, row.retro, index%2, 0, 0]; }
+    function statisticsQueryBar(options={}) { const fields=options.fields||['allowance','area']; const unitField=fields.includes('unit')?'<div><label>单位名称</label><input placeholder="请输入单位名称" oninput="filterStatisticsTable(this)" /></div>':''; const personField=fields.includes('person')?'<div><label>姓名与身份证号</label><input placeholder="请输入姓名或身份证号" oninput="filterStatisticsTable(this)" /></div>':''; const areaLabel=options.county?'地区（地市+区县）':'地区（地市）'; const areaField=fields.includes('area')?`<div><label>${areaLabel}</label><select onchange="filterStatisticsTable(this)"><option>全部地区</option><option>成都市</option><option>成都市-新都区</option><option>绵阳市-涪城区</option><option>德阳市-旌阳区</option><option>宜宾市-翠屏区</option><option>南充市-顺庆区</option></select></div>`:''; const allowanceField=fields.includes('allowance')?'<div><label>特殊岗位津贴名称</label><select onchange="filterStatisticsTable(this)"><option>全部津贴</option>'+typeOptions()+'</select></div>':''; return `<div class="statistics-query-bar">${allowanceField}${areaField}${unitField}${personField}<div class="btns"><button class="btn primary" onclick="alert('查询：原型演示')">查询</button><button class="btn ghost" onclick="alert('重置：原型演示')">重置</button><button class="btn ghost" onclick="alert('Excel导出：原型演示')">导出</button></div></div>`; }
+    function filterStatisticsTable(input) { const table=input.closest('.tab-pane')?.querySelector('.statistics-table'); if(!table) return; const keyword=input.value.trim().toLowerCase(); table.querySelectorAll('tbody tr:not(.total-row)').forEach(row=>row.style.display=!keyword||row.textContent.toLowerCase().includes(keyword)?'':'none'); }
+    function drillStatistics(target, keyword='') { const pane=document.getElementById(target); if(!pane) return; activateStatisticsTab(target); pane.dataset.drillKeyword=keyword; pane.classList.add('statistics-drill-active'); const queryControls=[...pane.querySelectorAll('.statistics-query-bar input, .statistics-query-bar select')]; queryControls.forEach(control=>{if(control.tagName==='INPUT')control.value='';else control.selectedIndex=0;}); const allowanceSelect=queryControls.find(control=>control.previousElementSibling?.textContent==='特殊岗位津贴名称'); if(allowanceSelect&&keyword){ const option=[...allowanceSelect.options].find(item=>item.textContent===keyword); if(option)allowanceSelect.value=option.value; } const rows=[...pane.querySelectorAll('.statistics-table tbody tr:not(.total-row)')]; rows.forEach(row=>row.removeAttribute('data-drill-match')); const matchedRows=rows.filter(row=>!keyword||row.textContent.includes(keyword)); rows.forEach(row=>row.style.display=matchedRows.includes(row)?'':'none'); matchedRows.forEach(row=>row.dataset.drillMatch='true'); const totalRow=pane.querySelector('.statistics-table .total-row'); if(totalRow) totalRow.style.display=matchedRows.length?'':'none'; const pager=pane.querySelector('.statistics-pagination'); if(pager){ pager.dataset.page='1'; pager.dataset.total=String(matchedRows.length); const pageSize=Number(pager.dataset.size)||10; matchedRows.forEach((row,index)=>row.style.display=index<pageSize?'':'none'); const info=pager.querySelector('.statistics-page-info'); if(info){ const pages=Math.max(1,Math.ceil(matchedRows.length/pageSize)); info.textContent=`第 1 / ${pages} 页，共 ${matchedRows.length} 条`; } } pane.querySelector('.table-wrap')?.scrollTo({top:0,left:0}); pane.scrollTop=0; }
+    function statisticsBackcheckTarget(target) { return target==='statistics-retro'?'query-retro':target==='statistics-person'?'query-change':'query-summary'; }
+    function backcheckStatisticsData(target, allowance='') {
+      activateMenu('query');
+      const queryTab=statisticsBackcheckTarget(target);
+      activateTab(queryTab);
+      const allowanceFilter=document.getElementById('queryAllowanceFilter');
+      const keywordFilter=document.getElementById('queryKeywordFilter');
+      if(allowanceFilter) allowanceFilter.value=allowance||'';
+      if(keywordFilter) keywordFilter.value='';
+      const regionButton=document.getElementById('queryRegionButton');
+      if(regionButton) regionButton.textContent='全部区域';
+      applyQueryFilters();
+      const banner=document.getElementById('queryDrillBanner');
+      const text=document.getElementById('queryDrillText');
+      const visibleRows=[...document.querySelectorAll(`#${queryTab} tbody tr:not(.total-row)`)].filter(row=>row.style.display!=='none').length;
+      if(text) text.textContent=`：来源“特岗数据统计”，已定位到“${queryTab==='query-retro'?'临时特岗数据':queryTab==='query-change'?'专职特岗数据':'汇总结果'}”，筛选条件为${allowance?'“'+allowance+'”':'全部津贴'}，共匹配 ${visibleRows} 条数据。`;
+      if(banner) banner.classList.add('show');
+      document.querySelector('.query-filter-grid')?.classList.add('query-filter-active');
+      document.querySelector('.main')?.scrollTo({top:0,behavior:'smooth'});
+    }
+    function applyQueryFilters() {
+      const allowance=document.getElementById('queryAllowanceFilter')?.value||'';
+      const keyword=(document.getElementById('queryKeywordFilter')?.value||'').trim().toLowerCase();
+      const activePane=document.querySelector('#page-query .tab-pane.active');
+      if(!activePane) return;
+      const rows=[...activePane.querySelectorAll('tbody tr:not(.total-row)')];
+      rows.forEach(row=>{
+        const text=row.textContent.toLowerCase();
+        const matched=(!allowance||text.includes(allowance.toLowerCase()))&&(!keyword||text.includes(keyword));
+        row.style.display=matched?'':'none';
+        row.classList.toggle('query-match-highlight',matched&&(allowance||keyword));
+      });
+      const totalRow=activePane.querySelector('tbody tr.total-row');
+      if(totalRow) totalRow.style.display=rows.some(row=>row.style.display!=='none')?'':'none';
+    }
+    function resetQueryFilters() {
+      const allowance=document.getElementById('queryAllowanceFilter');
+      const keyword=document.getElementById('queryKeywordFilter');
+      if(allowance) allowance.value='';
+      if(keyword) keyword.value='';
+      const regionButton=document.getElementById('queryRegionButton');
+      if(regionButton) regionButton.textContent='选择区域';
+      applyQueryFilters();
+      document.getElementById('queryDrillBanner')?.classList.remove('show');
+      document.querySelector('.query-filter-grid')?.classList.remove('query-filter-active');
+    }
+    function clearStatisticsBackcheck() { resetQueryFilters(); }
+    function statMetric(value,target,keyword='') { const safeKeyword=String(keyword||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); return `<span class="statistics-clickable" title="点击查看明细" onclick="drillStatistics('${target}','${safeKeyword}')">${value}</span>`; }
+    function statisticsSummaryPane() { const rows=statisticsRows, total=statTotals(rows); return `${statisticsQueryBar({fields:['allowance']})}<div class="table-wrap"><table class="statistics-table"><thead><tr><th>序号</th><th>特殊岗位津贴名称</th><th>起始月份</th><th>终止月份</th><th>执行地市数</th><th>执行区县数</th><th>执行单位数</th><th>单位总人数</th><th>特岗人数</th><th>特岗占比</th><th>一类人数</th><th>二类人数</th><th>三类人数</th><th>四类人数</th><th>总金额</th><th>平均金额</th><th>临补人数</th><th>临补占比</th><th>临时补发天数</th>${['一类','二类','三类','四类','五类','六类'].map(item=>`<th>${item}（天）</th>`).join('')}<th>补发总金额</th><th>补发平均金额</th></tr></thead><tbody><tr class="total-row"><td>-</td><td>合计</td><td>-</td><td>-</td><td>${statMetric(total.city,'statistics-city')}</td><td>${statMetric(total.county,'statistics-county')}</td><td>${statMetric(total.unit,'statistics-unit')}</td><td>${total.people}</td><td>${statMetric(total.people,'statistics-person')}</td><td>100%</td>${total.levels.map(value=>`<td>${statMetric(value,'statistics-person')}</td>`).join('')}<td>${total.amount}</td><td>${Math.round(total.amount/total.people)}</td><td>${statMetric(total.retro,'statistics-retro')}</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>${rows.map((row,index)=>`<tr><td>${index+1}</td><td>${row.allowance}</td><td>20XX年01月</td><td>20XX年12月</td><td>${statMetric(1,'statistics-city',row.allowance)}</td><td>${statMetric(1,'statistics-county',row.allowance)}</td><td>${statMetric(1,'statistics-unit',row.allowance)}</td><td>${row.people+8}</td><td>${statMetric(row.people,'statistics-person',row.allowance)}</td><td>${Math.round(row.people/(row.people+8)*100)}%</td>${row.levels.map(value=>`<td>${statMetric(value||'-','statistics-person',row.allowance)}</td>`).join('')}<td>${row.amount}</td><td>${Math.round(row.amount/row.people)}</td><td>${statMetric(row.retro,'statistics-retro',row.allowance)}</td><td>${Math.round(row.retro/row.people*100)}%</td><td>${row.retro*3}</td>${statisticsRetroDays(row,index).map(value=>`<td>${value}</td>`).join('')}<td>${Math.round(row.amount*.12)}</td><td>${Math.round(row.amount*.12/row.retro)}</td></tr>`).join('')}</tbody></table></div><div class="statistics-summary-bottom-space" aria-hidden="true"></div>`; }
+    function statisticsCityPane() { return statisticsAggregateTable('city','地市执行明细',['特殊岗位津贴名称','起始月份','终止月份','地市','执行区县数','执行单位数'],{county:false}); }
+    function statisticsCountyPane() { return statisticsAggregateTable('county','区县执行明细',['特殊岗位津贴名称','起始月份','终止月份','地市','区县','执行单位数'],{county:true}); }
+    function statisticsUnitPane() { return statisticsAggregateTable('unit','单位执行明细',['特殊岗位津贴名称','起始月份','终止月份','地市','区县','单位名称','主管单位'],{county:true,unit:true}); }
+    function statisticsAggregateTable(type,title,prefix,options={}) { const rows=Array.from({length:30},(_,index)=>({...statisticsRows[index%statisticsRows.length], index})); const total=statTotals(rows); const prefixCells=row=>type==='city'?`<td>${row.allowance}</td><td>20XX年01月</td><td>20XX年12月</td><td>${row.city}</td><td>${statMetric(2,'statistics-county',row.allowance)}</td><td>${statMetric(1,'statistics-unit',row.allowance)}</td>`:type==='county'?`<td>${row.allowance}</td><td>20XX年01月</td><td>20XX年12月</td><td>${row.city}</td><td>${row.county}</td><td>${statMetric(1,'statistics-unit',row.allowance)}</td>`:`<td>${row.allowance}</td><td>20XX年01月</td><td>20XX年12月</td><td>${row.city}</td><td>${row.county}</td><td>${row.unit}</td><td>${row.department}</td>`; const metricCell=(value,target,row)=>statMetric(value,target,row?.allowance||''); return `${statisticsQueryBar({fields:type==='city'?['allowance','area']:type==='county'?['allowance','area']:['allowance','area','unit'],county:type!=='city'})}<div class="table-wrap"><table class="statistics-table"><thead><tr><th>序号</th>${prefix.map(item=>`<th>${item}</th>`).join('')}<th>单位总人数</th><th>特岗人数</th><th>特岗占比</th><th>一类人数</th><th>二类人数</th><th>三类人数</th><th>四类人数</th><th>总金额</th><th>平均金额</th><th>临补人数</th><th>临补占比</th><th>临时补发天数</th>${['一类','二类','三类','四类','五类','六类'].map(item=>`<th>${item}（天）</th>`).join('')}<th>补发总金额</th><th>补发平均金额</th></tr></thead><tbody><tr class="total-row"><td>-</td><td colspan="${prefix.length}">合计</td><td>${total.people}</td><td>${metricCell(total.people,'statistics-person')}</td><td>100%</td>${total.levels.map(value=>`<td>${statMetric(value,'statistics-person')}</td>`).join('')}<td>${total.amount}</td><td>${Math.round(total.amount/total.people)}</td><td>${metricCell(total.retro,'statistics-retro')}</td><td>-</td><td>${total.retro*3}</td>${total.retroDays.map(value=>`<td>${value}</td>`).join('')}<td>${Math.round(total.amount*.12)}</td><td>${Math.round(total.amount*.12/total.retro)}</td></tr>${rows.map((row,index)=>`<tr class="statistics-page-row" data-index="${index}"><td>${index+1}</td>${prefixCells(row)}<td>${row.people+8}</td><td>${metricCell(row.people,'statistics-person',row)}</td><td>${Math.round(row.people/(row.people+8)*100)}%</td>${row.levels.map(value=>`<td>${statMetric(value||'-','statistics-person',row.allowance)}</td>`).join('')}<td>${row.amount}</td><td>${Math.round(row.amount/row.people)}</td><td>${metricCell(row.retro,'statistics-retro',row)}</td><td>20%</td><td>${row.retro*3}</td>${statisticsRetroDays(row,index).map(value=>`<td>${value}</td>`).join('')}<td>${Math.round(row.amount*.12)}</td><td>${Math.round(row.amount*.12/row.retro)}</td></tr>`).join('')}</tbody></table></div><div class="statistics-detail-bottom-space" aria-hidden="true"></div>`; }
+    function expandedStatisticsRows() { return Array.from({length:30},(_,i)=>({ person:people[i%people.length], row:statisticsRows[i%statisticsRows.length], index:i })); }
+    function paginationMarkup(id,total=30,pageSize=10) { const pages=Math.ceil(total/pageSize); return `<div class="statistics-pagination" id="${id}" data-page="1" data-size="${pageSize}" data-total="${total}"><button class="btn ghost" onclick="changeStatisticsPage('${id}',-1)">上一页</button><span class="statistics-page-info">第 1 / ${pages} 页，共 ${total} 条</span><button class="btn ghost" onclick="changeStatisticsPage('${id}',1)">下一页</button></div>`; }
+    function changeStatisticsPage(id,delta) { const pager=document.getElementById(id); if(!pager)return; const pages=Math.ceil(Number(pager.dataset.total)/Number(pager.dataset.size)); const page=Math.min(pages,Math.max(1,Number(pager.dataset.page)+delta)); pager.dataset.page=page; pager.querySelector('.statistics-page-info').textContent=`第 ${page} / ${pages} 页，共 ${pager.dataset.total} 条`; const pane=pager.closest('.tab-pane'); pane.querySelectorAll('tbody tr.statistics-page-row').forEach(row=>{const index=Number(row.dataset.index);row.style.display=index>=(page-1)*Number(pager.dataset.size)&&index<page*Number(pager.dataset.size)?'':'none';}); }
+    function statisticsPersonPane() { const rows=expandedStatisticsRows(); return `${statisticsQueryBar({fields:['allowance','area','unit','person'],county:true})}<div class="table-wrap"><table class="statistics-table"><thead><tr><th>序号</th><th>特殊岗位津贴名称</th><th>地市</th><th>区县</th><th>单位名称</th><th>主管单位</th><th>姓名</th><th>身份证号</th><th>特岗津贴类别</th><th>特岗津贴金额</th><th>起始执行时间</th><th>终止执行时间</th></tr></thead><tbody>${rows.map(item=>{const {person,row,index}=item;return `<tr class="statistics-page-row" data-index="${index}"><td>${index+1}</td><td>${row.allowance}</td><td>${row.city}</td><td>${row.county}</td><td>${row.unit}</td><td>${row.department}</td><td>${person[1]}</td><td>${person[2]}</td><td>${['一类','二类','三类','四类'][index%4]}</td><td>${[450,350,260,560][index%4]}</td><td>20XX年01月</td><td>-</td></tr>`}).join('')}</tbody></table></div><div class="statistics-detail-bottom-space" aria-hidden="true"></div>`; }
+    function statisticsRetroPane() { const rows=expandedStatisticsRows(); return `${statisticsQueryBar({fields:['allowance','area','unit','person'],county:true})}<div class="table-wrap"><table class="statistics-table"><thead><tr><th>序号</th><th>特殊岗位津贴名称</th><th>地市</th><th>区县</th><th>单位名称</th><th>主管单位</th><th>起始月份</th><th>终止月份</th><th>姓名</th><th>身份证号</th><th>临时补发天数</th><th>一类（天）</th><th>一类标准</th><th>二类（天）</th><th>二类标准</th><th>三类（天）</th><th>三类标准</th><th>四类（天）</th><th>四类标准</th><th>五类（天）</th><th>五类标准</th><th>六类（天）</th><th>六类标准</th><th>其中一至四类机房（天）</th><th>其中一至四类机房标准</th><th>其中五至六类机房（天）</th><th>其中五至六类机房标准</th><th>补发特岗津贴金额</th></tr></thead><tbody>${rows.map(item=>{const {person,row,index}=item;return `<tr class="statistics-page-row" data-index="${index}"><td>${index+1}</td><td>${row.allowance}</td><td>${row.city}</td><td>${row.county}</td><td>${row.unit}</td><td>${row.department}</td><td>20XX年01月</td><td>20XX年12月</td><td>${person[1]}</td><td>${person[2]}</td><td>${(index%6)+1}</td>${['一类','二类','三类','四类','五类','六类','其中一至四类机房','其中五至六类机房'].map((item,j)=>`<td>${j<4?index+j:'-'}</td><td>${j<4?[26,21,16,12][j]+'元/天':'-'}</td>`).join('')}<td>${(index+1)*120}</td></tr>`}).join('')}</tbody></table></div><div class="statistics-detail-bottom-space" aria-hidden="true"></div>`; }
+
+    function renderApprovalConfig() {
+      document.getElementById('page-approvalConfig').innerHTML = `<div class="config-shell card"><div class="config-title">特岗审批环节人员配置</div><div class="card-body"><div class="table-wrap"><table class="approval-config-table"><thead><tr><th>审批环节</th><th>审核人姓名</th><th>签名（缩略图）</th><th>是否启用</th><th>操作</th></tr></thead><tbody>${approvalStages.map(stage=>`<tr><td>${stage.name}</td><td id="approver-${stage.key}">${stage.approver}</td><td id="signature-${stage.key}">${stage.signature ? `<span class="signature-box">${stage.signature}</span>` : '-'}</td><td><label class="signature-toggle"><input type="checkbox" ${stage.signatureEnabled?'checked':''} onchange="toggleSignatureEnabled('${stage.key}', this.checked)" /></label></td><td><div class="config-actions"><span class="link" onclick="openApproverModal('${stage.key}')">更换人员</span>${stage.key==='initial'?'':`<span class="link" onclick="openSignatureModal('${stage.key}')">更换签名</span>`}</div></td></tr>`).join('')}</tbody></table></div></div></div>`;
+    }
+    function toggleSignatureEnabled(stageKey, enabled) { const stage=approvalStages.find(item=>item.key===stageKey); if(stage) { stage.signatureEnabled=enabled; renderApprovalConfig(); } }
+    function renderApproverCandidates() { const keyword=(document.getElementById('approverKeyword')?.value||'').trim().toLowerCase(); const body=document.getElementById('approverCandidateBody'); if(!body) return; const rows=approverCandidates.map((p,i)=>({p,i})).filter(({p})=>!keyword||p.name.includes(keyword)||p.account.toLowerCase().includes(keyword)); body.innerHTML=rows.map(({p,i},index)=>`<tr class="person-choice-row ${selectedApproverIndex===i?'selected':''}" onclick="selectApproverCandidate(${i})"><td>${index+1}</td><td>${p.account}</td><td>${p.name}</td><td>${p.gender}</td><td>${p.idCard}</td><td>${p.phone}</td><td>${p.mobile}</td><td>${p.email}</td></tr>`).join('') || '<tr><td colspan="8">未查询到人员</td></tr>'; }
+    function openApproverModal(stageKey) { editingApprovalStage=stageKey; selectedApproverIndex=-1; const input=document.getElementById('approverKeyword'); if(input) input.value=''; renderApproverCandidates(); openModal('approverModal'); }
+    function selectApproverCandidate(index) { selectedApproverIndex=index; renderApproverCandidates(); }
+    function clearApproverSearch() { const input=document.getElementById('approverKeyword'); if(input) input.value=''; selectedApproverIndex=-1; renderApproverCandidates(); }
+    function confirmApproverChange() { if(selectedApproverIndex<0) { alert('请选择更换人员。'); return; } const stage=approvalStages.find(item=>item.key===editingApprovalStage), person=approverCandidates[selectedApproverIndex]; if(stage&&person) { stage.approver=person.name; if(stage.signature) stage.signature=person.name; renderApprovalConfig(); } closeModal('approverModal'); }
+    function openSignatureModal(stageKey) { editingApprovalStage=stageKey; const stage=approvalStages.find(item=>item.key===stageKey); const input=document.getElementById('signatureNameInput'); if(input) input.value=stage?.signature||stage?.approver||''; updateSignaturePreview(); openModal('signatureModal'); }
+    function updateSignaturePreview() { const value=document.getElementById('signatureNameInput')?.value||'签名'; const preview=document.getElementById('signaturePreview'); if(preview) preview.textContent=value; }
+    function confirmSignatureChange() { const stage=approvalStages.find(item=>item.key===editingApprovalStage); const value=(document.getElementById('signatureNameInput')?.value||'').trim(); if(!value) { alert('请输入签名显示名称。'); return; } if(stage) { stage.signature=value; renderApprovalConfig(); } closeModal('signatureModal'); }
+
+    function renderHomeTodo() { document.getElementById('page-homeTodo').innerHTML = `<div class="card"><div class="card-body"><div class="todo-layout"><div class="todo-list"><div class="todo-list-head">待办列表</div><table class="todo-table"><thead><tr><th>待办事项</th><th>数量</th></tr></thead><tbody><tr class="active" onclick="selectTodoType(this, 'adjust')"><td><span class="unit-name">特岗津贴调整</span></td><td><span class="link">12</span></td></tr><tr onclick="selectTodoType(this, 'retro')"><td><span class="unit-name">特岗津贴补发</span></td><td><span class="link">8</span></td></tr><tr onclick="selectTodoType(this, 'audit')"><td><span class="unit-name">特岗待审核</span></td><td><span class="link">6</span></td></tr></tbody></table></div><div class="todo-detail"><div class="todo-detail-title"><span id="todoDetailTitle">特岗津贴调整明细列表</span><button class="btn primary" id="todoBatchButton" onclick="alert('批量处理：原型演示')">批量处理</button></div><div id="todoDetailTable">${todoAdjustTable()}</div></div></div></div></div>`; }
+    function todoAdjustTable() { return `<div class="table-wrap"><table class="fixed-action-table"><thead><tr><th>序号</th><th>姓名</th><th>身份证号</th><th>特殊岗位津贴名称</th><th>变动前特岗津贴金额</th><th>变动后津贴类别</th><th>变动后特岗津贴金额</th><th>起薪时间</th><th>工资报审附件</th><th>操作</th></tr></thead><tbody>${people.slice(0,5).map((p,i)=>{const t=changeAllowanceTypes[i],c=changeCategory(t,i); return `<tr><td>${i+1}</td><td>${p[1]}</td><td>${p[2]}</td><td>${t}</td><td>${260+i*30}</td><td>${c.name}</td><td>${c.amount}</td><td>2026-09</td><td><span class="attachment-count" onclick="openModal('attachmentModal')">1 个</span></td><td><span class="link" onclick="alert('处理：原型演示')">处理</span>　<span class="link" onclick="alert('忽略：原型演示')">忽略</span></td></tr>`}).join('')}</tbody></table></div>`; }
+    function todoRetroTable() { return `<div class="table-wrap"><table class="fixed-action-table" style="min-width:2100px"><thead><tr><th>序号</th><th>姓名</th><th>身份证号</th><th>特殊岗位津贴名称</th><th>起始月份</th><th>终止月份</th>${retroHeaderCells()}<th>补发特岗津贴金额</th><th>工资报审附件</th><th>操作</th></tr></thead><tbody>${people.map((p,i)=>{const t=allowanceTypes[i]; return `<tr><td>${i+1}</td><td>${p[1]}</td><td>${p[2]}</td><td>${t}</td>${retroMonthCells(i)}${retroDataCells(t,i)}<td>${retroTotal(t,i)}</td><td><span class="attachment-count" onclick="openModal('attachmentModal')">1 个</span></td><td><span class="link" onclick="alert('处理：原型演示')">处理</span>　<span class="link" onclick="alert('忽略：原型演示')">忽略</span></td></tr>`}).join('')}</tbody></table></div>`; }
+    function todoAuditTable() { const units=['成都市疾病预防控制中心','成都市农业技术推广总站','绵阳市林业保护中心','德阳市畜牧兽医站','宜宾市生态环境监测站','南充市广播电视监测台']; return `<div class="table-wrap"><table class="fixed-action-table todo-audit-table"><thead><tr><th>序号</th><th>特殊岗位津贴名称</th><th>单位名称</th><th>专职变更人数</th><th>临时补发人数</th><th>临时补发金额</th><th>操作</th></tr></thead><tbody>${allowanceTypes.map((type,index)=>`<tr><td>${index+1}</td><td>${type}</td><td>${units[index]}</td><td>${type===allowanceTypes[5]?0:12+index}</td><td>${5+index}</td><td>${retroTotal(type,index)}</td><td><span class="link" onclick="goTodoAudit('${type}',${index})">审核</span></td></tr>`).join('')}</tbody></table></div>`; }
+    function goTodoAudit(type,index) { activateMenu('audit1'); activateTab('audit1-todo'); const pane=document.getElementById('audit1-todo'); const tab=[...pane.querySelectorAll('.subtab')].find(item=>item.textContent.includes(type)); if(tab) selectAllowanceTab(tab,index); const firstUnit=pane.querySelector('.unit-list tbody tr'); if(firstUnit) firstUnit.click(); document.querySelector('.main')?.scrollTo({top:0,behavior:'smooth'}); }
+
+    function selectTodoType(row, type) { row.closest('tbody').querySelectorAll('tr').forEach(r => r.classList.remove('active')); row.classList.add('active'); const title=document.getElementById('todoDetailTitle'), table=document.getElementById('todoDetailTable'), batch=document.getElementById('todoBatchButton'); if(type==='audit'){ title.textContent='特岗津贴调整明细列表'; table.innerHTML=todoAuditTable(); if(batch) batch.style.display='none'; } else { title.textContent=type==='adjust'?'特岗津贴调整明细列表':'特岗津贴补发明细列表'; table.innerHTML=type==='adjust'?todoAdjustTable():todoRetroTable(); if(batch) batch.style.display=''; } }
+    function refreshChangeSelection() { const type=document.getElementById('changeAllowanceSelect')?.value || changeAllowanceTypes[0]; const tbody=document.querySelector('#change-new table tbody'); if(tbody) tbody.innerHTML=renderChangeRows(type); }
+    function refreshRetroSelection() { const type=document.getElementById('retroAllowanceSelect')?.value || allowanceTypes[0]; const start=document.getElementById('retroStartMonth')?.value; const end=document.getElementById('retroEndMonth')?.value; if(start && end && start > end) { document.getElementById('retroEndMonth').value=start; } const table=document.getElementById('retroDynamicTable'); if(table) table.innerHTML=renderRetroTable(type); }
+    function handleAttendanceFile(input) { const file=input.files?.[0]; const target=document.getElementById('attendanceFileName'); if(target) target.textContent=file ? `已选择：${file.name}` : '暂未选择文件'; }
+    function refreshSelectedRows() { if(lastPickContext==='change') refreshChangeSelection(); else refreshRetroSelection(); }
+    function updateChangeAmount(select) { const row = select.closest('tr'); const amountCell = row?.querySelector('.change-after-amount'); if(amountCell) amountCell.textContent = select.value; }
+    function updateRetroAmount(el) { const row = el.closest('.retro-calc-row'); if(!row) return; const days = [...row.querySelectorAll('.retro-days')].map(item => Number((item.textContent || '').replace(/[^0-9.]/g, '')) || 0); const rates = [...row.querySelectorAll('.retro-standard')].map(item => Number(item.dataset.rate) || 0); const amount = days.reduce((sum, day, index) => sum + day * (rates[index] || 0), 0); const amountCell = row.querySelector('.retro-amount'); if(amountCell) amountCell.textContent = amount; }
+
+    function bindTabs(scope=document) { scope.querySelectorAll('.tabs .tab').forEach(btn => btn.addEventListener('click', () => activateTab(btn.dataset.tab))); }
+    function activateTab(id) { const pane = document.getElementById(id); const scope = pane?.closest('.card') || pane?.closest('.modal'); if(!scope) return; scope.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id)); scope.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === id)); }
+    function openModal(id) { document.getElementById(id).classList.add('show'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+    function detailChangeTable(type) { if(!getRule(type).monthly.length) return '<div class="notice">该津贴不适用于专职特岗变更。</div>'; const rows=people.slice(0,2).map((p,i)=>{const c=changeCategory(type,i),before=260+i*40; return `<tr><td>${i+1}</td><td>${p[1]}</td><td>${p[2]}</td><td>${type}</td><td>${before}</td><td>${c.name}</td><td>${c.amount}</td><td>2026-09</td><td>岗位类别调整</td></tr>`}).join(''); return `<div class="table-wrap"><table><thead><tr><th>序号</th><th>姓名</th><th>身份证号</th><th>特殊岗位津贴名称</th><th>变动前金额</th><th>变动后津贴类别</th><th>变动后金额</th><th>起薪时间</th><th>备注</th></tr></thead><tbody>${rows}</tbody></table></div>`; }
+    function detailRetroTable(type) { const p=people[3], rule=getRule(type); return `<div class="table-wrap">${renderRetroTable(type,[p])}</div>`; }
+    function openDetailModal() { const layout=document.querySelector('.page.active .workflow-pane.active .workflow-layout'); const type=allowanceTypes[Number(layout?.dataset.type||0)] || allowanceTypes[0]; const change=document.getElementById('detail-change'); const retro=document.getElementById('detail-retro'); if(change) change.innerHTML=detailChangeTable(type); if(retro) retro.innerHTML=detailRetroTable(type); activateTab(getRule(type).monthly.length ? 'detail-change' : 'detail-retro'); openModal('detailModal'); }
+    const documentLinks = {
+      '卫生防疫津贴': { roster: 'https://www.kdocs.cn/l/chTDMUEn8GEA', approval: 'https://www.kdocs.cn/l/ciePY2AcOeMS' },
+      '林业有毒有害岗位津贴': { roster: 'https://www.kdocs.cn/l/cqfBnXtW1BLp', approval: 'https://www.kdocs.cn/l/cpf7jZ9zFjHW' },
+      '畜牧兽医医疗卫生津贴': { roster: 'https://www.kdocs.cn/l/caX07lI8dxZ4', approval: 'https://www.kdocs.cn/l/ce1aScv7ohw8' },
+      '农业有毒有害保健津贴': { roster: 'https://www.kdocs.cn/l/ckSeatVKDtnY', approval: 'https://www.kdocs.cn/l/cjBvw8yJuE8U' },
+      '环境保护监测津贴': { roster: 'https://www.kdocs.cn/l/cieym1sp5gCF', approval: 'https://www.kdocs.cn/l/cs032nqlIcnA' },
+      '艰苦广播电视台站津贴': { roster: 'https://www.kdocs.cn/l/clVWs0YFGQHu', approval: 'https://www.kdocs.cn/l/cnfI9T7GMjSv' }
+    };
+    function queryApprovalCards(type, seed=0) { const typeIdx=allowanceTypes.indexOf(type); const base=baseApplyCard('audit', true, seed, 4, typeIdx); return `${base}${auditCard(stageNames[1], 'audit', true, 1, seed, 4)}${auditCard(stageNames[2], 'audit', true, 2, seed, 4)}${auditCard(stageNames[3], 'audit', true, 3, seed, 4)}${auditCard(stageNames[4], 'audit', true, 4, seed, 4)}`; }
+    function openQueryApprovalDetail(type, seed=0) { queryDetailAllowance=type; const body=document.querySelector('#approvalDetailModal .workflow-grid'); if(body) body.innerHTML=queryApprovalCards(type, seed); openModal('approvalDetailModal'); }
+    function activeWorkflowAllowance() { if(document.getElementById('approvalDetailModal')?.classList.contains('show')) return queryDetailAllowance; const layout=document.querySelector('.page.active .workflow-pane.active .workflow-layout'); return allowanceTypes[Number(layout?.dataset.type || 0)] || allowanceTypes[0]; }
+    const stageAttachmentLinks = { supervisor: 'https://www.kdocs.cn/l/cs032nqlIcnA', review: 'https://www.kdocs.cn/l/caIlpLMUqqvy', final: 'https://www.kdocs.cn/l/csP2mwb1s51e' };
+    function previewStageAttachment(stage) { const url=stageAttachmentLinks[stage]; if(url) window.open(url, '_blank', 'noopener'); }
+    function previewAttendanceSheet() { window.open('https://www.kdocs.cn/l/cgcNjNG2GypL', '_blank', 'noopener'); }
+    function previewRosterPdf(type=activeWorkflowAllowance()) { window.open(documentLinks[type]?.roster || documentLinks[allowanceTypes[0]].roster, '_blank', 'noopener'); }
+    function previewApprovalForm(type=activeWorkflowAllowance()) { window.open(documentLinks[type]?.approval || documentLinks[allowanceTypes[0]].approval, '_blank', 'noopener'); }
+    function openWithdraw(type) { withdrawTarget = type; openModal('withdrawModal'); }
+    function confirmWithdraw() { closeModal('withdrawModal'); const pageId = (document.querySelector('.page.active')?.id || '').replace('page-',''); if(pageId){ activateTab(`${pageId}-todo`); } alert(withdrawTarget === 'submit' ? '已撤回，返回待提交/驳回。' : '已撤回，返回待审核。'); }
+    function saveResult(kind) { lastPickContext = kind; openModal('saveModal'); }
+    function goSavedDetail() { closeModal('saveModal'); activateTab(lastPickContext === 'retro' ? 'retro-detail' : 'change-detail'); }
+    function refreshWorkflowDetail(layout, unit, unitIdx, typeIdx) { layout.querySelector('.active-unit-name').textContent = unit; const pane = layout.closest('.tab-pane'); const pageId = layout.dataset.page || (document.querySelector('.page.active')?.id || '').replace('page-',''); const mode = pageId === 'submit' ? 'submit' : 'audit'; const done = pane?.id.endsWith('-done'); const stage = pageStage(pageId); layout.querySelector('.workflow-grid').innerHTML = `${baseApplyCard(mode, done, unitIdx, stage, typeIdx)}${auditCard(stageNames[1], mode, done, 1, unitIdx, stage)}${auditCard(stageNames[2], mode, done, 2, unitIdx, stage)}${auditCard(stageNames[3], mode, done, 3, unitIdx, stage)}${auditCard(stageNames[4], mode, done, 4, unitIdx, stage)}`; const scroller = layout.querySelector('.workflow-detail-scroll'); if(scroller) scroller.scrollTop = 0; }
+    function selectAllowanceTab(btn, typeIdx) { const pane = btn.closest('.workflow-pane'); const layout = pane.querySelector('.workflow-layout'); pane.querySelectorAll('.subtab').forEach(item => item.classList.remove('active')); btn.classList.add('active'); layout.dataset.type = typeIdx; layout.querySelector('.unit-list').outerHTML = unitList(typeIdx); refreshWorkflowDetail(layout, allowanceUnitGroups[typeIdx][0], 0, typeIdx); }
+    function selectUnit(row, unit, idx, typeIdx) { const layout = row.closest('.workflow-layout'); row.closest('tbody').querySelectorAll('tr').forEach(r => r.classList.remove('active')); row.classList.add('active'); refreshWorkflowDetail(layout, unit, idx, typeIdx ?? Number(layout.dataset.type || 0)); }
+    function statisticUnitTable(rows,scopeId) { return `<table class="region-table"><thead><tr><th><input type="checkbox" onclick="toggleRegionList(this,'${scopeId}')" title="全选" /></th><th>主管单位</th><th>基层单位</th></tr></thead><tbody>${rows.map(unit=>{const index=statisticUnitOptions.findIndex(item=>item[0]===unit[0]&&item[1]===unit[1]);return `<tr><td><input type="checkbox" data-i="${index}" /></td><td>${unit[0]}</td><td>${unit[1]}</td></tr>`;}).join('')}</tbody></table>`; }
+    function renderStatisticUnits() { const keyword=(document.getElementById('unitKeyword')?.value||'').trim(); const available=statisticUnitOptions.filter(unit=>!selectedStatisticUnits.some(item=>item[0]===unit[0]&&item[1]===unit[1])).filter(unit=>!keyword||unit[0].includes(keyword)||unit[1].includes(keyword)); document.getElementById('leftStatisticUnits').innerHTML=statisticUnitTable(available,'leftStatisticUnits'); document.getElementById('rightStatisticUnits').innerHTML=statisticUnitTable(selectedStatisticUnits,'rightStatisticUnits'); }
+    function openStatisticUnitModal() { const input=document.getElementById('unitKeyword'); if(input) input.value=''; renderStatisticUnits(); openModal('unitModal'); }
+    function moveSelectedStatisticUnits() { document.querySelectorAll('#leftStatisticUnits tbody input:checked').forEach(box=>{const unit=statisticUnitOptions[Number(box.dataset.i)];if(unit&&!selectedStatisticUnits.some(item=>item[1]===unit[1]))selectedStatisticUnits.push(unit);});renderStatisticUnits(); }
+    function cancelSelectedStatisticUnits() { const indexes=[...document.querySelectorAll('#rightStatisticUnits tbody input:checked')].map(box=>Number(box.dataset.i));selectedStatisticUnits=selectedStatisticUnits.filter(unit=>!indexes.includes(statisticUnitOptions.findIndex(item=>item[1]===unit[1])));renderStatisticUnits(); }
+    function clearStatisticUnitSearch() { const input=document.getElementById('unitKeyword');if(input)input.value='';renderStatisticUnits(); }
+    function confirmStatisticUnits() { const count=document.getElementById('selectedStatisticUnitCount');if(count)count.textContent=`已选单位（${selectedStatisticUnits.length}家）`;closeModal('unitModal'); }
+    function regionTable(rows, scopeId) { return `<table class="region-table"><thead><tr><th><input type="checkbox" onclick="toggleRegionList(this, '${scopeId}')" title="全选" /></th><th>地市</th><th>区县</th></tr></thead><tbody>${rows.map(region=>{const index=sichuanRegions.findIndex(item=>item[0]===region[0]&&item[1]===region[1]); return `<tr><td><input type="checkbox" data-i="${index}" /></td><td>${region[0]}</td><td>${region[1]}</td></tr>`;}).join('')}</tbody></table>`; }
+    function renderRegions() { const keyword=(document.getElementById('regionKeyword')?.value||'').trim(); const available=sichuanRegions.filter(region=>!selectedRegions.some(item=>item[0]===region[0]&&item[1]===region[1])).filter(region=>!keyword||region[0].includes(keyword)||region[1].includes(keyword)); const left=document.getElementById('leftRegions'), right=document.getElementById('rightRegions'); if(left) left.innerHTML=regionTable(available,'leftRegions'); if(right) right.innerHTML=regionTable(selectedRegions,'rightRegions'); }
+    function openRegionModal() { const input=document.getElementById('regionKeyword'); if(input) input.value=''; renderRegions(); openModal('regionModal'); }
+    function toggleRegionList(master, scopeId) { document.querySelectorAll(`#${scopeId} tbody input[type="checkbox"]`).forEach(item=>item.checked=master.checked); }
+    function moveSelectedRegions() { document.querySelectorAll('#leftRegions tbody input:checked').forEach(box=>{const region=sichuanRegions[Number(box.dataset.i)]; if(region&&!selectedRegions.some(item=>item[0]===region[0]&&item[1]===region[1])) selectedRegions.push(region);}); renderRegions(); }
+    function cancelSelectedRegions() { const indexes=[...document.querySelectorAll('#rightRegions tbody input:checked')].map(box=>Number(box.dataset.i)); selectedRegions=selectedRegions.filter(region=>!indexes.includes(sichuanRegions.findIndex(item=>item[0]===region[0]&&item[1]===region[1]))); renderRegions(); }
+    function clearRegionSearch() { const input=document.getElementById('regionKeyword'); if(input) input.value=''; renderRegions(); }
+    function confirmRegions() { const button=document.querySelector('.query-filter-grid .region-filter .btn'); if(button) button.textContent=selectedRegions.length?`已选${selectedRegions.length}项`:'选择区域'; closeModal('regionModal'); }
+    function personTable(rows, scopeId) { return `<table class="person-table"><thead><tr><th><input type="checkbox" onclick="togglePeopleList(this, '${scopeId}')" title="批量勾选" /></th><th>姓名</th><th>身份证号</th><th>基本工资对应岗位</th></tr></thead><tbody>${rows.map(p=>`<tr><td><input type="checkbox" data-i="${people.findIndex(x=>x[2]===p[2])}" /></td><td>${p[1]}</td><td>${p[2]}</td><td>${p[4]}</td></tr>`).join('')}</tbody></table>`; }
+    function renderPeople() { const keyword = (document.getElementById('personKeyword')?.value || '').trim(); const filtered = keyword ? people.filter(p => p[1].includes(keyword) || p[2].includes(keyword)) : people; document.getElementById('leftPeople').innerHTML = filtered.length ? personTable(filtered, 'leftPeople') : '<div style="padding:14px;color:#667085;font-size:13px;">未查询到匹配人员</div>'; document.getElementById('rightPeople').innerHTML = selectedPeople.length ? personTable(selectedPeople, 'rightPeople') : '<div style="padding:14px;color:#667085;font-size:13px;">暂未选择人员</div>'; }
+    function openPeople(ctx) { lastPickContext = ctx; selectedPeople = []; const input = document.getElementById('personKeyword'); if(input) input.value = ''; renderPeople(); openModal('personModal'); }
+    function togglePeopleList(master, scopeId) { document.querySelectorAll(`#${scopeId} tbody input[type="checkbox"]`).forEach(item => item.checked = master.checked); }
+    function moveSelected() { document.querySelectorAll('#leftPeople tbody input:checked').forEach(c => { const p = people[Number(c.dataset.i)]; if(!selectedPeople.find(x=>x[2]===p[2])) selectedPeople.push(p); }); renderPeople(); }
+    function cancelSelected() { const checkedIds = [...document.querySelectorAll('#rightPeople tbody input:checked')].map(c => people[Number(c.dataset.i)]?.[2]).filter(Boolean); selectedPeople = selectedPeople.filter(p => !checkedIds.includes(p[2])); renderPeople(); }
+    function clearPersonSearch(){ const input = document.getElementById('personKeyword'); if(input) input.value = ''; renderPeople(); }
+    function confirmPeople(){ const names = selectedPeople.map(p=>p[1]).join('、') || '未选择'; const target = document.getElementById(lastPickContext+'Selected'); if(target) target.textContent = `已选 ${selectedPeople.length} 人：${names}`; refreshSelectedRows(); closeModal('personModal'); }
+    const baseUploadCategories = ['特殊岗位津贴审批表','特殊岗位津贴人员花名册','单位公示情况','单位申报承诺书','按月享受津贴的人员岗位聘任变动需提供佐证材料（聘任文件、岗位变动通知等）','按月享受津贴的人员需提供在岗工作记录（考勤记录、工作日志、排班表等，需单位盖章）','临时与按天领取特殊岗位津贴人员需提供出勤表（单位盖章）','其他相关佐证材料'];
+    function renderUploadCategories(context='base'){ const categories=context==='supervisor'?['特岗审批表']:baseUploadCategories; const target=document.getElementById('uploadCategoryList'); if(target) target.innerHTML=categories.map((category,index)=>`<div class="upload-category"><strong>${index+1}、${category}</strong><input type="file" /><button class="btn ghost" onclick="mockSingleUpload('${category}')">上传</button></div>`).join(''); }
+    function openUploadModal(context='base'){ uploadContext=context; renderUploadCategories(context); openModal('uploadModal'); }
+    function mockSingleUpload(category){ uploaded = true; document.querySelectorAll('.attachment-count').forEach(el => { const text = el.textContent.trim(); if(text.startsWith('0')) el.textContent = '1 个'; if(text.includes('（0个）')) el.textContent = '附件（1个）'; }); alert(category + '已上传：原型演示'); }
+    function mockUploaded(){ uploaded = true; document.querySelectorAll('.attachment-count').forEach(el => { const text = el.textContent.trim(); if(text.startsWith('0')) el.textContent = '1 个'; if(text.includes('（0个）')) el.textContent = '附件（1个）'; }); alert('分类附件已确认上传：原型演示'); closeModal('uploadModal'); }
+    function needUpload(type){ if(!uploaded){ alert(type === 'pass' ? '通过前必须上传附件。' : '提交前必须上传附件。'); openUploadModal(type === 'pass' ? 'supervisor' : 'base'); return; } alert(type === 'pass' ? '审核通过：原型演示' : '提交成功：原型演示'); }
+    function editBack(kind){ if(kind==='change'){ activateMenu('change'); document.getElementById('change-new').innerHTML = newChangePane('<div class="notice" style="margin-top:12px">已携带待编辑明细回到“新增变更”。</div>'); activateTab('change-new'); } else { activateMenu('retro'); document.getElementById('retro-new').innerHTML = newRetroPane('<div class="notice" style="margin-top:12px">已携带待编辑明细回到“新增补发”。</div>'); activateTab('retro-new'); } }
+    function activateMenu(page){ document.querySelectorAll('.menu-item').forEach(b=>b.classList.toggle('active', b.dataset.page===page)); document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-'+page).classList.add('active'); const map={change:'专职特岗变更',retro:'临时特岗补发',submit:'特岗结果申报',audit1:'特岗主管审核',audit2:'特岗人社初审',audit3:'特岗人社复审',audit4:'特岗人社终审',query:'特岗数据查询',statistics:'特岗数据统计',homeTodo:'首页待办事项',approvalConfig:'审批环节配置'}; document.getElementById('topTitle').textContent = map[page]; }
+
+    renderChange(); renderRetro(); renderWorkflow('submit','特殊岗位津贴申报','submit'); renderWorkflow('audit1','主管审核','audit'); renderWorkflow('audit2','工资处初审','audit'); renderWorkflow('audit3','工资处复审','audit'); renderWorkflow('audit4','工资处终审','audit'); renderQuery(); renderStatistics(); renderHomeTodo(); renderApprovalConfig(); bindTabs();
+    document.querySelectorAll('.menu-item').forEach(btn => btn.addEventListener('click', () => activateMenu(btn.dataset.page)));
+    document.querySelectorAll('.subtabs .subtab').forEach(btn => btn.addEventListener('click', () => { const group = btn.parentElement; group.querySelectorAll('.subtab').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); }));
+  </script>
+</body>
+</html>

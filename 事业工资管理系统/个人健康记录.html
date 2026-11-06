@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人健康记录</title>
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --border: #e5e9f0;
+    --text: #1f2937;
+    --text2: #6b7280;
+    --accent: #0e7490;
+    --accent-light: #e0f2f7;
+    --danger: #dc2626;
+    --green: #16a34a;
+    --orange: #ea580c;
+    --red: #dc2626;
+    --blue: #2563eb;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  /* 吸顶工具条：标题 + 设置 + 记录表单，滚动时整体固定在顶部 */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg);
+    padding: 10px 0 12px;
+    transition: box-shadow .2s;
+  }
+  .topbar.is-stuck { box-shadow: 0 6px 16px rgba(16,24,40,.10); }
+
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .topbar header { margin-bottom: 12px; height: 46px; }
+  h1 { font-size: 20px; font-weight: 700; }
+  h1 .dot { color: var(--accent); }
+
+  .settings-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-size: 13px; color: var(--text2);
+  }
+  .settings-bar .sitem { display: flex; align-items: center; gap: 6px; }
+  .settings-bar input {
+    width: 76px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; text-align: center; outline: none;
+  }
+  .settings-bar input:focus { border-color: var(--accent); }
+  .settings-bar input[type="time"] { width: 98px; }
+  .settings-bar .sep { color: #d1d5db; }
+  .btn-save {
+    padding: 6px 14px; border: none; border-radius: 8px; background: var(--accent); color: #fff;
+    cursor: pointer; font-size: 13px;
+  }
+  .btn-save:hover { opacity: .88; }
+  .btn-remind {
+    padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: #fff;
+    color: var(--text2); cursor: pointer; font-size: 13px;
+  }
+  .btn-remind.on { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: 600; }
+  .topbar .divider { height: 1px; background: var(--border); margin: 14px 0 16px; }
+  #waterInput, #exerciseInput { width: 110px; }
+  .edit-hint {
+    display: none; margin-top: 12px; font-size: 12px; color: var(--accent);
+    background: var(--accent-light); border: 1px solid #b6dfea; border-radius: 8px;
+    padding: 6px 12px; width: fit-content;
+  }
+  .topbar .card { padding: 16px 20px; }
+  .topbar .settings-bar { min-height: 34px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 14px; letter-spacing: .5px; }
+
+  .form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 12px; color: var(--text2); }
+  .field input {
+    padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px;
+    outline: none; transition: border-color .15s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  #weightInput { width: 130px; }
+  #dateInput { width: 160px; }
+  .btn-main {
+    padding: 10px 28px; border: none; border-radius: 8px; background: var(--accent); color: #fff;
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .15s;
+  }
+  .btn-main:hover { opacity: .88; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px 16px;
+  }
+  .stat .label { font-size: 12px; color: var(--text2); }
+  .stat .value { font-size: 24px; font-weight: 700; margin-top: 2px; }
+  .stat .sub { font-size: 12px; margin-top: 2px; color: var(--text2); }
+  .up { color: var(--orange); }
+  .down { color: var(--green); }
+
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; color: #fff; vertical-align: 3px; margin-left: 8px; }
+
+  .chart-box { position: relative; }
+  #chart { width: 100%; height: 300px; display: block; }
+  .tooltip {
+    position: absolute; pointer-events: none; display: none; z-index: 5;
+    background: rgba(31, 41, 55, .95); color: #fff; font-size: 12px; line-height: 1.5;
+    padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+  th { color: var(--text2); font-weight: 600; font-size: 12px; background: #f9fafb; }
+  tbody tr:hover { background: var(--accent-light); }
+  td .del {
+    border: none; background: none; color: var(--danger); cursor: pointer; font-size: 12px; padding: 2px 6px;
+    border-radius: 6px;
+  }
+  td .del:hover { background: #fee2e2; }
+  .empty { text-align: center; color: var(--text2); padding: 28px 0; font-size: 13px; }
+
+  /* 目标进度 */
+  .goal-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+  .goal-desc { font-size: 13px; color: var(--text2); }
+  .goal-desc b { color: var(--text); }
+  .goal-pct { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .bar { height: 14px; background: #eef1f6; border-radius: 999px; overflow: hidden; }
+  .bar-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #22d3ee, #0e7490); transition: width .5s ease; }
+  .bar-fill.done { background: linear-gradient(90deg, #4ade80, #16a34a); }
+  .goal-meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; color: var(--text2); }
+  .goal-meta b { color: var(--text); font-size: 13px; }
+
+  /* 今日提醒横幅 */
+  .banner {
+    display: none; align-items: center; justify-content: space-between; gap: 10px;
+    background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+    padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 13px;
+  }
+  .banner.show { display: flex; }
+  .banner .go { border: none; background: #f59e0b; color: #fff; padding: 5px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .banner .go:hover { opacity: .9; }
+  .banner .close { border: none; background: none; color: #92400e; font-size: 18px; cursor: pointer; padding: 0 2px; line-height: 1; }
+
+  .footer-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; flex-wrap: wrap; gap: 10px; }
+  .btn-ghost {
+    padding: 7px 14px; border: 1px solid var(--border); border-radius: 8px; background: #fff;
+    color: var(--text2); cursor: pointer; font-size: 13px;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ghost.danger:hover { border-color: var(--danger); color: var(--danger); }
+  .hint { font-size: 12px; color: var(--text2); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 36px; transform: translateX(-50%) translateY(20px);
+    background: rgba(31, 41, 55, .95); color: #fff; padding: 9px 20px; border-radius: 999px;
+    font-size: 13px; opacity: 0; transition: all .25s; pointer-events: none; z-index: 99;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 吸顶工具条：标题 + 设置 + 记录，滚动时固定在顶部 -->
+  <div class="topbar" id="topbar">
+    <header>
+      <h1>个人健康记录</h1>
+      <button class="btn-remind" id="remindToggle">🔕 提醒：关</button>
+    </header>
+
+    <!-- 今日提醒横幅 -->
+    <div class="banner" id="todayBanner">
+      <span id="bannerText"></span>
+      <span style="display:flex; gap:8px; align-items:center">
+        <button class="go" id="bannerGo">去记录</button>
+        <button class="close" id="bannerClose" title="今天先不记">×</button>
+      </span>
+    </div>
+
+    <!-- 设置 + 记录：合并为一张卡片，上设置 / 下记录 -->
+    <div class="card">
+      <div class="settings-bar">
+        <span class="sitem">身高 <input type="number" id="heightInput" placeholder="cm" min="80" max="250" step="0.5"> cm</span>
+        <span class="sep">|</span>
+        <span class="sitem">目标体重 <input type="number" id="goalInput" placeholder="如 65.0" min="25" max="300" step="0.1"> kg</span>
+        <span class="sep">|</span>
+        <span class="sitem">每日提醒 <input type="time" id="remindTime" value="20:00"></span>
+        <button class="btn-save" id="saveSettings">保存设置</button>
+      </div>
+      <div class="divider"></div>
+      <div class="form-row">
+        <div class="field">
+          <label>日期</label>
+          <input type="date" id="dateInput">
+        </div>
+        <div class="field">
+          <label>体重（kg）</label>
+          <input type="number" id="weightInput" placeholder="如 65.5" min="20" max="300" step="0.1">
+        </div>
+        <div class="field">
+          <label>饮水量（L，可选）</label>
+          <input type="number" id="waterInput" placeholder="如 1.5" min="0" max="10" step="0.1">
+        </div>
+        <div class="field">
+          <label>运动时长（分钟，可选）</label>
+          <input type="number" id="exerciseInput" placeholder="如 30" min="0" max="600" step="1">
+        </div>
+        <button class="btn-main" id="addBtn">记一笔</button>
+      </div>
+      <div class="edit-hint" id="editHint"></div>
+    </div>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="stats" id="stats"></div>
+  <div style="height:16px"></div>
+
+  <!-- 目标进度 -->
+  <div class="card" id="goalCard" style="display:none">
+    <h2>目标进度</h2>
+    <div class="goal-head">
+      <div class="goal-desc" id="goalDesc"></div>
+      <div class="goal-pct" id="goalPct"></div>
+    </div>
+    <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+    <div class="goal-meta" id="goalMeta"></div>
+    <div class="hint" style="margin-top:10px">进度 = 从第一条记录到目标体重的完成度；在上方设置栏可设置或修改目标体重。</div>
+  </div>
+
+  <!-- 趋势图 -->
+  <div class="card">
+    <h2>体重趋势</h2>
+    <div class="chart-box">
+      <canvas id="chart"></canvas>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+    <div class="hint" style="margin-top:8px">提示：选择已有记录的日期，数据会自动回填到表单，修改后点「更新记录」即可覆盖。</div>
+  </div>
+
+  <!-- 历史列表 -->
+  <div class="card">
+    <h2>历史记录</h2>
+    <table>
+      <thead>
+        <tr><th style="width:20%">日期</th><th>体重</th><th>饮水量</th><th>运动</th><th>BMI</th><th>较前一次</th><th style="width:70px">操作</th></tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none">还没有记录，先在上方"记一笔"吧 👆</div>
+  </div>
+
+  <div class="footer-actions">
+    <span class="hint">数据保存在本机浏览器中，建议定期导出 CSV 备份；误删后可点"导入 CSV"恢复。</span>
+    <div style="display:flex; gap:10px">
+      <button class="btn-ghost" id="importBtn">导入 CSV</button>
+      <button class="btn-ghost" id="exportBtn">导出 CSV</button>
+      <button class="btn-ghost danger" id="clearBtn">清空全部数据</button>
+    </div>
+    <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none">
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY_REC = 'wt_records';
+  var KEY_H   = 'wt_height';
+  var KEY_G   = 'wt_goal';
+  var KEY_RM  = 'wt_remind';   // { enabled, time }
+  var KEY_RN  = 'wt_notified'; // 最后一次已提醒的日期
+  var KEY_BD  = 'wt_banner';   // 横幅"今天先不记"的日期
+
+  var records = [];
+  try { records = JSON.parse(localStorage.getItem(KEY_REC) || '[]'); } catch (e) { records = []; }
+  if (!Array.isArray(records)) records = [];
+  var height = parseFloat(localStorage.getItem(KEY_H)) || 0;
+  var goal = parseFloat(localStorage.getItem(KEY_G)) || 0;
+  var remind = { enabled: false, time: '20:00' };
+  try {
+    var rm = JSON.parse(localStorage.getItem(KEY_RM) || 'null');
+    if (rm && typeof rm === 'object') {
+      remind.enabled = !!rm.enabled;
+      if (rm.time) remind.time = rm.time;
+    }
+  } catch (e) {}
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- 工具 ----------
+  function fmtDate(d) {
+    var y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+    return y + '-' + (m < 10 ? '0' + m : m) + '-' + (day < 10 ? '0' + day : day);
+  }
+  function today() { return fmtDate(new Date()); }
+  function save() { localStorage.setItem(KEY_REC, JSON.stringify(records)); }
+
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () { t.classList.remove('show'); }, 2200);
+  }
+
+  function sorted() {
+    return records.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  }
+
+  // BMI（中国成人标准）
+  function bmiOf(w) {
+    if (!height || height <= 0) return null;
+    return w / Math.pow(height / 100, 2);
+  }
+  function bmiCat(b) {
+    if (b === null) return null;
+    if (b < 18.5)  return { label: '偏瘦', color: '#2563eb' };
+    if (b < 24)    return { label: '正常', color: '#16a34a' };
+    if (b < 28)    return { label: '超重', color: '#ea580c' };
+    return         { label: '肥胖', color: '#dc2626' };
+  }
+  function fmt1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+  // 记录的饮水量格式化（未记录返回 null）
+  function fmtW(r) {
+    var w = r.water;
+    return (typeof w === 'number' && isFinite(w) && w >= 0) ? fmt1(w) : null;
+  }
+  // 记录的运动时长格式化（未记录返回 null，整数分钟）
+  function fmtE(r) {
+    var e = r.exercise;
+    return (typeof e === 'number' && isFinite(e) && e >= 0) ? String(Math.round(e)) : null;
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // ---------- 渲染 ----------
+  function render() {
+    renderStats();
+    renderTable();
+    renderGoal();
+    updateBanner();
+    drawChart();
+  }
+
+  function renderStats() {
+    var arr = sorted();
+    var box = $('stats');
+    if (arr.length === 0) {
+      box.innerHTML = '<div class="stat"><div class="label">最新体重</div><div class="value">--</div><div class="sub">暂无数据</div></div>'
+        + '<div class="stat"><div class="label">饮水量</div><div class="value">--</div><div class="sub">随体重一起记录</div></div>'
+        + '<div class="stat"><div class="label">运动时长</div><div class="value">--</div><div class="sub">随体重一起记录</div></div>'
+        + '<div class="stat"><div class="label">BMI</div><div class="value">--</div><div class="sub">' + (height ? '记一条体重后显示' : '请先填写身高') + '</div></div>'
+        + '<div class="stat"><div class="label">区间变化</div><div class="value">--</div><div class="sub">首条记录至今</div></div>';
+      return;
+    }
+    var latest = arr[arr.length - 1];
+    var first  = arr[0];
+    var prev   = arr.length > 1 ? arr[arr.length - 2] : null;
+
+    // 最新体重
+    var dW = prev ? latest.weight - prev.weight : 0;
+    var dWHtml = prev
+      ? '<span class="' + (dW > 0 ? 'up' : dW < 0 ? 'down' : '') + '">' + (dW > 0 ? '▲' : dW < 0 ? '▼' : '—') + ' ' + fmt1(Math.abs(dW)) + ' kg</span>'
+      : '首条记录';
+    var s1 = '<div class="stat"><div class="label">最新体重</div><div class="value">' + fmt1(latest.weight) + ' <span style="font-size:13px;font-weight:400;color:#6b7280">kg</span></div><div class="sub">' + esc(latest.date) + ' · ' + dWHtml + '</div></div>';
+
+    // 饮水量（取最新一条记录）
+    var lw = fmtW(latest);
+    var s1b = lw === null
+      ? '<div class="stat"><div class="label">饮水量</div><div class="value">--</div><div class="sub">' + esc(latest.date) + ' · 未记录</div></div>'
+      : '<div class="stat"><div class="label">饮水量</div><div class="value">' + lw + ' <span style="font-size:13px;font-weight:400;color:#6b7280">L</span></div><div class="sub">' + esc(latest.date) + '</div></div>';
+
+    // 运动时长（取最新一条记录）
+    var le = fmtE(latest);
+    var s1c = le === null
+      ? '<div class="stat"><div class="label">运动时长</div><div class="value">--</div><div class="sub">' + esc(latest.date) + ' · 未记录</div></div>'
+      : '<div class="stat"><div class="label">运动时长</div><div class="value">' + le + ' <span style="font-size:13px;font-weight:400;color:#6b7280">分钟</span></div><div class="sub">' + esc(latest.date) + '</div></div>';
+
+    // BMI
+    var b = bmiOf(latest.weight), cat = bmiCat(b);
+    var s2;
+    if (b === null) {
+      s2 = '<div class="stat"><div class="label">BMI</div><div class="value">--</div><div class="sub">请先在右上角填写身高</div></div>';
+    } else {
+      s2 = '<div class="stat"><div class="label">BMI</div><div class="value">' + b.toFixed(1) + '<span class="tag" style="background:' + cat.color + '">' + cat.label + '</span></div><div class="sub">按中国成人标准：18.5–24 为正常</div></div>';
+    }
+
+    // 区间变化
+    var dT = latest.weight - first.weight;
+    var s4 = '<div class="stat"><div class="label">区间变化</div><div class="value ' + (dT > 0 ? 'up' : dT < 0 ? 'down' : '') + '">' + (dT > 0 ? '+' : '') + fmt1(dT) + ' <span style="font-size:13px;font-weight:400;color:#6b7280">kg</span></div><div class="sub">首条记录至今</div></div>';
+
+    box.innerHTML = s1 + s1b + s1c + s2 + s4;
+  }
+
+  function renderTable() {
+    var arr = sorted().reverse(); // 最新在前
+    var tb = $('tbody'), empty = $('empty');
+    if (arr.length === 0) {
+      tb.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    var html = '';
+    for (var i = 0; i < arr.length; i++) {
+      var r = arr[i];
+      var idx = records.indexOf(r);
+      // 较前一次（时间上更早的那条）
+      var before = sorted().filter(function (x) { return x.date < r.date; });
+      var prev = before.length ? before[before.length - 1] : null;
+      var dCell = '—';
+      if (prev) {
+        var d = r.weight - prev.weight;
+        var cls = d > 0 ? 'up' : d < 0 ? 'down' : '';
+        dCell = '<span class="' + cls + '">' + (d > 0 ? '▲ +' : d < 0 ? '▼ ' : '— ') + (d !== 0 ? fmt1(Math.abs(d)) : '0.0') + '</span>';
+      }
+      var b = bmiOf(r.weight);
+      var bCell = b === null ? '—' : b.toFixed(1);
+      var lwCell = fmtW(r) === null ? '—' : fmtW(r) + ' L';
+      var leCell = fmtE(r) === null ? '—' : fmtE(r) + ' 分钟';
+      html += '<tr><td>' + esc(r.date) + '</td><td><b>' + fmt1(r.weight) + '</b> kg</td><td>' + lwCell + '</td><td>' + leCell + '</td><td>' + bCell + '</td><td>' + dCell + '</td>'
+        + '<td><button class="del" data-idx="' + idx + '">删除</button></td></tr>';
+    }
+    tb.innerHTML = html;
+
+    tb.querySelectorAll('.del').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = parseInt(btn.getAttribute('data-idx'), 10);
+        var r = records[idx];
+        if (!r) return;
+        if (!confirm('确定删除 ' + r.date + ' 的记录（' + fmt1(r.weight) + ' kg）吗？')) return;
+        records.splice(idx, 1);
+        save();
+        render();
+        syncFormForDate($('dateInput').value); // 若删的正是表单日期，同步清空回填态
+        toast('已删除');
+      });
+    });
+  }
+
+  // ---------- 目标进度 & 今日横幅 ----------
+  function renderGoal() {
+    var card = $('goalCard');
+    var arr = sorted();
+    if (!(goal > 0) || arr.length === 0) { card.style.display = 'none'; return; }
+    card.style.display = '';
+
+    var start = arr[0].weight;
+    var cur = arr[arr.length - 1].weight;
+    var total = goal - start;   // 目标总变化（带符号）
+    var done = cur - start;     // 已完成变化（带符号）
+    var reached;
+    if (total === 0) reached = cur === goal;
+    else reached = total < 0 ? cur <= goal : cur >= goal;
+
+    var rawPct = total === 0 ? (reached ? 100 : 0) : done / total * 100;
+    if (!isFinite(rawPct)) rawPct = 0;
+    var barPct = Math.max(0, Math.min(100, rawPct));
+
+    var mode = total < 0 ? '减重' : total > 0 ? '增重' : '保持';
+    $('goalDesc').innerHTML = mode + '模式 · 起点 <b>' + fmt1(start) + '</b> kg → 目标 <b>' + fmt1(goal) + '</b> kg';
+    $('goalPct').textContent = Math.max(0, Math.round(rawPct)) + '%';
+
+    var fill = $('barFill');
+    fill.style.width = barPct + '%';
+    fill.className = reached ? 'bar-fill done' : 'bar-fill';
+
+    var diff = cur - goal;
+    var meta;
+    if (reached) {
+      var over = Math.abs(diff);
+      meta = '当前 <b>' + fmt1(cur) + '</b> kg · 已达成目标 🎉' +
+        (over > 0.05 ? '（' + (diff < 0 ? '低于' : '高出') + '目标 ' + fmt1(over) + ' kg）' : '');
+    } else {
+      var rightDir = (done >= 0) === (total >= 0);
+      var doneAbs = rightDir ? Math.abs(done) : 0;
+      meta = '当前 <b>' + fmt1(cur) + '</b> kg · 已' + mode + ' <b>' + fmt1(doneAbs) + '</b> kg · 还差 <b>' + fmt1(Math.abs(diff)) + '</b> kg 达标';
+    }
+    $('goalMeta').innerHTML = meta;
+  }
+
+  function updateBanner() {
+    var b = $('todayBanner');
+    var t = today();
+    var hasToday = records.some(function (r) { return r.date === t; });
+    var dismissed = localStorage.getItem(KEY_BD) === t;
+    if (!hasToday && !dismissed) {
+      var d = new Date();
+      $('bannerText').textContent = '📅 今天（' + (d.getMonth() + 1) + '月' + d.getDate() + '日）还没有记录体重哦';
+      b.classList.add('show');
+    } else {
+      b.classList.remove('show');
+    }
+  }
+
+  // ---------- 图表（原生 Canvas） ----------
+  var chartPoints = [];
+
+  function drawChart() {
+    var canvas = $('chart');
+    var box = canvas.parentElement;
+    var cssW = box.clientWidth;
+    var cssH = 300;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    canvas.style.height = cssH + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    var arr = sorted();
+    chartPoints = [];
+
+    if (arr.length === 0) {
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('暂无数据，先记录一条体重吧', cssW / 2, cssH / 2);
+      return;
+    }
+
+    var pad = { l: 46, r: 20, t: 18, b: 30 };
+    var plotW = cssW - pad.l - pad.r;
+    var plotH = cssH - pad.t - pad.b;
+
+    // Y 轴范围
+    var ws = arr.map(function (r) { return r.weight; });
+    if (goal > 0) ws = ws.concat([goal]); // 让目标线也在坐标范围内
+    var wMin = Math.min.apply(null, ws), wMax = Math.max.apply(null, ws);
+    var span = Math.max(wMax - wMin, 0.8);
+    wMin -= span * 0.18; wMax += span * 0.18;
+    if (wMax - wMin < 2) { var mid = (wMax + wMin) / 2; wMin = mid - 1; wMax = mid + 1; }
+
+    // 美观刻度
+    var ticks = niceTicks(wMin, wMax, 5);
+
+    // X 轴：按真实时间比例
+    var tMin = new Date(arr[0].date).getTime();
+    var tMax = new Date(arr[arr.length - 1].date).getTime();
+    if (tMax === tMin) { tMin -= 43200000; tMax += 43200000; } // 单点时前后各留 12h
+
+    function xPos(dateStr) {
+      var t = new Date(dateStr).getTime();
+      return pad.l + (t - tMin) / (tMax - tMin) * plotW;
+    }
+    function yPos(w) {
+      return pad.t + (1 - (w - ticks.min) / (ticks.max - ticks.min)) * plotH;
+    }
+
+    // 背景 & 网格
+    ctx.font = '11px "Segoe UI",sans-serif';
+    for (var i = 0; i < ticks.list.length; i++) {
+      var v = ticks.list[i], y = yPos(v);
+      ctx.strokeStyle = '#eef1f6';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(cssW - pad.r, y); ctx.stroke();
+      ctx.fillStyle = '#9ca3af';
+      ctx.textAlign = 'right';
+      ctx.fillText(fmt1(v), pad.l - 8, y + 4);
+    }
+
+    // X 轴日期标签（最多 8 个）
+    var labelCount = Math.min(arr.length, 8);
+    ctx.textAlign = 'center';
+    for (var j = 0; j < labelCount; j++) {
+      var idx = Math.round(j * (arr.length - 1) / Math.max(labelCount - 1, 1));
+      var x = xPos(arr[idx].date);
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillText(arr[idx].date.slice(5), x, cssH - 8);
+    }
+
+    // 面积填充
+    if (arr.length > 1) {
+      var grad = ctx.createLinearGradient(0, pad.t, 0, cssH - pad.b);
+      grad.addColorStop(0, 'rgba(14,116,144,.18)');
+      grad.addColorStop(1, 'rgba(14,116,144,0)');
+      ctx.beginPath();
+      ctx.moveTo(xPos(arr[0].date), yPos(arr[0].weight));
+      for (var k = 1; k < arr.length; k++) ctx.lineTo(xPos(arr[k].date), yPos(arr[k].weight));
+      ctx.lineTo(xPos(arr[arr.length - 1].date), cssH - pad.b);
+      ctx.lineTo(xPos(arr[0].date), cssH - pad.b);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // 目标参考线（绿色虚线）
+    if (goal > 0) {
+      var gy = yPos(goal);
+      ctx.save();
+      ctx.strokeStyle = '#16a34a';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(pad.l, gy);
+      ctx.lineTo(cssW - pad.r, gy);
+      ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = '#16a34a';
+      ctx.textAlign = 'right';
+      ctx.fillText('目标 ' + fmt1(goal), cssW - pad.r - 2, gy - 5);
+    }
+
+    // 折线
+    ctx.beginPath();
+    ctx.moveTo(xPos(arr[0].date), yPos(arr[0].weight));
+    for (var k2 = 1; k2 < arr.length; k2++) ctx.lineTo(xPos(arr[k2].date), yPos(arr[k2].weight));
+    ctx.strokeStyle = '#0e7490';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // 数据点
+    for (var m = 0; m < arr.length; m++) {
+      var px = xPos(arr[m].date), py = yPos(arr[m].weight);
+      ctx.beginPath();
+      ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#0e7490';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(px, py, 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      chartPoints.push({ x: px, y: py, r: arr[m] });
+    }
+  }
+
+  function niceTicks(min, max, count) {
+    var range = max - min;
+    var steps = [0.1, 0.2, 0.5, 1, 2, 2.5, 5, 10, 20, 50];
+    var step = steps[steps.length - 1];
+    for (var i = 0; i < steps.length; i++) {
+      if (range / steps[i] <= count) { step = steps[i]; break; }
+    }
+    var start = Math.floor(min / step) * step;
+    var end = Math.ceil(max / step) * step;
+    var list = [];
+    for (var v = start; v <= end + step / 2; v += step) {
+      list.push(Math.round(v * 100) / 100);
+    }
+    return { min: start, max: end, list: list };
+  }
+
+  // 图表悬浮提示
+  var tip = $('tooltip');
+  $('chart').addEventListener('mousemove', function (e) {
+    var rect = e.target.getBoundingClientRect();
+    var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    var best = null, bestDist = 28;
+    for (var i = 0; i < chartPoints.length; i++) {
+      var p = chartPoints[i];
+      var d = Math.sqrt((p.x - mx) * (p.x - mx) + (p.y - my) * (p.y - my));
+      if (d < bestDist) { bestDist = d; best = p; }
+    }
+    if (!best) { tip.style.display = 'none'; return; }
+    var b = bmiOf(best.r.weight);
+    var lwTip = fmtW(best.r);
+    var leTip = fmtE(best.r);
+    tip.innerHTML = '<b>' + esc(best.r.date) + '</b><br>体重：' + fmt1(best.r.weight) + ' kg' + (b !== null ? '<br>BMI：' + b.toFixed(1) : '') + (lwTip !== null ? '<br>饮水：' + lwTip + ' L' : '') + (leTip !== null ? '<br>运动：' + leTip + ' 分钟' : '');
+    tip.style.display = 'block';
+    var bx = Math.min(best.x + 12, rect.width - 140);
+    tip.style.left = bx + 'px';
+    tip.style.top = Math.max(best.y - 52, 4) + 'px';
+  });
+  $('chart').addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+
+  // ---------- 交互 ----------
+  // 日期回填：选中日期已有记录时，把数据填进表单供修改
+  function syncFormForDate(date) {
+    var hint = $('editHint');
+    var r = records.find(function (x) { return x.date === date; });
+    if (r) {
+      $('weightInput').value = fmt1(r.weight);
+      var lw = fmtW(r);
+      var le = fmtE(r);
+      $('waterInput').value = lw === null ? '' : lw;
+      $('exerciseInput').value = le === null ? '' : le;
+      $('addBtn').textContent = '更新记录';
+      hint.textContent = '📝 ' + date + ' 已有记录（' + fmt1(r.weight) + ' kg' + (lw !== null ? ' · ' + lw + ' L' : '') + (le !== null ? ' · ' + le + ' 分钟' : '') + '），已回填到表单，修改后点「更新记录」覆盖';
+      hint.style.display = 'block';
+    } else {
+      $('weightInput').value = '';
+      $('waterInput').value = '';
+      $('exerciseInput').value = '';
+      $('addBtn').textContent = '记一笔';
+      hint.style.display = 'none';
+    }
+  }
+  $('dateInput').value = today();
+  syncFormForDate($('dateInput').value);
+  $('dateInput').addEventListener('change', function () {
+    syncFormForDate($('dateInput').value);
+  });
+
+  $('addBtn').addEventListener('click', function () {
+    var date = $('dateInput').value;
+    var w = parseFloat($('weightInput').value);
+    if (!date) { toast('请选择日期'); return; }
+    if (!w || w < 20 || w > 300) { toast('请输入 20–300 之间的有效体重'); return; }
+    // 饮水量：留空 = 未记录；0–10 L 有效
+    var water = null;
+    var wv = parseFloat($('waterInput').value);
+    if (isFinite(wv) && wv >= 0 && wv <= 10) water = Math.round(wv * 10) / 10;
+    // 运动时长：留空 = 未记录；0–600 分钟有效（整数）
+    var exercise = null;
+    var ev = parseFloat($('exerciseInput').value);
+    if (isFinite(ev) && ev >= 0 && ev <= 600) exercise = Math.round(ev);
+    var exist = records.find(function (r) { return r.date === date; });
+    if (exist) {
+      // 编辑模式（已回填）：直接覆盖，无需弹确认
+      exist.weight = Math.round(w * 10) / 10;
+      exist.water = water;
+      exist.exercise = exercise;
+    } else {
+      records.push({ date: date, weight: Math.round(w * 10) / 10, water: water, exercise: exercise });
+    }
+    save();
+    records.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    render();
+    $('dateInput').value = today();
+    syncFormForDate(today());
+    toast(exist ? '已更新 ' + date + ' 的记录 ✓' : '已记录 ✓');
+  });
+
+  // 回车快捷提交
+  $('weightInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('addBtn').click(); });
+
+  // ---------- 设置：身高 / 目标 / 提醒 ----------
+  $('heightInput').value = height || '';
+  $('goalInput').value = goal > 0 ? goal : '';
+
+  $('saveSettings').addEventListener('click', function () {
+    var h = parseFloat($('heightInput').value);
+    if (h && (h < 80 || h > 250)) { toast('身高需在 80–250 cm 之间'); return; }
+    var g = parseFloat($('goalInput').value);
+    if ($('goalInput').value !== '' && g > 0 && (g < 25 || g > 300)) { toast('目标体重需在 25–300 kg 之间'); return; }
+    var t = $('remindTime').value || '20:00';
+    if (h) { height = h; localStorage.setItem(KEY_H, String(height)); }
+    if (g > 0) { goal = Math.round(g * 10) / 10; localStorage.setItem(KEY_G, String(goal)); }
+    else { goal = 0; localStorage.removeItem(KEY_G); }
+    remind.time = t;
+    saveRemind();
+    render();
+    toast('设置已保存 ✓');
+  });
+
+  // 每日提醒
+  function saveRemind() { localStorage.setItem(KEY_RM, JSON.stringify(remind)); }
+  function updateRemindBtn() {
+    var btn = $('remindToggle');
+    if (remind.enabled) { btn.classList.add('on'); btn.textContent = '🔔 提醒：开'; }
+    else { btn.classList.remove('on'); btn.textContent = '🔕 提醒：关'; }
+  }
+  function checkReminder() {
+    if (!remind.enabled) return;
+    var now = new Date();
+    var hh = now.getHours(), mm = now.getMinutes();
+    var nowHM = (hh < 10 ? '0' + hh : hh) + ':' + (mm < 10 ? '0' + mm : mm);
+    if (nowHM < (remind.time || '20:00')) return;
+    var t = today();
+    if (localStorage.getItem(KEY_RN) === t) return;              // 今天已提醒过
+    if (records.some(function (r) { return r.date === t; })) return; // 今天已记录
+    try { localStorage.setItem(KEY_RN, t); } catch (e) {}
+    var viaSys = false;
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        var n = new Notification('个人健康记录提醒', { body: '今天还没记录体重，记得称一称哦 ⚖️', tag: 'wt-remind' });
+        n.onclick = function () { try { window.focus(); } catch (e) {} try { n.close(); } catch (e) {} $('weightInput').focus(); };
+        viaSys = true;
+      }
+    } catch (e) {}
+    toast(viaSys ? '已发送系统通知提醒 ✓' : '⏰ 提醒：今天还没记录体重哦！');
+  }
+  $('remindToggle').addEventListener('click', function () {
+    if (remind.enabled) {
+      remind.enabled = false;
+      saveRemind();
+      updateRemindBtn();
+      toast('每日提醒已关闭');
+      return;
+    }
+    var finish = function () {
+      remind.enabled = true;
+      saveRemind();
+      updateRemindBtn();
+      try { localStorage.removeItem(KEY_RN); } catch (e) {} // 允许今天立即补发一次
+      checkReminder();
+      toast('每日提醒已开启 ✓（需保持本页面处于打开状态）');
+    };
+    try {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(function (p) {
+          if (p === 'denied') toast('浏览器通知被拒绝，将改用页面内提醒');
+          finish();
+        }).catch(function () { finish(); });
+      } else {
+        finish();
+      }
+    } catch (e) { finish(); }
+  });
+
+  // 今日横幅
+  $('bannerGo').addEventListener('click', function () {
+    $('weightInput').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    $('weightInput').focus();
+  });
+  $('bannerClose').addEventListener('click', function () {
+    try { localStorage.setItem(KEY_BD, today()); } catch (e) {}
+    $('todayBanner').classList.remove('show');
+  });
+
+  // 导出 CSV（含身高 / 目标体重设置行，供导入还原）
+  $('exportBtn').addEventListener('click', function () {
+    var hasData = records.length > 0;
+    if (!hasData && !height && !goal) { toast('暂无数据可导出'); return; }
+    var lines = ['# 个人健康记录备份', '# 导出时间,' + today(), '# 身高(cm),' + (height || ''), '# 目标体重(kg),' + (goal > 0 ? goal : '')];
+    lines.push('日期,体重(kg),饮水量(L),运动(分钟),BMI');
+    sorted().forEach(function (r) {
+      var b = bmiOf(r.weight);
+      lines.push(r.date + ',' + fmt1(r.weight) + ',' + (fmtW(r) === null ? '' : fmtW(r)) + ',' + (fmtE(r) === null ? '' : fmtE(r)) + ',' + (b === null ? '' : b.toFixed(1)));
+    });
+    var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '个人健康记录备份_' + today() + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('已导出（含身高/目标设置）✓');
+  });
+
+  // ---------- 导入 CSV（恢复备份） ----------
+  // 日期解析：兼容 YYYY-MM-DD、YYYY/M/D、YYYY.M.D、M/D/YYYY、D/M/YYYY（首段>12 时）
+  function makeValidDate(y, mo, d) {
+    if (y < 2000 || y > 2100 || mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+    var dt = new Date(y, mo - 1, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+    return fmtDate(dt);
+  }
+  function parseDateStr(s) {
+    s = String(s || '').trim().replace(/^"|"$/g, '');
+    var m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/);
+    if (m) return makeValidDate(+m[1], +m[2], +m[3]);
+    var m2 = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
+    if (m2) {
+      // 首段 >12 必为"日/月/年"，否则按 Excel 常见的"月/日/年"
+      return +m2[1] > 12 ? makeValidDate(+m2[3], +m2[2], +m2[1])
+                         : makeValidDate(+m2[3], +m2[1], +m2[2]);
+    }
+    return null;
+  }
+  function parseCSVLine(line) {
+    return line.split(',').map(function (p) { return p.trim().replace(/^"|"$/g, ''); });
+  }
+
+  function handleImportText(text) {
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // 去 BOM
+    var lines = text.split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
+    var added = [], dupCount = 0, skipped = 0;
+    var newHeight = null, newGoal = null;
+    var waterCol = -1, exCol = -1; // 饮水量/运动列号（按表头识别；-1 = 无该列，兼容旧格式）
+
+    function applySettings() {
+      var changed = [];
+      if (newHeight !== null && newHeight >= 80 && newHeight <= 250) {
+        if (newHeight !== height) changed.push('身高 ' + newHeight + ' cm');
+        height = newHeight;
+        localStorage.setItem(KEY_H, String(height));
+      }
+      if (newGoal !== null) {
+        if (newGoal >= 25 && newGoal <= 300) {
+          if (newGoal !== goal) changed.push('目标体重 ' + newGoal + ' kg');
+          goal = newGoal;
+          localStorage.setItem(KEY_G, String(goal));
+        } else {
+          goal = 0;
+          localStorage.removeItem(KEY_G);
+        }
+      }
+      if (changed.length) toast('已还原设置：' + changed.join('、'));
+      return changed.length > 0;
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+      var parts = parseCSVLine(lines[i]);
+      // 备份元信息行：# 身高(cm),179 / # 目标体重(kg),70
+      if (parts[0] && parts[0].charAt(0) === '#') {
+        var key = parts[0].slice(1).trim();
+        var val = parseFloat(parts[1]);
+        if (key === '身高(cm)' && isFinite(val)) newHeight = val;
+        if (key === '目标体重(kg)' && isFinite(val)) newGoal = val;
+        continue;
+      }
+      if (parts[0] && parts[0].indexOf('日期') >= 0) {
+        // 表头行：识别饮水量/运动列位置（按列名匹配，兼容各种列顺序与旧格式）
+        for (var c = 1; c < parts.length; c++) {
+          if (!parts[c]) continue;
+          if (parts[c].indexOf('饮水量') >= 0 && waterCol < 0) waterCol = c;
+          if (parts[c].indexOf('运动') >= 0 && exCol < 0) exCol = c;
+        }
+        continue;
+      }
+      if (parts[0] && parts[0].indexOf('导出时间') >= 0) continue;
+      var date = parseDateStr(parts[0]);
+      var w = parseFloat(parts[1]);
+      if (!date || !w || w < 20 || w > 300) { skipped++; continue; }
+      w = Math.round(w * 10) / 10;
+      // 饮水量：仅在表头声明了饮水量列时才读取（避免把旧格式的 BMI 列误读为饮水）
+      var water = null;
+      if (waterCol >= 0 && isFinite(parseFloat(parts[waterCol]))) {
+        var wtr = parseFloat(parts[waterCol]);
+        if (wtr >= 0 && wtr <= 10) water = Math.round(wtr * 10) / 10;
+      }
+      // 运动时长：仅在表头声明了运动列时才读取；0–600 分钟（整数）
+      var exercise = null;
+      if (exCol >= 0 && isFinite(parseFloat(parts[exCol]))) {
+        var ev = parseFloat(parts[exCol]);
+        if (ev >= 0 && ev <= 600) exercise = Math.round(ev);
+      }
+      var exist = records.find(function (r) { return r.date === date; });
+      if (exist) { dupCount++; exist.weight = w; exist.water = water; exist.exercise = exercise; } // 重复日期：覆盖为 CSV 数值
+      else added.push({ date: date, weight: w, water: water, exercise: exercise });
+    }
+
+    var total = added.length + dupCount;
+
+    // 纯设置文件（无记录行）：直接还原设置
+    if (total === 0 && (newHeight !== null || newGoal !== null)) {
+      applySettings();
+      $('heightInput').value = height || '';
+      $('goalInput').value = goal > 0 ? goal : '';
+      render();
+      syncFormForDate($('dateInput').value);
+      toast('已从文件还原身高/目标设置 ✓');
+      return;
+    }
+
+    if (total === 0) {
+      toast('未解析出有效记录（跳过无效行 ' + skipped + ' 条），请检查文件格式');
+      return;
+    }
+    var msg = '共解析出 ' + total + ' 条有效记录';
+    if (added.length) msg += '，新增 ' + added.length + ' 条';
+    if (dupCount) msg += '，与现有记录同日期 ' + dupCount + ' 条（将覆盖为 CSV 数值）';
+    if (skipped) msg += '；另有无效行 ' + skipped + ' 条已跳过';
+    msg += '。确定导入吗？';
+    if (!confirm(msg)) { toast('已取消导入'); return; }
+    records = records.concat(added);
+    records.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    save();
+    var settingsChanged = applySettings(); // 还原身高/目标设置（如有）
+    $('heightInput').value = height || '';
+    $('goalInput').value = goal > 0 ? goal : '';
+    render();
+    syncFormForDate($('dateInput').value);
+    toast('导入完成 ✓ 新增 ' + added.length + ' 条' + (dupCount ? '，更新 ' + dupCount + ' 条' : '') + (settingsChanged ? '，设置已还原' : ''));
+  }
+
+  $('importBtn').addEventListener('click', function () { $('fileInput').click(); });
+  $('fileInput').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    e.target.value = ''; // 允许重复选择同一文件
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var text = String(reader.result);
+      // utf-8 出现替换符 → 大概率是 Excel 另存的 GBK/ANSI 编码，按 gbk 重读
+      if (text.indexOf('\uFFFD') >= 0) {
+        var r2 = new FileReader();
+        r2.onload = function () { handleImportText(String(r2.result)); };
+        r2.onerror = function () { toast('文件读取失败，请重试'); };
+        try { r2.readAsText(file, 'gbk'); } catch (err) { handleImportText(text); }
+        return;
+      }
+      handleImportText(text);
+    };
+    reader.onerror = function () { toast('文件读取失败，请重试'); };
+    reader.readAsText(file, 'utf-8');
+  });
+
+  // 清空（双重确认）
+  $('clearBtn').addEventListener('click', function () {
+    if (records.length === 0) { toast('暂无数据'); return; }
+    if (!confirm('确定要清空全部 ' + records.length + ' 条记录吗？此操作不可恢复！')) return;
+    if (!confirm('再次确认：真的要清空全部数据吗？建议先导出 CSV 备份。')) return;
+    records = [];
+    save();
+    render();
+    syncFormForDate($('dateInput').value);
+    toast('已清空');
+  });
+
+  window.addEventListener('resize', drawChart);
+
+  // 吸顶工具条：滚动后加投影
+  window.addEventListener('scroll', function () {
+    $('topbar').classList.toggle('is-stuck', window.scrollY > 4);
+  }, { passive: true });
+
+  // 每日提醒：页面打开时检查一次，此后每 30 秒轮询
+  $('remindTime').value = remind.time;
+  updateRemindBtn();
+  setTimeout(checkReminder, 1500);
+  setInterval(checkReminder, 30000);
+
+  render();
+})();
+</script>
+</body>
+</html>
